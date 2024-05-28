@@ -26,11 +26,12 @@ class Options:
         pass
 
     def save_game(self) -> None:
-        main.save_game()
+        print(f"The game was saved as {main.save_game()}.")
+        
 
     def load_game(self) -> None:
         game_save_files: list = main.list_game_save_files()
-        choosed: int = menu.main([i.replace(".save", "") for i in game_save_files])
+        choosed: int = menu.main([i.replace(".save", "") for i in game_save_files], "Load Game Menu")
         main.load_game(game_save_files[choosed])
 
 class Oponent:
@@ -60,7 +61,7 @@ class Main:
     def __init__(self) -> None:
         pass
 
-    def save_game(self) -> None:
+    def save_game(self) -> str:
         file:str = str(datetime.now()).replace("-", "_").replace(" ", "-")[:16]
         i = 0
         while exists(file + ".save"):
@@ -70,6 +71,8 @@ class Main:
         with open(f"{file}.save", "wb") as writer:
             #pickle.dump([player, level], writer)
             pass
+
+        return file
 
     def load_game(self, file:str) -> (WorldState, Characterstate):
         with open(f"{file}.save", "rb") as reader:
