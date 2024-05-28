@@ -31,25 +31,41 @@ class Options:
 
     def load_game(self) -> None:
         game_save_files: list = main.list_game_save_files()
-        choosed: int = menu.main([i.replace(".save", "") for i in game_save_files], "Load Game Menu")
+        choosed: int = menu([i.replace(".save", "") for i in game_save_files], "Load Game Menu")
         main.load_game(game_save_files[choosed])
 
 
-class Oponent:
-    """Class for normal Oponents, Bosses and Minibosses"""
+class Character:
+
     species: str = ""
     health: int = None
     name: str = ""
     strength: int = None
     speed: int = None
-    krit_rate: int = None
-    miss_rate: int = None
+    crit_rate: int = None
+    accuracy: int = None
     attacks: dict = {}  # Attack name is key, value is the attack damage
-    items: dict = {}  # Item name is key, value is list of item properties
+    inventory: dict = {}  # Item name is key, value is list of item properties
 
-    def __init__(self, health) -> None:
+    def __init__(
+        self, species: str, health: int,
+        name: str, strength: int, speed: int,
+        crit_rate: int, accuracy: int,
+        attacks: dict, inventory: dict,
+        experience_points: int
+        ) -> None:
+
+        self.species = species
         self.health = health
-    
+        self.name = name
+        self.strength = strength
+        self.speed = speed
+        self.crit_rate = crit_rate
+        self.accuracy = accuracy
+        self.attacks = attacks
+        self.inventory = inventory
+        self.experience_points = experience_points
+
     def get_attributes(self) -> dict:
         attributes: dict = {
             "species": self.species,
@@ -57,41 +73,64 @@ class Oponent:
             "name": self.name,
             "strength": self.strength,
             "speed": self.speed,
-            "krit_rate": self.krit_rate,
-            "miss_rate": self.miss_rate,
+            "crit_rate": self.crit_rate,
+            "accuracy": self.accuracy,
             "attacks": self.attacks,
-            "items": self.items
+            "inventory": self.inventory
             }
         return attributes
 
 
+class Oponent(Character):
+    """Class for normal Oponents, Bosses and Minibosses"""
+    def __init__(self, species: str, health: int,
+        name: str, strength: int, speed: int,
+        crit_rate: int, accuracy: int,
+        attacks: dict, inventory: dict,
+        experience_points: int
+        ) -> None:
+        super().__init__(
+            species, health, name, strength,
+            speed, crit_rate, accuracy, attacks,
+            inventory, experience_points
+            )
 
-class GameState:
-    """The state of the whole world, not
-    depending on the character state"""
-    time:int = None
 
+class Player(Character):
 
-class Player:
-
-    name: str = ""
     surname: str = ""
-    species: str = ""
     weight: int = None
     height: int = None
-    health: int = None
     hunger: int = None
-    experience_points: int = None
     ability_points: int = None
     reputation: dict = {}  # Key is region, value is the reputation in this region
     known_characters: dict = {}  # Key is characters id, value is dict of characters attributes
-    known_items: dict = {}  # 
-    speed: int = None
-    strength: int = None
-    inventory: dict = {}
+    experience_points: int = None
     coordinates: list[int] = []
 
-    def __init__(self, coordinates) -> None:
+    def __init__(
+        self, species: str, health: int,
+        name: str, surname: str,
+        strength: int, speed: int,
+        crit_rate: int, accuracy: int,
+        attacks: dict, inventory: dict,
+        weight: int, height: int, hunger: int,
+        experience_points: int, reputation: dict,
+        ability_points: int, coordinates: list[int],
+        known_characters: dict
+        ) -> None:
+        super().__init__(
+            species, health, name, strength,
+            speed, crit_rate, accuracy, attacks,
+            inventory, experience_points
+            )
+        self.surname = surname
+        self.weight = weight
+        self.height = height
+        self.hunger = hunger
+        self.ability_points = ability_points
+        self.reputation = reputation
+        self.known_characters = known_characters
         self.coordinates = coordinates
 
     def get_fight_attributes(self) -> dict:
@@ -102,12 +141,16 @@ class Player:
             "name": self.name,
             "health": self.health,
             "hunger": self.hunger,
-            "known_items": self.known_items,
             "speed": self.speed,
             "strength": self.strength,
             "inventory": self.inventory,
-
         }
+        return fight_attributes
+
+
+class GameState:
+    """The state of the whole game"""
+    time:int = None
 
 
 class Main:
