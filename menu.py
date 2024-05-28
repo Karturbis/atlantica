@@ -1,7 +1,7 @@
 """This module provides a simple implementation
 of a menu, that can be used flexible."""
 
-def main(options: list, caption: str = "", iteration_zero: bool = True) -> int:
+def menu(options: list, caption: str = "", iteration_zero: bool = True) -> int:
     """The main method, which displays the menu."""
     if iteration_zero:
         options.append("Help")
@@ -20,5 +20,5 @@ def main(options: list, caption: str = "", iteration_zero: bool = True) -> int:
             continue
         running = False
     if option == len(options):
-        main(options, caption, False)
+        menu(options, caption, False)
     return option
