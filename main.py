@@ -1,5 +1,5 @@
-"""This is the main file of the text adventure game 'atlantica' for
-more information see readme.md"""
+"""This is the main file of the text adventure game framework
+'atlantica' for more information see readme.md"""
 import sys
 from datetime import datetime
 from os.path import exists
@@ -21,13 +21,11 @@ class Options:
     def new_game(self) -> None:
         pass
 
-
     def character_menu(self) -> None:
         pass
 
     def save_game(self) -> None:
         print(f"The game was saved as {main.save_game()}.")
-        
 
     def load_game(self) -> None:
         game_save_files: list = main.list_game_save_files()
@@ -36,25 +34,48 @@ class Options:
 
 class Oponent:
     """Class for normal Oponents, Bosses and Minibosses"""
+    creature_type: str = ""
     health: int = None
+    name: str = ""
+    strength: int = None
+    speed: int = None
+    krit_rate: int = None
+    miss_rate: int = None
+    attacks: dict = {}  # Attack name is key, value is the attack damage
+    items: dict = {}  # Item name is key, value is list of item properties
+
 
     def __init__(self, health) -> None:
         self.health = health
 
-
-class WorldState:
+class GameState:
     """The state of the whole world, not
     depending on the character state"""
-    bosses: dict[Oponent] = {}
+    time:int = None
 
 
-class Characterstate:
-    """"""
-    coordinates: list[int] = []
+class Player:
+
+    name: str = ""
+    surname: str = ""
+    species: str = ""
+    weight: int = None
+    height: int = None
     health: int = None
+    hunger: int = None
+    experience_points: int = None
+    ability_points: int = None
+    reputation: dict = {}  # Key is region, value is the reputation in this region
+    known_characters: dict = {}  # Key is characters id, value is dict of characters attributes
+    known_items: dict = {}  # 
+    speed: int = None
+    strength: int = None
+    inventory: dict = {}
+    coordinates: list[int] = []
 
     def __init__(self, coordinates) -> None:
         self.coordinates = coordinates
+
 
 class Main:
 
@@ -74,7 +95,7 @@ class Main:
 
         return file
 
-    def load_game(self, file:str) -> (WorldState, Characterstate):
+    def load_game(self, file:str) -> (GameState):
         with open(f"{file}.save", "rb") as reader:
             player, level = pickle.load(reader)
             return (player, level)
