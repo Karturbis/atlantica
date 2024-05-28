@@ -1,6 +1,7 @@
 """This is the main file of the text adventure game framework
 'atlantica' for more information see readme.md"""
 import sys
+import sqlite3
 from datetime import datetime
 from os.path import exists
 from os import walk
