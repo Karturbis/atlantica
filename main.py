@@ -181,6 +181,7 @@ class Main:
         game_save_files: list = next(walk("saves"), (None, None, []))[2]
         return game_save_files
 
+
 menu([
     "New game",
     "Load game",
