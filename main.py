@@ -8,18 +8,30 @@ from os import walk
 import pickle
 import pansi
 from menu import menu
-import fight
+import combat
 
 
-class Options:
+class Command:
 
-    OPTIONS:list = [
-        "New game",
-        "Load game",
-        "Character",
-        "Save",
-        "Exit"
-        ]
+    COMMANDS_MENU: dict = {
+        "Newgame": main.new_game,
+        "Loadgame": main.load_game,
+        "Character": main.character_menu,
+        "Save": main.save_game,
+        "Exit": main.exit_game
+    }
+
+    COMMANDS_STD: dict = {
+        "go": main.move,
+        "pickup"
+    }
+
+    COMMANDS_FIGHT: dict = {
+        "attack": combat.attack
+        "defe"
+
+    }
+
 
     def new_game(self) -> None:
         pass
@@ -43,15 +55,14 @@ class Character:
     name: str = ""
     strength: int = None
     speed: int = None
-    crit_rate: int = None
     accuracy: int = None
     attacks: dict = {}  # Attack name is key, value is the attack damage
     inventory: dict = {}  # Item name is key, value is list of item properties
 
     def __init__(
         self, species: str, health: int,
-        name: str, strength: int, speed: int,
-        crit_rate: int, accuracy: int,
+        name: str, strength: int,
+        speed: int, accuracy: int,
         attacks: dict, inventory: dict,
         experience_points: int
         ) -> None:
@@ -61,7 +72,6 @@ class Character:
         self.name = name
         self.strength = strength
         self.speed = speed
-        self.crit_rate = crit_rate
         self.accuracy = accuracy
         self.attacks = attacks
         self.inventory = inventory
@@ -74,7 +84,6 @@ class Character:
             "name": self.name,
             "strength": self.strength,
             "speed": self.speed,
-            "crit_rate": self.crit_rate,
             "accuracy": self.accuracy,
             "attacks": self.attacks,
             "inventory": self.inventory
@@ -85,14 +94,14 @@ class Character:
 class Oponent(Character):
     """Class for normal Oponents, Bosses and Minibosses"""
     def __init__(self, species: str, health: int,
-        name: str, strength: int, speed: int,
-        crit_rate: int, accuracy: int,
+        name: str, strength: int,
+        speed: int, accuracy: int,
         attacks: dict, inventory: dict,
         experience_points: int
         ) -> None:
         super().__init__(
             species, health, name, strength,
-            speed, crit_rate, accuracy, attacks,
+            speed, accuracy, attacks,
             inventory, experience_points
             )
 
@@ -110,10 +119,10 @@ class Player(Character):
     coordinates: list[int] = []
 
     def __init__(
-        self, species: str, health: int,
-        name: str, surname: str,
-        strength: int, speed: int,
-        crit_rate: int, accuracy: int,
+        self, species: str,
+        health: int, name: str,
+        surname: str, strength: int,
+        speed: int, accuracy: int,
         attacks: dict, inventory: dict,
         weight: int, height: int, hunger: int,
         experience_points: int, reputation: dict,
@@ -122,7 +131,7 @@ class Player(Character):
         ) -> None:
         super().__init__(
             species, health, name, strength,
-            speed, crit_rate, accuracy, attacks,
+            speed, accuracy, attacks,
             inventory, experience_points
             )
         self.surname = surname
