@@ -225,11 +225,12 @@ class Item:
     sword, apple, axe, lantern..."""
     def __init__(
         self, item_id: str, wapon:bool,
-        description: str
+        description: str, saturation: int
         ):
         self.__item_id = item_id
         self.__wapon = wapon
         self.__description = description
+        self.__saturation = saturation
 
 
 class Chunk:
