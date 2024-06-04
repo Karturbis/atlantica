@@ -159,21 +159,24 @@ class InputHandler:
         for validity of the command"""
         inputing = True
         while inputing:
-            try:
-                commands_input = input("> ").lower().split(" ")
-                if len(commands_input) > 1:  # outputs the number of parameters the inputed method takes
-                    for key, func in self.__commands_avail.items():
-                        if key.startswith(commands_input[0]):
-                            func(commands_input[1:])
-            except KeyError:
-                print("Please enter a valid command, type 'help' for help.")
-            try:
-                if len(commands_input) == 1:
-                    for key, func in self.__commands_avail.items():
-                        if key.startswith(commands_input[0]):
-                            func()
-            except KeyError:
-                print("Please enter a valid command, type 'help' for help.")
+            commands_input = input("> ").lower().split(" ")
+            error_thrown: bool = False
+            if len(commands_input) > 1:  # outputs the number of parameters the inputed method takes
+                for key, func in self.__commands_avail.items():
+                    if key.startswith(commands_input[0]):
+                        func(commands_input[1:])
+                    else:
+                        if not error_thrown:
+                            print("Please enter a valid command, type 'help' for help.")
+                            error_thrown = True
+            if len(commands_input) == 1:
+                for key, func in self.__commands_avail.items():
+                    if key.startswith(commands_input[0]):
+                        func()
+                    else:
+                        if not error_thrown:
+                            print("Please enter a valid command, type 'help' for help.")
+                            error_thrown = True
 
     def print_help(self, args = None):
         """Outprints all available commands."""
@@ -304,6 +307,9 @@ class Main:
         self.inventory: dict = {}
         self.in_hand: str = ""
 
+    def load_chunk(self, chunk_id):
+        return chunk_id
+
     def quit_game(self, args = None):
         """Saves and quits the game."""
         self.save_game()
@@ -311,7 +317,7 @@ class Main:
 
     def new_game(self, args = None):
         """Creates a new game save slot"""
-        pass
+        print("NEWGAME")
 
     def load_game(self, args = None):
         """Loads the gamestate from
@@ -333,14 +339,14 @@ class Main:
                     direction[1] = int(direction[1])
                 for i in range(direction[1]):
                     if direction[0] == "north" or direction[0] == "n":
-                        self.position.chunk_id = self.position.north_chunk_id
+                        self.position = self.load_chunk(self.position.get_north_chunk_id())
                         print("You went North")
                     elif direction[0] == "east" or direction[0] == "e":
-                        self.position.chunk_id = self.position.east_chunk_id
+                        self.position = self.load_chunk(self.position.get_east_chunk_id())
                     elif direction[0] == "south" or direction[0] == "s":
-                        self.position.chunk_id = self.position.south_chunk_id
+                        self.position = self.load_chunk(self.position.get_south_chunk_id())
                     elif direction[0] == "west" or direction[0] == "w":
-                        self.position.chunk_id = self.position.west_chunk_id
+                        self.position = self.load_chunk(self.position.get_west_chunk_id())
                     else:
                         print("You did not walk, the direction you want to go does not exist.")
             except ValueError:
@@ -353,7 +359,7 @@ class Main:
         """Rest, no other actions
         take place. The Player
         gets healed."""
-        print(f"You had a nice rest! {args[0:]}")
+        print("You had a nice rest!")
 
     def take(self, item: list = None):
         """Take a given Item from
