@@ -123,7 +123,7 @@ class DatabaseHandler:
         return self.get_data(
             "chunks", ["north_id", "east_id",
             "south_id", "west_id", "description",
-            "items", "characters"
+            "stage", "items", "characters"
             ], chunk_id
             )
 
@@ -243,9 +243,9 @@ class Chunk:
     walks, the current Chunk has the information
     about what will be the next Chunk."""
     def __init__(
-        self, chunk_id: str, north_chunk_id: str,
-        east_chunk_id: str, south_chunk_id: str,
-        west_chunk_id: str, description: str,
+        self, chunk_id: str = None, north_chunk_id: str = None,
+        east_chunk_id: str = None, south_chunk_id: str = None,
+        west_chunk_id: str = None, description: str = None, stage: str = None,
         items: list = None, characters: list = None
         ):
         self.__chunk_id: str = chunk_id
@@ -254,6 +254,7 @@ class Chunk:
         self.__south_chunk_id: str = south_chunk_id
         self.__west_chunk_id: str = west_chunk_id
         self.__description: str = description
+        self.__stage: str = stage
         self.__items: list = items
         self.__characters: list = characters
 
@@ -303,13 +304,15 @@ class Main:
     when in the 'normal' game mode."""
 
     def __init__(self):
-        start = Chunk("0", "1", "2", "3", "4", "You are at the start of the Game")
+        start = Chunk("0", "1", "2", "3", "4", "You are at the start of the Game", "start")
         self.position: Chunk = start
         self.inventory: dict = {}
         self.in_hand: str = ""
 
     def load_chunk(self, chunk_id):
-        return chunk_id
+        chunk_data = database_handler.get_chunk_data(chunk_id)
+        chunk = Chunk(chunk_id, *chunk_data)
+        return chunk
 
     def quit_game(self, args = None):
         """Saves and quits the game."""
@@ -440,6 +443,6 @@ Enjoy your time around here.
 main = Main()
 combat = Combat()
 input_handler = InputHandler()
-database_handler = DatabaseHandler("content.sqlite")
+database_handler = DatabaseHandler("./rewrite/content.sqlite")
 main.game_start()
 input_handler.input_loop()
