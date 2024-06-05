@@ -107,10 +107,10 @@ class DatabaseHandler:
                 command = f"{command} {i}, "
             else:
                 command = f"{command} {i}"
-        command = f"{command} FROM {table} WHERE id='{data_id}'"
-        print(command)
+        command = f"{command} FROM {table} WHERE id='{data_id.strip()}'"
         data = self.__cursor.execute(command)
-        return data.fetchall()
+        fetched_data: list = data.fetchall()
+        return list(fetched_data[0])
 
     def get_item_data(self, item_id: str) -> list:
         """Calls the get_data method with
@@ -166,10 +166,6 @@ class InputHandler:
                 for key, func in self.__commands_avail.items():
                     if key.startswith(commands_input[0]):
                         func(commands_input[1:])
-                    else:
-                        if not error_thrown:
-                            print("Please enter a valid command, type 'help' for help.")
-                            error_thrown = True
             if len(commands_input) == 1:
                 for key, func in self.__commands_avail.items():
                     if key.startswith(commands_input[0]):
@@ -260,8 +256,8 @@ class Chunk:
         self, chunk_id: str = None, north_chunk_id: str = None,
         east_chunk_id: str = None, south_chunk_id: str = None,
         west_chunk_id: str = None, description: str = None, stage: str = None,
-        items: list = None, characters: list = None, add_commands: dict = None,
-        rem_commands: dict = None
+        items: str = None, characters: str = None, add_commands: str = None,
+        rem_commands: str = None
         ):
         self.__chunk_id: str = chunk_id
         self.__north_chunk_id: str = north_chunk_id
@@ -270,10 +266,13 @@ class Chunk:
         self.__west_chunk_id: str = west_chunk_id
         self.__description: str = description
         self.__stage: str = stage
-        self.__items: list = items
-        self.__characters: list = characters
+        self.__items: list = items.split(", ")
+        self.__characters: list = characters.split(", ")
         self.__add_commands = add_commands
         self.__rem_commands = rem_commands
+
+    def get_chunk_id(self) -> str:
+        return self.__chunk_id
 
     def get_north_chunk_id(self) -> str:
         """Returns the chunk_id of
@@ -309,6 +308,9 @@ class Chunk:
         that the current chunk
         contains at the moment."""
         return self.__items
+    
+    def remove_item(self, item: str):
+        self.__items.remove(item)
 
     def get_characters(self) -> list:
         """Returns a list of Characters,
@@ -326,18 +328,27 @@ class Main:
     """This class contains the methods used,
     when in the 'normal' game mode."""
 
-    def __init__(self):
-        start = Chunk("0", "1", "2", "3", "4", "You are at the start of the Game", "start")
-        self.position: Chunk = start
-        self.inventory: dict = {}
-        self.in_hand: str = ""
+    def __init__(self, game_start: bool):
+        if game_start:
+            self.game_start()
+        self.__position = Chunk("000-temple-start", *database_handler.get_chunk_data("000-temple-start"))
+        print(self.__position.get_description())
+        self.__inventory: dict = {}
+        self.__in_hand: str = ""
 
     def load_chunk(self, chunk_id):
+        try:
+            chunk_data = database_handler.get_chunk_data(chunk_id)
+            print(chunk_data[4])
+        except IndexError:
+            print("Where you wanted to go, there is just void.")
+            return self.__position
         input_handler.reset_commands()  # reset commands, so previous chunk has no effecet anymore
-        chunk_data = database_handler.get_chunk_data(chunk_id)
         chunk = Chunk(chunk_id, *chunk_data)
-        input_handler.remove_commands(chunk.get_rem_commands())
-        input_handler.add_commands(chunk.get_add_commands())
+        if chunk.get_rem_commands():
+            input_handler.remove_commands(chunk.get_rem_commands())
+        if chunk.get_add_commands():
+            input_handler.add_commands(chunk.get_add_commands())
         return chunk
 
     def quit_game(self, args = None):
@@ -369,14 +380,13 @@ class Main:
                     direction[1] = int(direction[1])
                 for i in range(direction[1]):
                     if direction[0] == "north" or direction[0] == "n":
-                        self.position = self.load_chunk(self.position.get_north_chunk_id())
-                        print("You went North")
+                        self.__position = self.load_chunk(self.__position.get_north_chunk_id())
                     elif direction[0] == "east" or direction[0] == "e":
-                        self.position = self.load_chunk(self.position.get_east_chunk_id())
+                        self.__position = self.load_chunk(self.__position.get_east_chunk_id())
                     elif direction[0] == "south" or direction[0] == "s":
-                        self.position = self.load_chunk(self.position.get_south_chunk_id())
+                        self.__position = self.load_chunk(self.__position.get_south_chunk_id())
                     elif direction[0] == "west" or direction[0] == "w":
-                        self.position = self.load_chunk(self.position.get_west_chunk_id())
+                        self.__position = self.load_chunk(self.__position.get_west_chunk_id())
                     else:
                         print("You did not walk, the direction you want to go does not exist.")
             except ValueError:
@@ -396,9 +406,17 @@ class Main:
         the current chunk."""
         if not item is None:
             for i in item:
-                self.inventory[i] = False  # The Flase stands for the equipped parameter
-                print(f"You took {i}.")
-            # ADD CHECK, IF ITEM IS IN CURRENT CHUNK!!!
+                found = False
+                for j, item_avail in enumerate(self.__position.get_items()):
+                    if item_avail.startswith(i):
+                        self.__inventory[item_avail] = False  # The Flase stands for the equipped parameter
+                        self.__position.remove_item(item_avail)
+                        print(f"You took {item_avail}.")
+                        found = True
+                        break
+                if not found:
+                    print(f"There is no {i} in the current at your current location.")
+
 
     def drop(self, item: list = None):
         """Drop a given Item from the
@@ -408,7 +426,7 @@ class Main:
         else:
             for i in item:
                 try:
-                    self.inventory.pop(i)
+                    self.__inventory.pop(i)
                     print(f"You dropped {i}.")
                 except KeyError:
                     print(f"You tried to drop {i}, but it was not even in your inventory!")
@@ -416,9 +434,9 @@ class Main:
     def print_inventory(self, args = None):
         """"Outprints the Inventory, mark
         which item is equiped."""
-        if self.inventory:
+        if self.__inventory:
             print("Your inventory contains:")
-            for key, value in self.inventory.items():
+            for key, value in self.__inventory.items():
                 if value:  # check, if item is eqiupped
                     print(f"{key} - equipped")
                 else:
@@ -430,12 +448,12 @@ class Main:
         """Unequip the Item, which
         is currently equipped."""
         if item is None:
-            for inventory_item, equipped in self.inventory.items():
+            for inventory_item, equipped in self.__inventory.items():
                 if equipped:
-                    self.inventory[inventory_item] = False  # set the equipped parameter to false
+                    self.__inventory[inventory_item] = False  # set the equipped parameter to false
                     print(f"You unequipped {inventory_item}.")
         else:
-            if self.inventory[item[0]]:
+            if self.__inventory[item[0]]:
                 self.unequip()
             else:
                 print(f"{item[0]} was no equipped.")
@@ -444,11 +462,18 @@ class Main:
         """Equip a given Item, that either
         is in the Inventory, or in the 
         curren chunk."""
-        # ADD CHECK; IF ITEM EXISTS IN CHUNK, OR INVENTORY!!!!!
+        items_avail: list = self.__position.get_items() + list(self.__inventory.keys())
         if not item is None:
-            self.unequip()
-            self.inventory[item[0]] = True  # set the eqiupped parameter to true
-            print(f"You equipped {item[0]}.")
+            found = False
+            for i in items_avail:
+                if i.startswith(item[0]):
+                    self.unequip()
+                    self.__inventory[i] = True  # set the eqiupped parameter to true
+                    print(f"You equipped {i}.")
+                    found = True
+                    break
+            if not found:
+                print(f"There is no {item[0]}, you could to equip right now.")
         else:
             print("You wanted to equip. But what?")
 
@@ -465,10 +490,8 @@ Enjoy your time around here.
 """)
 
 
-
-main = Main()
+database_handler = DatabaseHandler("./rewrite/content.sqlite")
+main = Main(True)
 combat = Combat()
 input_handler = InputHandler()
-database_handler = DatabaseHandler("./rewrite/content.sqlite")
-main.game_start()
 input_handler.input_loop()
