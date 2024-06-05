@@ -192,6 +192,7 @@ class InputHandler:
             self.__commands_avail.pop(key)
 
     def reset_commands(self) -> None:
+        """Reset the commands to standard."""
         self.__commands_avail = self.__commands_std
 
 
@@ -272,6 +273,7 @@ class Chunk:
         self.__rem_commands = rem_commands
 
     def get_chunk_id(self) -> str:
+        """Returns the id of the current chunk"""
         return self.__chunk_id
 
     def get_north_chunk_id(self) -> str:
@@ -310,9 +312,11 @@ class Chunk:
         return self.__items
 
     def remove_item(self, item: str):
+        """Removes an Item from a Chunk"""
         self.__items.remove(item)
 
     def add_item(self, item: str):
+        """Add an Item to a Chunk"""
         self.__items.append(item)
 
     def get_characters(self) -> list:
@@ -321,9 +325,15 @@ class Chunk:
         return self.__characters
 
     def get_add_commands(self) -> dict:
+        """Returns the not standard commands,
+        which are possible to be executed
+        within the current Chunk."""
         return self.__add_commands
 
     def get_rem_commands(self) -> dict:
+        """Returns the standart commands,
+        which can not be used within
+        the current Chunk"""
         return self.__rem_commands
 
 
@@ -339,7 +349,8 @@ class Main:
         self.__inventory: dict = {}
         self.__in_hand: str = ""
 
-    def load_chunk(self, chunk_id):
+    def load_chunk(self, chunk_id: str) -> Chunk:
+        """Loads the Chunk with the given id"""
         try:
             chunk_data = database_handler.get_chunk_data(chunk_id)
             print(chunk_data[4])
