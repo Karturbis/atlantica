@@ -417,7 +417,6 @@ class Main:
                 if not found:
                     print(f"There is no {i} in the current at your current location.")
 
-
     def drop(self, item: list = None):
         """Drop a given Item from the
         Inventory to the current chunk."""
@@ -425,11 +424,15 @@ class Main:
             print("You dropped ... nothing.")
         else:
             for i in item:
-                try:
-                    self.__inventory.pop(i)
-                    print(f"You dropped {i}.")
-                except KeyError:
-                    print(f"You tried to drop {i}, but it was not even in your inventory!")
+                dropped = False
+                for item_avail in self.__inventory.keys():
+                    if item_avail.startswith(i):
+                        self.__inventory.pop(item_avail)
+                        print(f"You dropped {item_avail}.")
+                        dropped = True
+                        break
+                if not dropped:
+                    print(f"You tried to drop {j}, but it was not even in your inventory!")
 
     def print_inventory(self, args = None):
         """"Outprints the Inventory, mark
