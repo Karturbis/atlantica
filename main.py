@@ -308,9 +308,12 @@ class Chunk:
         that the current chunk
         contains at the moment."""
         return self.__items
-    
+
     def remove_item(self, item: str):
         self.__items.remove(item)
+
+    def add_item(self, item: str):
+        self.__items.append(item)
 
     def get_characters(self) -> list:
         """Returns a list of Characters,
@@ -415,7 +418,7 @@ class Main:
                         found = True
                         break
                 if not found:
-                    print(f"There is no {i} in the current at your current location.")
+                    print(f"There is no {i} at your current location.")
 
     def drop(self, item: list = None):
         """Drop a given Item from the
@@ -425,14 +428,15 @@ class Main:
         else:
             for i in item:
                 dropped = False
-                for item_avail in self.__inventory.keys():
+                for item_avail in self.__inventory:
                     if item_avail.startswith(i):
                         self.__inventory.pop(item_avail)
+                        self.__position.add_item(item_avail)
                         print(f"You dropped {item_avail}.")
                         dropped = True
                         break
                 if not dropped:
-                    print(f"You tried to drop {j}, but it was not even in your inventory!")
+                    print(f"You tried to drop {i}, but it was not even in your inventory!")
 
     def print_inventory(self, args = None):
         """"Outprints the Inventory, mark
@@ -472,6 +476,7 @@ class Main:
                 if i.startswith(item[0]):
                     self.unequip()
                     self.__inventory[i] = True  # set the eqiupped parameter to true
+                    self.__position.remove_item(i)
                     print(f"You equipped {i}.")
                     found = True
                     break
