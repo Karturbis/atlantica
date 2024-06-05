@@ -134,8 +134,7 @@ class InputHandler:
     calling the right funcionts associated
     with the input."""
     def __init__(self, commands_avail=None):
-        if commands_avail is None:
-            self.__commands_avail = {
+        self.__commands_std = {
             "newgame": main.new_game,
             "loadgame": main.load_game,
             "savegame": main.save_game,
@@ -149,6 +148,8 @@ class InputHandler:
             "help": self.print_help,
             "quit": main.quit_game
             }
+        if commands_avail is None:
+            self.__commands_avail = self.__commands_std
         else:
             self.__commands_avail = commands_avail
 
@@ -183,6 +184,19 @@ class InputHandler:
         print("\nAvailable commands:\n")
         for key in self.__commands_avail.keys():
             print(key)
+
+    def add_commands(self, commands: dict) -> None:
+        """Add a command to the combat commands list."""
+        for key, value in commands.items():
+            self.__commands_avail[key] = value
+
+    def remove_commands(self, commands: dict) -> None:
+        """Remove a command from the combat commands list."""
+        for key in commands:
+            self.__commands_avail.pop(key)
+
+    def reset_commands(self) -> None:
+        self.__commands_avail = self.__commands_std
 
 
 class Container:
@@ -246,7 +260,8 @@ class Chunk:
         self, chunk_id: str = None, north_chunk_id: str = None,
         east_chunk_id: str = None, south_chunk_id: str = None,
         west_chunk_id: str = None, description: str = None, stage: str = None,
-        items: list = None, characters: list = None
+        items: list = None, characters: list = None, add_commands: dict = None,
+        rem_commands: dict = None
         ):
         self.__chunk_id: str = chunk_id
         self.__north_chunk_id: str = north_chunk_id
@@ -257,6 +272,8 @@ class Chunk:
         self.__stage: str = stage
         self.__items: list = items
         self.__characters: list = characters
+        self.__add_commands = add_commands
+        self.__rem_commands = rem_commands
 
     def get_north_chunk_id(self) -> str:
         """Returns the chunk_id of
@@ -298,6 +315,12 @@ class Chunk:
         that the current chunk contains."""
         return self.__characters
 
+    def get_add_commands(self) -> dict:
+        return self.__add_commands
+
+    def get_rem_commands(self) -> dict:
+        return self.__rem_commands
+
 
 class Main:
     """This class contains the methods used,
@@ -310,8 +333,11 @@ class Main:
         self.in_hand: str = ""
 
     def load_chunk(self, chunk_id):
+        input_handler.reset_commands()  # reset commands, so previous chunk has no effecet anymore
         chunk_data = database_handler.get_chunk_data(chunk_id)
         chunk = Chunk(chunk_id, *chunk_data)
+        input_handler.remove_commands(chunk.get_rem_commands())
+        input_handler.add_commands(chunk.get_add_commands())
         return chunk
 
     def quit_game(self, args = None):
