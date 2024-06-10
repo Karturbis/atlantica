@@ -120,12 +120,16 @@ class DatabaseHandler:
     def get_chunk_data(self, chunk_id: str) -> list:
         """Calls the get_data method with
         predesigned parameters."""
-        return self.get_data(
+        x = self.get_data(
             "chunks", ["north_id", "east_id",
             "south_id", "west_id", "description",
-            "stage", "items", "characters"
+            "items", "stage", "characters",
+            "containers", "add_commands",
+            "rem_commands"
             ], chunk_id
             )
+        print(x)
+        return x
 
 
 class InputHandler:
@@ -158,8 +162,8 @@ class InputHandler:
         input is coming, it executes the
         correlating command. Error checking
         for validity of the command"""
-        inputing = True
-        while inputing:
+        self.__inputing = True
+        while self.__inputing:
             commands_input = input("> ").lower().split(" ")
             if commands_input == ['']:
                 print("FIRSDT")
@@ -204,6 +208,9 @@ class InputHandler:
     def reset_commands(self) -> None:
         """Reset the commands to standard."""
         self.__commands_avail = self.__commands_std
+
+    def restart_input_loop(self) -> None:
+        self.__inputing = False
 
 
 class Container:
@@ -266,9 +273,9 @@ class Chunk:
     def __init__(
         self, chunk_id: str = None, north_chunk_id: str = None,
         east_chunk_id: str = None, south_chunk_id: str = None,
-        west_chunk_id: str = None, description: str = None, stage: str = None,
-        items: str = None, characters: str = None, add_commands: str = None,
-        rem_commands: str = None
+        west_chunk_id: str = None, description: str = None,
+        items: str = None, characters: str = None, stage: str = None,
+        containers: list = None, add_commands: str = None, rem_commands: str = None
         ):
         self.__chunk_id: str = chunk_id
         self.__north_chunk_id: str = north_chunk_id
@@ -371,9 +378,11 @@ class Main:
         input_handler.reset_commands()  # reset commands, so previous chunk has no effecet anymore
         chunk = Chunk(chunk_id, *chunk_data)
         if chunk.get_rem_commands():
-            input_handler.remove_commands(chunk.get_rem_commands())
+            rem_commands_dict = dict([[i[0], i[1].split(".")] for i in [i.split(": ") for i in chunk.get_rem_commands().split(";")]])
+            input_handler.remove_commands(rem_commands_dict)
         if chunk.get_add_commands():
-            input_handler.add_commands(chunk.get_add_commands())
+            add_commands_dict = dict([[i[0], i[1].split(".")] for i in [i.split(": ") for i in chunk.get_add_commands().split(";")]])
+            input_handler.add_commands(add_commands_dict)
         return chunk
 
     def print_help(self, args = None):
@@ -534,4 +543,5 @@ database_handler = DatabaseHandler("content.sqlite")
 main = Main(True)
 combat = Combat()
 input_handler = InputHandler()
-input_handler.input_loop()
+while True:
+    input_handler.input_loop()
