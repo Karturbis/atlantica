@@ -135,18 +135,18 @@ class InputHandler:
     with the input."""
     def __init__(self, commands_avail=None):
         self.__commands_std = {
-            "newgame": main.new_game,
-            "loadgame": main.load_game,
-            "savegame": main.save_game,
-            "go":main.move,
-            "rest": main.rest,
-            "take": main.take,
-            "drop": main.drop,
-            "inventory": main.print_inventory,
-            "equip": main.equip,
-            "unequip": main.unequip,
-            "help": self.print_help,
-            "quit": main.quit_game
+            "newgame": ["main", "new_game"],
+            "loadgame": ["main", "load_game"],
+            "savegame": ["main", "save_game"],
+            "go": ["main", "move"],
+            "rest": ["main", "rest"],
+            "take": ["main", "take"],
+            "drop": ["main", "drop"],
+            "inventory": ["main", "print_inventory"],
+            "equip": ["main", "equip"],
+            "unequip": ["main", "unequip"],
+            "help": ["main", "print_help"],
+            "quit": ["main", "quit_game"]
             }
         if commands_avail is None:
             self.__commands_avail = self.__commands_std
@@ -161,25 +161,35 @@ class InputHandler:
         inputing = True
         while inputing:
             commands_input = input("> ").lower().split(" ")
+            if commands_input == ['']:
+                print("FIRSDT")
+                error_thrown = True
+                continue
             error_thrown: bool = False
             if len(commands_input) > 1:  # outputs the number of parameters the inputed method takes
-                for key, func in self.__commands_avail.items():
+                for key, func_list in self.__commands_avail.items():
                     if key.startswith(commands_input[0]):
+                        if func_list[0] == "main":
+                            func = getattr(main, func_list[1])
+                        elif func_list[0] == "combat":
+                            func = getattr(combat, func_list[1])
                         func(commands_input[1:])
-            if len(commands_input) == 1:
-                for key, func in self.__commands_avail.items():
+            elif len(commands_input) == 1:
+                for key, func_list in self.__commands_avail.items():
                     if key.startswith(commands_input[0]):
+                        if func_list[0] == "main":
+                            func = getattr(main, func_list[1])
+                        elif func_list[0] == "combat":
+                            func = getattr(combat, func_list[1])
                         func()
                     else:
                         if not error_thrown:
                             print("Please enter a valid command, type 'help' for help.")
                             error_thrown = True
 
-    def print_help(self, args = None):
-        """Outprints all available commands."""
-        print("\nAvailable commands:\n")
-        for key in self.__commands_avail.keys():
-            print(key)
+
+    def get_commands_avail(self) -> dict:
+        return self.__commands_avail
 
     def add_commands(self, commands: dict) -> None:
         """Add a command to the combat commands list."""
@@ -267,8 +277,10 @@ class Chunk:
         self.__west_chunk_id: str = west_chunk_id
         self.__description: str = description
         self.__stage: str = stage
-        self.__items: list = items.split(", ")
-        self.__characters: list = characters.split(", ")
+        if items:
+            self.__items: list = items.split(", ")
+        if characters:
+            self.__characters: list = characters.split(", ")
         self.__add_commands = add_commands
         self.__rem_commands = rem_commands
 
@@ -347,7 +359,6 @@ class Main:
         self.__position = Chunk("000-temple-start", *database_handler.get_chunk_data("000-temple-start"))
         print(self.__position.get_description())
         self.__inventory: dict = {}
-        self.__in_hand: str = ""
 
     def load_chunk(self, chunk_id: str) -> Chunk:
         """Loads the Chunk with the given id"""
@@ -364,6 +375,12 @@ class Main:
         if chunk.get_add_commands():
             input_handler.add_commands(chunk.get_add_commands())
         return chunk
+
+    def print_help(self, args = None):
+        """Outprints all available commands."""
+        print("\nAvailable commands:\n")
+        for key in input_handler.get_commands_avail():
+            print(key)
 
     def quit_game(self, args = None):
         """Saves and quits the game."""
@@ -462,18 +479,21 @@ class Main:
         else:
             print("Your inventory is empty.")
 
-    def unequip(self, item: list = None):
+    def unequip(self, item: list = None, first_iter: bool = True):
         """Unequip the Item, which
         is currently equipped."""
-        if item is None:
+        if item is None or not first_iter:
             for inventory_item, equipped in self.__inventory.items():
                 if equipped:
                     self.__inventory[inventory_item] = False  # set the equipped parameter to false
                     print(f"You unequipped {inventory_item}.")
         else:
-            if self.__inventory[item[0]]:
-                self.unequip()
-            else:
+            found = False
+            for inventory_item, equipped in self.__inventory.items():
+                if inventory_item.startswith(item[0]):
+                    found = True
+                    self.unequip(None, False)
+            if not found:
                 print(f"{item[0]} was no equipped.")
 
     def equip(self, item: list = None):
@@ -487,7 +507,8 @@ class Main:
                 if i.startswith(item[0]):
                     self.unequip()
                     self.__inventory[i] = True  # set the eqiupped parameter to true
-                    self.__position.remove_item(i)
+                    if i in self.__position.get_items():
+                        self.__position.remove_item(i)
                     print(f"You equipped {i}.")
                     found = True
                     break
