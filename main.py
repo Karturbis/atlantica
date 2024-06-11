@@ -156,7 +156,6 @@ class DatabaseHandler:
                         command = f"{command}{i}\" WHERE id = \"{column_id}\""
             else:
                 command = f"{command}\" WHERE id = \"{column_id}\""
-            print(command)
             self.__cursor.execute(command)
             self.__connection.commit()
         else:
