@@ -120,7 +120,7 @@ class DatabaseHandler:
     def get_chunk_data(self, chunk_id: str) -> list:
         """Calls the get_data method with
         predesigned parameters."""
-        x = self.get_data(
+        return self.get_data(
             "chunks", ["north_id", "east_id",
             "south_id", "west_id", "description",
             "items", "stage", "characters",
@@ -128,8 +128,6 @@ class DatabaseHandler:
             "rem_commands"
             ], chunk_id
             )
-        print(x)
-        return x
 
 
 class InputHandler:
@@ -139,13 +137,11 @@ class InputHandler:
     with the input."""
     def __init__(self, commands_avail=None):
         self.__commands_std = {
-            "newgame": ["main", "new_game"],
-            "loadgame": ["main", "load_game"],
-            "savegame": ["main", "save_game"],
             "go": ["main", "move"],
             "rest": ["main", "rest"],
             "take": ["main", "take"],
             "drop": ["main", "drop"],
+            "menu": ["main", "menu"],
             "inventory": ["main", "print_inventory"],
             "equip": ["main", "equip"],
             "unequip": ["main", "unequip"],
@@ -162,34 +158,37 @@ class InputHandler:
         input is coming, it executes the
         correlating command. Error checking
         for validity of the command"""
-        self.__inputing = True
-        while self.__inputing:
-            commands_input = input("> ").lower().split(" ")
-            if commands_input == ['']:
-                print("FIRSDT")
-                error_thrown = True
-                continue
-            error_thrown: bool = False
-            if len(commands_input) > 1:  # outputs the number of parameters the inputed method takes
-                for key, func_list in self.__commands_avail.items():
-                    if key.startswith(commands_input[0]):
-                        if func_list[0] == "main":
-                            func = getattr(main, func_list[1])
-                        elif func_list[0] == "combat":
-                            func = getattr(combat, func_list[1])
-                        func(commands_input[1:])
-            elif len(commands_input) == 1:
-                for key, func_list in self.__commands_avail.items():
-                    if key.startswith(commands_input[0]):
-                        if func_list[0] == "main":
-                            func = getattr(main, func_list[1])
-                        elif func_list[0] == "combat":
-                            func = getattr(combat, func_list[1])
-                        func()
-                    else:
-                        if not error_thrown:
-                            print("Please enter a valid command, type 'help' for help.")
-                            error_thrown = True
+        inputing = True
+        while inputing:
+            try:
+                commands_input = input("> ").lower().split(" ")
+                if commands_input == ['']:
+                    print("FIRSDT")
+                    error_thrown = True
+                    continue
+                error_thrown: bool = False
+                if len(commands_input) > 1:  # outputs the number of parameters the inputed method takes
+                    for key, func_list in self.__commands_avail.items():
+                        if key.startswith(commands_input[0]):
+                            if func_list[0] == "main":
+                                func = getattr(main, func_list[1])
+                            elif func_list[0] == "combat":
+                                func = getattr(combat, func_list[1])
+                            func(commands_input[1:])
+                elif len(commands_input) == 1:
+                    for key, func_list in self.__commands_avail.items():
+                        if key.startswith(commands_input[0]):
+                            if func_list[0] == "main":
+                                func = getattr(main, func_list[1])
+                            elif func_list[0] == "combat":
+                                func = getattr(combat, func_list[1])
+                            func()
+                        else:
+                            if not error_thrown:
+                                print("Please enter a valid command, type 'help' for help.")
+                                error_thrown = True
+            except RuntimeError:
+                break
 
 
     def get_commands_avail(self) -> dict:
@@ -200,17 +199,19 @@ class InputHandler:
         for key, value in commands.items():
             self.__commands_avail[key] = value
 
-    def remove_commands(self, commands: dict) -> None:
+    def remove_commands(self, commands: dict, remove_all = False) -> None:
         """Remove a command from the combat commands list."""
+        if remove_all:
+            self.__commands_avail = {
+                "help": ["main", "print_help"],
+                "quit": ["main", "quit_game"]
+                }
         for key in commands:
             self.__commands_avail.pop(key)
 
     def reset_commands(self) -> None:
         """Reset the commands to standard."""
         self.__commands_avail = self.__commands_std
-
-    def restart_input_loop(self) -> None:
-        self.__inputing = False
 
 
 class Container:
@@ -366,6 +367,7 @@ class Main:
         self.__position = Chunk("000-temple-start", *database_handler.get_chunk_data("000-temple-start"))
         print(self.__position.get_description())
         self.__inventory: dict = {}
+        self.__position_save_id = None
 
     def load_chunk(self, chunk_id: str) -> Chunk:
         """Loads the Chunk with the given id"""
@@ -378,10 +380,13 @@ class Main:
         input_handler.reset_commands()  # reset commands, so previous chunk has no effecet anymore
         chunk = Chunk(chunk_id, *chunk_data)
         if chunk.get_rem_commands():
-            rem_commands_dict = dict([[i[0], i[1].split(".")] for i in [i.split(": ") for i in chunk.get_rem_commands().split(";")]])
-            input_handler.remove_commands(rem_commands_dict)
+            if chunk.get_rem_commands() == "remove_all":
+                input_handler.remove_commands({}, True)
+            else:
+                rem_commands_dict = dict([[i[0], i[1].split(".")] for i in [i.split(": ") for i in chunk.get_rem_commands().split("; ")]])
+                input_handler.remove_commands(rem_commands_dict)
         if chunk.get_add_commands():
-            add_commands_dict = dict([[i[0], i[1].split(".")] for i in [i.split(": ") for i in chunk.get_add_commands().split(";")]])
+            add_commands_dict = dict([[i[0], i[1].split(".")] for i in [i.split(": ") for i in chunk.get_add_commands().split("; ")]])
             input_handler.add_commands(add_commands_dict)
         return chunk
 
@@ -408,6 +413,14 @@ class Main:
     def save_game(self, args = None):
         """Saves the current gamestate"""
         pass
+
+    def menu(self) -> None:
+        self.__position_save_id = self.__position.get_chunk_id()
+        self.__position = self.load_chunk("menu")
+
+    def quit_menu(self):
+        self.__position = self.load_chunk(self.__position_save_id)
+
 
     def move(self, direction: list = None):
         """Move the character
@@ -525,6 +538,9 @@ class Main:
                 print(f"There is no {item[0]}, you could to equip right now.")
         else:
             print("You wanted to equip. But what?")
+
+    def inspect(self):
+        pass
 
     def game_start(self):
         """The Text, which gets
