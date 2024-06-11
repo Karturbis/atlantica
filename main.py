@@ -5,7 +5,10 @@ At the moment all methods are in this file, this is
 only for developing purposes and will change."""
 
 import random
+import shutil
 import sqlite3
+from os import listdir
+from os.path import exists
 
 class Combat:
     """The Combat class contains all
@@ -127,6 +130,11 @@ class DatabaseHandler:
             "rem_commands"
             ], chunk_id
             )
+
+    def set_database(self, database) -> None:
+        self.__connection = sqlite3.connect(database)
+        self.__cursor = self.__connection.cursor()
+        print(f"Database was set to {database}")
 
 
 class InputHandler:
@@ -417,14 +425,32 @@ class Main:
 
     def new_game(self, args = None) -> None:
         """Creates a new game save slot"""
-        print("NEWGAME")
+        game_name = input("Please input the name of the gameslot\n> ")
+        game_file_path = f"saves/gameslot_{game_name}.sqlite"
+        if exists(game_file_path):
+            overwrite = input(
+                "This gameslot is already occupied, do you want to overwrite? [y/N]\n> "
+                ).lower()
+            if not overwrite == "y" or overwrite == "yes":
+                return None
+        shutil.copyfile("content.sqlite", game_file_path)
+        print(f"The gameslot: {game_name} was sucessfully created.")
+        database_handler.set_database(game_file_path)
+        return None
 
-    def load_game(self, args = None) -> None:
+    def load_game(self, args: list = None) -> None:
         """Loads the gamestate from
         a given slot."""
-
-    def save_game(self, args = None) -> None:
-        """Saves the current gamestate"""
+        saved_game_files = listdir("saves/")
+        print("Pick your option:")
+        for index, file_name in enumerate(saved_game_files):
+            print(f"Option {index +1} is {file_name[9:-7]}")
+        try:
+            option = int(input("Input the number of your option.\n> "))
+        except ValueError:
+            print("This option is not available.")
+            return None
+        database_handler.set_database(saved_game_files[option-1])
 
     def menu(self) -> None:
         """Opens the menu, by setting the
@@ -563,12 +589,12 @@ class Main:
         displayed at the start
         of the game."""
         print(
-"""
----------------------------
-Welcome back in Atlantica.
-Enjoy your time around here.
-----------------------------
-""")
+        """
+        ---------------------------
+        Welcome back in Atlantica.
+        Enjoy your time around here.
+        ----------------------------
+        """)
 
 
 database_handler = DatabaseHandler("content.sqlite")
