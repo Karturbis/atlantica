@@ -68,7 +68,6 @@ class Combat:
     def npc_attack(self):
         """Handles the attacks of
         NPCs."""
-        pass
 
     def player_attack(self, player, opponent):
         pass
@@ -93,7 +92,7 @@ class DatabaseHandler:
     """Handles the sqlite instances,
     reads and writes to sqlite databases..."""
 
-    def __init__(self, database):
+    def __init__(self, database) -> None:
         self.__connection = sqlite3.connect(database)
         self.__cursor = self.__connection.cursor()
 
@@ -135,7 +134,7 @@ class InputHandler:
     of taking in put from the user and
     calling the right funcionts associated
     with the input."""
-    def __init__(self, commands_avail=None):
+    def __init__(self, commands_avail=None) -> None:
         self.__commands_std = {
             "go": ["main", "move"],
             "rest": ["main", "rest"],
@@ -153,7 +152,7 @@ class InputHandler:
         else:
             self.__commands_avail = commands_avail
 
-    def input_loop(self):
+    def input_loop(self) -> None:
         """Waits for user input, when user
         input is coming, it executes the
         correlating command. Error checking
@@ -192,6 +191,8 @@ class InputHandler:
 
 
     def get_commands_avail(self) -> dict:
+        """Returns the commands, which
+        are available at the moment."""
         return self.__commands_avail
 
     def add_commands(self, commands: dict) -> None:
@@ -222,7 +223,7 @@ class Container:
     def __init__(
         self, container_id: str, items: list,
         events: str, description: str
-        ):
+        ) -> None:
         self.__container_id: str = container_id
         self.__items: list = items
         self.__events: list = events
@@ -255,7 +256,7 @@ class Item:
     def __init__(
         self, item_id: str, wapon:bool,
         description: str, saturation: int
-        ):
+        ) -> None:
         self.__item_id = item_id
         self.__wapon = wapon
         self.__description = description
@@ -277,7 +278,7 @@ class Chunk:
         west_chunk_id: str = None, description: str = None,
         items: str = None, characters: str = None, stage: str = None,
         containers: list = None, add_commands: str = None, rem_commands: str = None
-        ):
+        ) -> None:
         self.__chunk_id: str = chunk_id
         self.__north_chunk_id: str = north_chunk_id
         self.__east_chunk_id: str = east_chunk_id
@@ -331,11 +332,11 @@ class Chunk:
         contains at the moment."""
         return self.__items
 
-    def remove_item(self, item: str):
+    def remove_item(self, item: str) -> None:
         """Removes an Item from a Chunk"""
         self.__items.remove(item)
 
-    def add_item(self, item: str):
+    def add_item(self, item: str) -> None:
         """Add an Item to a Chunk"""
         self.__items.append(item)
 
@@ -361,7 +362,7 @@ class Main:
     """This class contains the methods used,
     when in the 'normal' game mode."""
 
-    def __init__(self, game_start: bool):
+    def __init__(self, game_start: bool) -> None:
         if game_start:
             self.game_start()
         self.__position = Chunk("000-temple-start", *database_handler.get_chunk_data("000-temple-start"))
@@ -390,39 +391,42 @@ class Main:
             input_handler.add_commands(add_commands_dict)
         return chunk
 
-    def print_help(self, args = None):
+    def print_help(self, args = None) -> None:
         """Outprints all available commands."""
         print("\nAvailable commands:\n")
         for key in input_handler.get_commands_avail():
             print(key)
 
-    def quit_game(self, args = None):
+    def quit_game(self, args = None) -> None:
         """Saves and quits the game."""
         self.save_game()
         exit("Good bye, see you next time in Atlantica!")
 
-    def new_game(self, args = None):
+    def new_game(self, args = None) -> None:
         """Creates a new game save slot"""
         print("NEWGAME")
 
-    def load_game(self, args = None):
+    def load_game(self, args = None) -> None:
         """Loads the gamestate from
         a given slot."""
-        pass
 
-    def save_game(self, args = None):
+    def save_game(self, args = None) -> None:
         """Saves the current gamestate"""
-        pass
 
     def menu(self) -> None:
+        """Opens the menu, by setting the
+        current position to the menu Chunk."""
         self.__position_save_id = self.__position.get_chunk_id()
         self.__position = self.load_chunk("menu")
 
-    def quit_menu(self):
+    def quit_menu(self) -> None:
+        """Restores the Chunk, where the
+        player was located, before opening
+        the menu."""
         self.__position = self.load_chunk(self.__position_save_id)
 
 
-    def move(self, direction: list = None):
+    def move(self, direction: list = None) -> None:
         """Move the character
         in a given direction."""
         if not direction is None:
@@ -448,19 +452,19 @@ class Main:
         else:
             print("You did not walk, because you don't know which direction.")
 
-    def rest(self, args = None):
+    def rest(self, args = None) -> None:
         """Rest, no other actions
         take place. The Player
         gets healed."""
         print("You had a nice rest!")
 
-    def take(self, item: list = None):
+    def take(self, item: list = None) -> None:
         """Take a given Item from
         the current chunk."""
         if not item is None:
             for i in item:
                 found = False
-                for j, item_avail in enumerate(self.__position.get_items()):
+                for item_avail in self.__position.get_items():
                     if item_avail.startswith(i):
                         self.__inventory[item_avail] = False  # The Flase stands for the equipped parameter
                         self.__position.remove_item(item_avail)
@@ -470,7 +474,7 @@ class Main:
                 if not found:
                     print(f"There is no {i} at your current location.")
 
-    def drop(self, item: list = None):
+    def drop(self, item: list = None) -> None:
         """Drop a given Item from the
         Inventory to the current chunk."""
         if item is None:
@@ -488,7 +492,7 @@ class Main:
                 if not dropped:
                     print(f"You tried to drop {i}, but it was not even in your inventory!")
 
-    def print_inventory(self, args = None):
+    def print_inventory(self, args = None) -> None:
         """"Outprints the Inventory, mark
         which item is equiped."""
         if self.__inventory:
@@ -501,7 +505,7 @@ class Main:
         else:
             print("Your inventory is empty.")
 
-    def unequip(self, item: list = None, first_iter: bool = True):
+    def unequip(self, item: list = None, first_iter: bool = True) -> None:
         """Unequip the Item, which
         is currently equipped."""
         if item is None or not first_iter:
@@ -518,7 +522,7 @@ class Main:
             if not found:
                 print(f"{item[0]} was no equipped.")
 
-    def equip(self, item: list = None):
+    def equip(self, item: list = None) -> None:
         """Equip a given Item, that either
         is in the Inventory, or in the 
         curren chunk."""
@@ -542,7 +546,7 @@ class Main:
     def inspect(self):
         pass
 
-    def game_start(self):
+    def game_start(self) -> None:
         """The Text, which gets
         displayed at the start
         of the game."""
