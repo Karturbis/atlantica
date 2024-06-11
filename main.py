@@ -95,7 +95,8 @@ class DatabaseHandler:
     """Handles the sqlite instances,
     reads and writes to sqlite databases..."""
 
-    def __init__(self, database) -> None:
+    def __init__(self, database: str) -> None:
+        self.__database: str = database
         self.__connection = sqlite3.connect(database)
         self.__cursor = self.__connection.cursor()
 
@@ -131,16 +132,36 @@ class DatabaseHandler:
             ], chunk_id
             )
 
-    def set_data(self, table: str, attributes: list, data_id: str) -> None:
-        pass
+    def set_data(self, table: str, attributes: list) -> None:
+        if not self.__database == "content.sqlite":
+            command: str = f"INSERT INTO {table} VALUES ("
+            for i in attributes:
+                if not i == attributes[-1]:
+                    command = f"{command} {i}, "
+                else:
+                    command = f"{command} {i})"
+            self.__cursor.execute(command)
+            self.__connection.commit()
+        else:
+            print("No gameslot is selected, please make a new game, or load a game.")
+    
+    def update_items(self, table: str, items: list, column_id: str) -> None:
+        if not self.__database == "content.sqlite":
+            command: str = f"UPDATE chunks SET items = {items}"
+            self.__cursor.execute(command)
+            self.__connection.commit()
+        else:
+            print("No gameslot is selected, please make a new game, or load a game.")
+
 
     def set_chunk_data(self, chunk_id: str, attributes: list) -> None:
         pass
 
-    def set_database(self, database) -> None:
-        self.__connection = sqlite3.connect(database)
+    def set_database(self, database: str) -> None:
+        self.__database: str = database
+        self.__connection = sqlite3.connect(self.__database)
         self.__cursor = self.__connection.cursor()
-        print(f"Database was set to {database}")
+        print(f"Database was set to {self.__database}")
 
 
 class InputHandler:
@@ -456,7 +477,10 @@ class Main:
         except ValueError:
             print("This option is not available.")
             return None
-        database_handler.set_database(saved_game_files[option-1])
+        database_handler.set_database(f"saves/{saved_game_files[option-1]}")
+
+    def save_game(self, arguments = None):
+        database_handler.set_data("chunks", ["333", "2", "'test'", "2", "3", "4", "3", "43", "23", "13", "12", "41"])
 
     def menu(self) -> None:
         """Opens the menu, by setting the
