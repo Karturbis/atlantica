@@ -438,7 +438,7 @@ class Main:
         database_handler.set_database(game_file_path)
         return None
 
-    def load_game(self, args: list = None) -> None:
+    def load_game(self, args = None) -> None:
         """Loads the gamestate from
         a given slot."""
         saved_game_files = listdir("saves/")
