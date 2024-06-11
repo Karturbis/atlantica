@@ -190,7 +190,6 @@ class InputHandler:
             except RuntimeError:
                 break
 
-
     def get_commands_avail(self) -> dict:
         """Returns the commands, which
         are available at the moment."""
@@ -438,7 +437,6 @@ class Main:
         player was located, before opening
         the menu."""
         self.__position = self.load_chunk(self.__position_save_id)
-
 
     def move(self, direction: list = None) -> None:
         """Move the character
