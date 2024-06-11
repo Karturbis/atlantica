@@ -632,6 +632,8 @@ class Main:
             print("You wanted to equip. But what?")
 
     def inspect(self):
+        """Outprints the items,
+        which are in the current Chunk."""
         print(f"There are: {self.__position.get_items()}")
 
     def game_start(self) -> None:
