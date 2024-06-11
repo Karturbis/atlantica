@@ -166,7 +166,8 @@ class InputHandler:
                     error_thrown = True
                     continue
                 error_thrown: bool = False
-                if len(commands_input) > 1:  # outputs the number of parameters the inputed method takes
+                # outputs the number of parameters the inputed method takes:
+                if len(commands_input) > 1:
                     for key, func_list in self.__commands_avail.items():
                         if key.startswith(commands_input[0]):
                             if func_list[0] == "main":
@@ -365,7 +366,10 @@ class Main:
     def __init__(self, game_start: bool) -> None:
         if game_start:
             self.game_start()
-        self.__position = Chunk("000-temple-start", *database_handler.get_chunk_data("000-temple-start"))
+        self.__position = Chunk(
+            "000-temple-start",
+            *database_handler.get_chunk_data("000-temple-start")
+            )
         print(self.__position.get_description())
         self.__inventory: dict = {}
         self.__position_save_id = None
@@ -384,10 +388,20 @@ class Main:
             if chunk.get_rem_commands() == "remove_all":
                 input_handler.remove_commands({}, True)
             else:
-                rem_commands_dict = dict([[i[0], i[1].split(".")] for i in [i.split(": ") for i in chunk.get_rem_commands().split("; ")]])
+                rem_commands_dict = dict(
+                    [[i[0], i[1].split(".")] for i in
+                        [i.split(": ") for i in
+                            chunk.get_rem_commands().split("; ")
+                        ]
+                    ]
+                    )
                 input_handler.remove_commands(rem_commands_dict)
         if chunk.get_add_commands():
-            add_commands_dict = dict([[i[0], i[1].split(".")] for i in [i.split(": ") for i in chunk.get_add_commands().split("; ")]])
+            add_commands_dict = dict(
+                [[i[0], i[1].split(".")] for i in
+                    [i.split(": ") for i in
+                        chunk.get_add_commands().split("; ")]]
+                )
             input_handler.add_commands(add_commands_dict)
         return chunk
 
@@ -466,7 +480,7 @@ class Main:
                 found = False
                 for item_avail in self.__position.get_items():
                     if item_avail.startswith(i):
-                        self.__inventory[item_avail] = False  # The Flase stands for the equipped parameter
+                        self.__inventory[item_avail] = False  # Setting equipped parameter to False
                         self.__position.remove_item(item_avail)
                         print(f"You took {item_avail}.")
                         found = True
