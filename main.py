@@ -131,6 +131,12 @@ class DatabaseHandler:
             ], chunk_id
             )
 
+    def set_data(self, table: str, attributes: list, data_id: str) -> None:
+        pass
+
+    def set_chunk_data(self, chunk_id: str, attributes: list) -> None:
+        pass
+
     def set_database(self, database) -> None:
         self.__connection = sqlite3.connect(database)
         self.__cursor = self.__connection.cursor()
