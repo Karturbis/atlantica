@@ -137,17 +137,23 @@ class DatabaseHandler:
             command: str = f"INSERT INTO {table} VALUES ("
             for i in attributes:
                 if not i == attributes[-1]:
-                    command = f"{command} {i}, "
+                    command = f"{command} {i},"
                 else:
                     command = f"{command} {i})"
             self.__cursor.execute(command)
             self.__connection.commit()
         else:
             print("No gameslot is selected, please make a new game, or load a game.")
-    
+
     def update_items(self, table: str, items: list, column_id: str) -> None:
         if not self.__database == "content.sqlite":
-            command: str = f"UPDATE chunks SET items = {items}"
+            command: str = f"UPDATE chunks SET items = \""#command: str = f"""UPDATE chunks SET items = "{items}" WHERE id = {column_id}"""
+            for i in items:
+                if not i == items[-1]:
+                    command = f"{command} {i},"
+                else:
+                    command = f"{command} {i}\" WHERE id = {column_id}"
+            print(command)
             self.__cursor.execute(command)
             self.__connection.commit()
         else:
@@ -480,7 +486,7 @@ class Main:
         database_handler.set_database(f"saves/{saved_game_files[option-1]}")
 
     def save_game(self, arguments = None):
-        database_handler.set_data("chunks", ["333", "2", "'test'", "2", "3", "4", "3", "43", "23", "13", "12", "41"])
+        database_handler.update_items("chunks", ["axe", "sword", "kiwi", "dagger"], "'000-temple-start'")
 
     def menu(self) -> None:
         """Opens the menu, by setting the
