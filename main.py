@@ -535,7 +535,7 @@ class Main:
                     found = True
                     break
             if not found:
-                print(f"There is no {item[0]}, you could to equip right now.")
+                print(f"There is no {item[0]}, you could equip right now.")
         else:
             print("You wanted to equip. But what?")
 
