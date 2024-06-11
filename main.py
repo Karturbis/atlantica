@@ -145,14 +145,17 @@ class DatabaseHandler:
         else:
             print("No gameslot is selected, please make a new game, or load a game.")
 
-    def update_items(self, table: str, items: list, column_id: str) -> None:
+    def update_items(self, items: list, column_id: str) -> None:
         if not self.__database == "content.sqlite":
-            command: str = f"UPDATE chunks SET items = \""#command: str = f"""UPDATE chunks SET items = "{items}" WHERE id = {column_id}"""
-            for i in items:
-                if not i == items[-1]:
-                    command = f"{command} {i},"
-                else:
-                    command = f"{command} {i}\" WHERE id = {column_id}"
+            command: str = f"UPDATE chunks SET items = \""
+            if items:
+                for i in items:
+                    if not i == items[-1]:
+                        command = f"{command}{i}, "
+                    else:
+                        command = f"{command}{i}\" WHERE id = \"{column_id}\""
+            else:
+                command = f"{command}\" WHERE id = \"{column_id}\""
             print(command)
             self.__cursor.execute(command)
             self.__connection.commit()
@@ -186,6 +189,7 @@ class InputHandler:
             "equip": ["main", "equip"],
             "unequip": ["main", "unequip"],
             "help": ["main", "print_help"],
+            "inspect": ["main", "inspect"],
             "quit": ["main", "quit_game"]
             }
         if commands_avail is None:
@@ -329,8 +333,12 @@ class Chunk:
         self.__stage: str = stage
         if items:
             self.__items: list = items.split(", ")
+        else:
+            self.__items: List = []
         if characters:
             self.__characters: list = characters.split(", ")
+        else:
+            self.__characters: list = []
         self.__add_commands = add_commands
         self.__rem_commands = rem_commands
 
@@ -422,6 +430,7 @@ class Main:
         except IndexError:
             print("Where you wanted to go, there is just void.")
             return self.__position
+        self.save_chunk()  # save the state of the current chunk.
         input_handler.reset_commands()  # reset commands, so previous chunk has no effecet anymore
         chunk = Chunk(chunk_id, *chunk_data)
         if chunk.get_rem_commands():
@@ -486,7 +495,12 @@ class Main:
         database_handler.set_database(f"saves/{saved_game_files[option-1]}")
 
     def save_game(self, arguments = None):
-        database_handler.update_items("chunks", ["axe", "sword", "kiwi", "dagger"], "'000-temple-start'")
+        self.save_chunk()
+
+    def save_chunk(self) -> None:
+        chunk_id = self.__position.get_chunk_id()
+        items = self.__position.get_items()
+        database_handler.update_items(items, chunk_id)
 
     def menu(self) -> None:
         """Opens the menu, by setting the
@@ -618,7 +632,7 @@ class Main:
             print("You wanted to equip. But what?")
 
     def inspect(self):
-        pass
+        print(f"There are: {self.__position.get_items()}")
 
     def game_start(self) -> None:
         """The Text, which gets
