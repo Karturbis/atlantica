@@ -207,7 +207,6 @@ class InputHandler:
             try:
                 commands_input = input("> ").lower().split(" ")
                 if commands_input == ['']:
-                    print("FIRSDT")
                     error_thrown = True
                     continue
                 error_thrown: bool = False
