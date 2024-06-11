@@ -5,10 +5,10 @@ At the moment all methods are in this file, this is
 only for developing purposes and will change."""
 
 import random
-import shutil
-import sqlite3
-from os import listdir
-from os.path import exists
+import shutil  # Used copy the content.sqlite file into a new gameslot
+import sqlite3  # Used for all database stuff (see class DatabaseHandler)
+from os import listdir  # To list all files of a directory, used in Main.load_game()
+from os.path import exists  # Checks if given file exists. Used to prevent errors.
 
 class Combat:
     """The Combat class contains all
