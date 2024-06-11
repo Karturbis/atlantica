@@ -483,15 +483,18 @@ class Main:
         """Loads the gamestate from
         a given slot."""
         saved_game_files = listdir("saves/")
-        print("Pick your option:")
-        for index, file_name in enumerate(saved_game_files):
-            print(f"Option {index +1} is {file_name[9:-7]}")
-        try:
-            option = int(input("Input the number of your option.\n> "))
-        except ValueError:
-            print("This option is not available.")
-            return None
-        database_handler.set_database(f"saves/{saved_game_files[option-1]}")
+        if saved_game_files:
+            print("Pick your option:")
+            for index, file_name in enumerate(saved_game_files):
+                print(f"Option {index +1} is {file_name[9:-7]}")
+            try:
+                option = int(input("Input the number of your option.\n> "))
+            except ValueError:
+                print("This option is not available.")
+                return None
+            database_handler.set_database(f"saves/{saved_game_files[option-1]}")
+        else:
+            print("There are no gameslots available, create one with 'new'.")
 
     def save_game(self, arguments = None):
         self.save_chunk()
@@ -652,5 +655,6 @@ database_handler = DatabaseHandler("content.sqlite")
 main = Main(True)
 combat = Combat()
 input_handler = InputHandler()
+main.menu()
 while True:
     input_handler.input_loop()
