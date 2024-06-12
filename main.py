@@ -10,16 +10,18 @@ import sqlite3  # Used for all database stuff (see class DatabaseHandler)
 from os import listdir  # To list all files of a directory, used in Main.load_game()
 from os.path import exists  # Checks if given file exists. Used to prevent errors.
 
+
 class Combat:
     """The Combat class contains all
     code, that is used when in combat."""
+
     def __init__(self):
         self.__combat_commands = {
             "punch": self.punch,
             "kick": self.kick,
             "stab": self.stab,
             "cut": self.cut,
-            "flee": self.flee
+            "flee": self.flee,
         }
         self.__combat_input_handler = InputHandler(self.__combat_commands)
         self.__fighting = True
@@ -47,13 +49,13 @@ class Combat:
             player_begins = self.phase_1(player.get_speed(), opponent.get_speed())
             self.phase_2(player_begins)
 
-    def phase_1(self, player_speed:int, opponent_speed:int) -> bool:
+    def phase_1(self, player_speed: int, opponent_speed: int) -> bool:
         """Returns true, if the player begins."""
         random_num = random.randint(0, 100)
         # the beginner_value depends on the speed of the player and the opponent,
         # the greater the distance between these two, the higher gets the
         # probability, that the character with the higher speed starts the fight.
-        beginner_value = player_speed-opponent_speed+50
+        beginner_value = player_speed - opponent_speed + 50
         return random_num <= beginner_value
 
     def phase_2(self, player_begins):
@@ -104,7 +106,7 @@ class DatabaseHandler:
         """Takes the arguments table, items and data_id.
         Returns a list of entrys in the given data table,
         at the given column(data_id)."""
-        command: str =  "SELECT "
+        command: str = "SELECT "
         for i in items:
             if not i == items[-1]:
                 command = f"{command} {i}, "
@@ -124,13 +126,22 @@ class DatabaseHandler:
         """Calls the get_data method with
         predesigned parameters."""
         return self.get_data(
-            "chunks", ["north_id", "east_id",
-            "south_id", "west_id", "description",
-            "items", "stage", "characters",
-            "containers", "add_commands",
-            "rem_commands"
-            ], chunk_id
-            )
+            "chunks",
+            [
+                "north_id",
+                "east_id",
+                "south_id",
+                "west_id",
+                "description",
+                "items",
+                "stage",
+                "characters",
+                "containers",
+                "add_commands",
+                "rem_commands",
+            ],
+            chunk_id,
+        )
 
     def set_data(self, table: str, attributes: list) -> None:
         if not self.__database == "content.sqlite":
@@ -145,30 +156,31 @@ class DatabaseHandler:
         else:
             print("No gameslot is selected, please make a new game, or load a game.")
 
-    def update_character(self, attributes: dict) -> None:
+    def update_character(self, attributes: dict, character_name: str) -> None:
         if not self.__database == "content.sqlite":
-            command: str = f"UPDATE player SET "
+            for key, attribute in attributes.items():
+                command: str = (
+                    f'UPDATE player SET {key} = {attribute} WHERE id = "{character_name}"'
+                )
 
         else:
             print("No gameslot is selected, please make a new game, or load a game.")
 
-
     def update_items(self, items: list, column_id: str) -> None:
         if not self.__database == "content.sqlite":
-            command: str = f"UPDATE chunks SET items = \""
+            command: str = 'UPDATE chunks SET items = "'
             if items:
                 for i in items:
                     if not i == items[-1]:
                         command = f"{command}{i}, "
                     else:
-                        command = f"{command}{i}\" WHERE id = \"{column_id}\""
+                        command = f'{command}{i}" WHERE id = "{column_id}"'
             else:
-                command = f"{command}\" WHERE id = \"{column_id}\""
+                command = f'{command}" WHERE id = "{column_id}"'
             self.__cursor.execute(command)
             self.__connection.commit()
         else:
             print("No gameslot is selected, please make a new game, or load a game.")
-
 
     def set_chunk_data(self, chunk_id: str, attributes: list) -> None:
         pass
@@ -185,6 +197,7 @@ class InputHandler:
     of taking in put from the user and
     calling the right funcionts associated
     with the input."""
+
     def __init__(self, commands_avail=None) -> None:
         self.__commands_std = {
             "go": ["main", "move"],
@@ -197,8 +210,8 @@ class InputHandler:
             "unequip": ["main", "unequip"],
             "help": ["main", "print_help"],
             "inspect": ["main", "inspect"],
-            "quit": ["main", "quit_game"]
-            }
+            "quit": ["main", "quit_game"],
+        }
         if commands_avail is None:
             self.__commands_avail = self.__commands_std
         else:
@@ -213,7 +226,7 @@ class InputHandler:
         while inputing:
             try:
                 commands_input = input("> ").lower().split(" ")
-                if commands_input == ['']:
+                if commands_input == [""]:
                     error_thrown = True
                     continue
                 error_thrown: bool = False
@@ -236,7 +249,9 @@ class InputHandler:
                             func()
                         else:
                             if not error_thrown:
-                                print("Please enter a valid command, type 'help' for help.")
+                                print(
+                                    "Please enter a valid command, type 'help' for help."
+                                )
                                 error_thrown = True
             except RuntimeError:
                 break
@@ -251,13 +266,13 @@ class InputHandler:
         for key, value in commands.items():
             self.__commands_avail[key] = value
 
-    def remove_commands(self, commands: dict, remove_all = False) -> None:
+    def remove_commands(self, commands: dict, remove_all=False) -> None:
         """Remove a command from the combat commands list."""
         if remove_all:
             self.__commands_avail = {
                 "help": ["main", "print_help"],
-                "quit": ["main", "quit_game"]
-                }
+                "quit": ["main", "quit_game"],
+            }
         for key in commands:
             self.__commands_avail.pop(key)
 
@@ -272,9 +287,8 @@ class Container:
     when inspected."""
 
     def __init__(
-        self, container_id: str, items: list,
-        events: str, description: str
-        ) -> None:
+        self, container_id: str, items: list, events: str, description: str
+    ) -> None:
         self.__container_id: str = container_id
         self.__items: list = items
         self.__events: list = events
@@ -304,10 +318,10 @@ class Item:
     Containers and when enemys die.
     Examples for an Item would be:
     sword, apple, axe, lantern..."""
+
     def __init__(
-        self, item_id: str, wapon:bool,
-        description: str, saturation: int
-        ) -> None:
+        self, item_id: str, wapon: bool, description: str, saturation: int
+    ) -> None:
         self.__item_id = item_id
         self.__wapon = wapon
         self.__description = description
@@ -323,13 +337,22 @@ class Chunk:
     Chunks are next to it so when the player
     walks, the current Chunk has the information
     about what will be the next Chunk."""
+
     def __init__(
-        self, chunk_id: str = None, north_chunk_id: str = None,
-        east_chunk_id: str = None, south_chunk_id: str = None,
-        west_chunk_id: str = None, description: str = None,
-        items: str = None, characters: str = None, stage: str = None,
-        containers: list = None, add_commands: str = None, rem_commands: str = None
-        ) -> None:
+        self,
+        chunk_id: str = None,
+        north_chunk_id: str = None,
+        east_chunk_id: str = None,
+        south_chunk_id: str = None,
+        west_chunk_id: str = None,
+        description: str = None,
+        items: str = None,
+        characters: str = None,
+        stage: str = None,
+        containers: list = None,
+        add_commands: str = None,
+        rem_commands: str = None,
+    ) -> None:
         self.__chunk_id: str = chunk_id
         self.__north_chunk_id: str = north_chunk_id
         self.__east_chunk_id: str = east_chunk_id
@@ -421,9 +444,8 @@ class Main:
         if game_start:
             self.game_start()
         self.__position = Chunk(
-            "000-temple-start",
-            *database_handler.get_chunk_data("000-temple-start")
-            )
+            "000-temple-start", *database_handler.get_chunk_data("000-temple-start")
+        )
         print(self.__position.get_description())
         self.__inventory: dict = {}
         self.__position_save_id = None
@@ -444,41 +466,45 @@ class Main:
                 input_handler.remove_commands({}, True)
             else:
                 rem_commands_dict = dict(
-                    [[i[0], i[1].split(".")] for i in
-                        [i.split(": ") for i in
-                            chunk.get_rem_commands().split("; ")
+                    [
+                        [i[0], i[1].split(".")]
+                        for i in [
+                            i.split(": ") for i in chunk.get_rem_commands().split("; ")
                         ]
                     ]
-                    )
+                )
                 input_handler.remove_commands(rem_commands_dict)
         if chunk.get_add_commands():
             add_commands_dict = dict(
-                [[i[0], i[1].split(".")] for i in
-                    [i.split(": ") for i in
-                        chunk.get_add_commands().split("; ")]]
-                )
+                [
+                    [i[0], i[1].split(".")]
+                    for i in [
+                        i.split(": ") for i in chunk.get_add_commands().split("; ")
+                    ]
+                ]
+            )
             input_handler.add_commands(add_commands_dict)
         return chunk
 
-    def print_help(self, args = None) -> None:
+    def print_help(self, args=None) -> None:
         """Outprints all available commands."""
         print("\nAvailable commands:\n")
         for key in input_handler.get_commands_avail():
             print(key)
 
-    def quit_game(self, args = None) -> None:
+    def quit_game(self, args=None) -> None:
         """Saves and quits the game."""
         self.save_game()
         exit("Good bye, see you next time in Atlantica!")
 
-    def new_game(self, args = None) -> None:
+    def new_game(self, args=None) -> None:
         """Creates a new game save slot"""
         game_name = input("Please input the name of the gameslot\n> ")
         game_file_path = f"saves/gameslot_{game_name}.sqlite"
         if exists(game_file_path):
             overwrite = input(
                 "This gameslot is already occupied, do you want to overwrite? [y/N]\n> "
-                ).lower()
+            ).lower()
             if not overwrite == "y" or overwrite == "yes":
                 return None
         shutil.copyfile("content.sqlite", game_file_path)
@@ -486,7 +512,7 @@ class Main:
         database_handler.set_database(game_file_path)
         return None
 
-    def load_game(self, args = None) -> None:
+    def load_game(self, args=None) -> None:
         """Loads the gamestate from
         a given slot."""
         saved_game_files = listdir("saves/")
@@ -503,7 +529,7 @@ class Main:
         else:
             print("There are no gameslots available, create one with 'new'.")
 
-    def save_game(self, arguments = None):
+    def save_game(self, arguments=None):
         self.save_chunk()
 
     def save_chunk(self) -> None:
@@ -534,22 +560,32 @@ class Main:
                     direction[1] = int(direction[1])
                 for i in range(direction[1]):
                     if direction[0] == "north" or direction[0] == "n":
-                        self.__position = self.load_chunk(self.__position.get_north_chunk_id())
+                        self.__position = self.load_chunk(
+                            self.__position.get_north_chunk_id()
+                        )
                     elif direction[0] == "east" or direction[0] == "e":
-                        self.__position = self.load_chunk(self.__position.get_east_chunk_id())
+                        self.__position = self.load_chunk(
+                            self.__position.get_east_chunk_id()
+                        )
                     elif direction[0] == "south" or direction[0] == "s":
-                        self.__position = self.load_chunk(self.__position.get_south_chunk_id())
+                        self.__position = self.load_chunk(
+                            self.__position.get_south_chunk_id()
+                        )
                     elif direction[0] == "west" or direction[0] == "w":
-                        self.__position = self.load_chunk(self.__position.get_west_chunk_id())
+                        self.__position = self.load_chunk(
+                            self.__position.get_west_chunk_id()
+                        )
                     else:
-                        print("You did not walk, the direction you want to go does not exist.")
+                        print(
+                            "You did not walk, the direction you want to go does not exist."
+                        )
             except ValueError:
                 print("\nFirstly, write the direction, you want to go,")
                 print("and secondly, write the number of steps you want to take.")
         else:
             print("You did not walk, because you don't know which direction.")
 
-    def rest(self, args = None) -> None:
+    def rest(self, args=None) -> None:
         """Rest, no other actions
         take place. The Player
         gets healed."""
@@ -563,7 +599,9 @@ class Main:
                 found = False
                 for item_avail in self.__position.get_items():
                     if item_avail.startswith(i):
-                        self.__inventory[item_avail] = False  # Setting equipped parameter to False
+                        self.__inventory[item_avail] = (
+                            False  # Setting equipped parameter to False
+                        )
                         self.__position.remove_item(item_avail)
                         print(f"You took {item_avail}.")
                         found = True
@@ -587,10 +625,12 @@ class Main:
                         dropped = True
                         break
                 if not dropped:
-                    print(f"You tried to drop {i}, but it was not even in your inventory!")
+                    print(
+                        f"You tried to drop {i}, but it was not even in your inventory!"
+                    )
 
-    def print_inventory(self, args = None) -> None:
-        """"Outprints the Inventory, mark
+    def print_inventory(self, args=None) -> None:
+        """ "Outprints the Inventory, mark
         which item is equiped."""
         if self.__inventory:
             print("Your inventory contains:")
@@ -608,7 +648,9 @@ class Main:
         if item is None or not first_iter:
             for inventory_item, equipped in self.__inventory.items():
                 if equipped:
-                    self.__inventory[inventory_item] = False  # set the equipped parameter to false
+                    self.__inventory[inventory_item] = (
+                        False  # set the equipped parameter to false
+                    )
                     print(f"You unequipped {inventory_item}.")
         else:
             found = False
@@ -621,7 +663,7 @@ class Main:
 
     def equip(self, item: list = None) -> None:
         """Equip a given Item, that either
-        is in the Inventory, or in the 
+        is in the Inventory, or in the
         curren chunk."""
         items_avail: list = self.__position.get_items() + list(self.__inventory.keys())
         if not item is None:
@@ -650,12 +692,13 @@ class Main:
         displayed at the start
         of the game."""
         print(
-        """
+            """
         ---------------------------
         Welcome back in Atlantica.
         Enjoy your time around here.
         ----------------------------
-        """)
+        """
+        )
 
 
 database_handler = DatabaseHandler("content.sqlite")
