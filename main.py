@@ -155,7 +155,7 @@ class DatabaseHandler:
         if not self.__database == "content.sqlite":
             for key, attribute in attributes.items():
                 if isinstance(attribute, list):
-                    command: str = f'UPDATE player SET {key} = '
+                    command: str = f"UPDATE player SET {key} = "
                     for i in attribute:
                         command = f"{command} {i}, "
                     command = f"{command[:-2]} WHERE id = {character_name}"
@@ -191,6 +191,7 @@ class DatabaseHandler:
         pass
 
     def set_database(self, database: str) -> None:
+        """Sets the database to the input."""
         self.__database: str = database
         self.__connection = sqlite3.connect(self.__database)
         self.__cursor = self.__connection.cursor()
@@ -532,24 +533,44 @@ class Main:
                 print("This option is not available.")
                 return None
             database_handler.set_database(f"saves/{saved_game_files[option-1]}")
-            inventory_data_raw = database_handler.get_data("player", ["inventory"], self.__name)[0]
-            self.__inventory = dict([i.split(":") for i in inventory_data_raw.split(", ")])
+            inventory_data_raw = database_handler.get_data(
+                "player", ["inventory"], self.__name
+            )[0]
+            self.__inventory = dict(
+                [i.split(":") for i in inventory_data_raw.split(", ")]
+            )
             print(self.__inventory)
         else:
             print("There are no gameslots available, create one with 'new'.")
 
     def save_game(self, arguments=None):
+        """Saves the game state to
+        the current gameslot."""
         self.save_chunk()
         self.save_player()
 
     def save_player(self):
+        """Saves the player data to
+        the current gameslot."""
         inventory: str = ""
         for key, item in self.__inventory.items():
             inventory = f"{inventory}{key}:{item}, "
         inventory = inventory[:-2]
-        database_handler.update_character({"health": "", "hunger": "", "speed": "", "strength": "", "level": "", "inventory": inventory}, self.__name)
+        database_handler.update_character(
+            {
+                "health": "",
+                "hunger": "",
+                "speed": "",
+                "strength": "",
+                "level": "",
+                "inventory": inventory,
+            },
+            self.__name,
+        )
 
     def save_chunk(self) -> None:
+        """Saves the current chunk data
+        to the current game slot."""
         chunk_id = self.__position.get_chunk_id()
         items = self.__position.get_items()
         database_handler.update_items(items, chunk_id)
