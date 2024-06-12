@@ -154,7 +154,7 @@ class DatabaseHandler:
     def update_character(self, attributes: dict, character_name: str) -> None:
         if not self.__database == "content.sqlite":
             for key, attribute in attributes.items():
-                if type(attribute) == list:
+                if isinstance(attribute, list):
                     command: str = f'UPDATE player SET {key} = '
                     for i in attribute:
                         command = f"{command} {i}, "
