@@ -141,6 +141,8 @@ class DatabaseHandler:
         )
 
     def set_data(self, table: str, attributes: list) -> None:
+        """Insert new column with given attributes
+        into the given table of the self.__database"""
         if not self.__database == "content.sqlite":
             command: str = f"INSERT INTO {table} VALUES ("
             for i in attributes:
@@ -152,6 +154,7 @@ class DatabaseHandler:
             print("No gameslot is selected, please make a new game, or load a game.")
 
     def update_character(self, attributes: dict, character_name: str) -> None:
+        """Update the attributes of the given character."""
         if not self.__database == "content.sqlite":
             for key, attribute in attributes.items():
                 if isinstance(attribute, list):
@@ -173,15 +176,16 @@ class DatabaseHandler:
         else:
             print("No gameslot is selected, please make a new game, or load a game.")
 
-    def update_items(self, items: list, column_id: str) -> None:
+    def update_items(self, items: list, chunk_id: str) -> None:
+        "Update the items of a given chunk"
         if not self.__database == "content.sqlite":
             command: str = 'UPDATE chunks SET items = "'
             if items:
                 for i in items:
                     command = f"{command}{i}, "
-                command = f'{command[:-2]}" WHERE id = "{column_id}"'
+                command = f'{command[:-2]}" WHERE id = "{chunk_id}"'
             else:
-                command = f'{command}" WHERE id = "{column_id}"'
+                command = f'{command}" WHERE id = "{chunk_id}"'
             self.__cursor.execute(command)
             self.__connection.commit()
         else:
