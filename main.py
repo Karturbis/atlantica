@@ -145,6 +145,14 @@ class DatabaseHandler:
         else:
             print("No gameslot is selected, please make a new game, or load a game.")
 
+    def update_character(self, attributes: dict) -> None:
+        if not self.__database == "content.sqlite":
+            command: str = f"UPDATE player SET "
+
+        else:
+            print("No gameslot is selected, please make a new game, or load a game.")
+
+
     def update_items(self, items: list, column_id: str) -> None:
         if not self.__database == "content.sqlite":
             command: str = f"UPDATE chunks SET items = \""
