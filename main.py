@@ -539,12 +539,8 @@ class Main:
                 return None
             database_handler.set_database(f"saves/{saved_game_files[option-1]}")
             self.__position = self.load_chunk(
-                database_handler.get_data(
-                    "player",
-                    ["position"],
-                    self.__name
-                )[0]
-                )
+                database_handler.get_data("player", ["position"], self.__name)[0]
+            )
             inventory_data_raw = database_handler.get_data(
                 "player", ["inventory"], self.__name
             )[0]
@@ -576,7 +572,7 @@ class Main:
                 "strength": "",
                 "level": "",
                 "inventory": inventory,
-                "position": self.__position.get_chunk_id()
+                "position": self.__position.get_chunk_id(),
             },
             self.__name,
         )
