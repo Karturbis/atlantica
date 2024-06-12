@@ -108,11 +108,8 @@ class DatabaseHandler:
         at the given column(data_id)."""
         command: str = "SELECT "
         for i in items:
-            if not i == items[-1]:
-                command = f"{command} {i}, "
-            else:
-                command = f"{command} {i}"
-        command = f"{command} FROM {table} WHERE id='{data_id.strip()}'"
+            command = f"{command} {i}, "
+        command = f"{command[:-2]} FROM {table} WHERE id='{data_id.strip()}'"
         data = self.__cursor.execute(command)
         fetched_data: list = data.fetchall()
         return list(fetched_data[0])
@@ -147,10 +144,8 @@ class DatabaseHandler:
         if not self.__database == "content.sqlite":
             command: str = f"INSERT INTO {table} VALUES ("
             for i in attributes:
-                if not i == attributes[-1]:
-                    command = f"{command} {i},"
-                else:
-                    command = f"{command} {i})"
+                command = f"{command} {i},"
+            command = f"{command[:-2]})"
             self.__cursor.execute(command)
             self.__connection.commit()
         else:
@@ -159,9 +154,17 @@ class DatabaseHandler:
     def update_character(self, attributes: dict, character_name: str) -> None:
         if not self.__database == "content.sqlite":
             for key, attribute in attributes.items():
-                command: str = (
-                    f'UPDATE player SET {key} = {attribute} WHERE id = "{character_name}"'
-                )
+                if type(attribute) == list:
+                    command: str = f'UPDATE player SET {key} = '
+                    for i in attribute:
+                        command = f"{command} {i}, "
+                    command = f"{command[:-2]} WHERE id = {character_name}"
+                else:
+                    command: str = (
+                        f'UPDATE player SET {key} = {attribute} WHERE id = "{character_name}"'
+                    )
+                self.__cursor.execute(command)
+            self.__connection.commit()
 
         else:
             print("No gameslot is selected, please make a new game, or load a game.")
@@ -171,10 +174,8 @@ class DatabaseHandler:
             command: str = 'UPDATE chunks SET items = "'
             if items:
                 for i in items:
-                    if not i == items[-1]:
-                        command = f"{command}{i}, "
-                    else:
-                        command = f'{command}{i}" WHERE id = "{column_id}"'
+                    command = f"{command}{i}, "
+                command = f'{command[:-2]}" WHERE id = "{column_id}"'
             else:
                 command = f'{command}" WHERE id = "{column_id}"'
             self.__cursor.execute(command)
