@@ -122,6 +122,7 @@ class DatabaseHandler:
     def get_chunk_data(self, chunk_id: str) -> list:
         """Calls the get_data method with
         predesigned parameters."""
+        print(chunk_id)
         return self.get_data(
             "chunks",
             [
@@ -537,15 +538,22 @@ class Main:
                 print("This option is not available.")
                 return None
             database_handler.set_database(f"saves/{saved_game_files[option-1]}")
+            self.__position = self.load_chunk(
+                database_handler.get_data(
+                    "player",
+                    ["position"],
+                    self.__name
+                )[0]
+                )
             inventory_data_raw = database_handler.get_data(
                 "player", ["inventory"], self.__name
             )[0]
             self.__inventory = dict(
                 [i.split(":") for i in inventory_data_raw.split(", ")]
             )
-            print(self.__inventory)
         else:
             print("There are no gameslots available, create one with 'new'.")
+        return None
 
     def save_game(self, arguments=None):
         """Saves the game state to
@@ -568,6 +576,7 @@ class Main:
                 "strength": "",
                 "level": "",
                 "inventory": inventory,
+                "position": self.__position.get_chunk_id()
             },
             self.__name,
         )
