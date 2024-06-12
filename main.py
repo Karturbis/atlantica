@@ -159,11 +159,15 @@ class DatabaseHandler:
                     for i in attribute:
                         command = f"{command} {i}, "
                     command = f"{command[:-2]} WHERE id = {character_name}"
+                elif key == "":
+                    command = None
                 else:
                     command: str = (
-                        f'UPDATE player SET {key} = {attribute} WHERE id = "{character_name}"'
+                        f'UPDATE player SET {key} = "{attribute}" WHERE id = "{character_name}"'
                     )
-                self.__cursor.execute(command)
+                if command:
+                    print(command)
+                    self.__cursor.execute(command)
             self.__connection.commit()
 
         else:
@@ -450,6 +454,7 @@ class Main:
         print(self.__position.get_description())
         self.__inventory: dict = {}
         self.__position_save_id = None
+        self.__name = "test"
 
     def load_chunk(self, chunk_id: str) -> Chunk:
         """Loads the Chunk with the given id"""
@@ -527,11 +532,22 @@ class Main:
                 print("This option is not available.")
                 return None
             database_handler.set_database(f"saves/{saved_game_files[option-1]}")
+            inventory_data_raw = database_handler.get_data("player", ["inventory"], self.__name)[0]
+            self.__inventory = dict([i.split(":") for i in inventory_data_raw.split(", ")])
+            print(self.__inventory)
         else:
             print("There are no gameslots available, create one with 'new'.")
 
     def save_game(self, arguments=None):
         self.save_chunk()
+        self.save_player()
+
+    def save_player(self):
+        inventory: str = ""
+        for key, item in self.__inventory.items():
+            inventory = f"{inventory}{key}:{item}, "
+        inventory = inventory[:-2]
+        database_handler.update_character({"health": "", "hunger": "", "speed": "", "strength": "", "level": "", "inventory": inventory}, self.__name)
 
     def save_chunk(self) -> None:
         chunk_id = self.__position.get_chunk_id()
