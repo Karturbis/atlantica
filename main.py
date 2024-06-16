@@ -9,6 +9,7 @@ import shutil  # Used copy the content.sqlite file into a new gameslot
 import sqlite3  # Used for all database stuff (see class DatabaseHandler)
 from os import listdir  # To list all files of a directory, used in Main.load_game()
 from os.path import exists  # Checks if given file exists. Used to prevent errors.
+from ast import literal_eval  # Used to evaluate a boolean from a string
 
 
 class Combat:
@@ -374,7 +375,7 @@ class Chunk:
         if items:
             self.__items: list = items.split(", ")
         else:
-            self.__items: List = []
+            self.__items: list = []
         if characters:
             self.__characters: list = characters.split(", ")
         else:
@@ -547,6 +548,10 @@ class Main:
             self.__inventory = dict(
                 [i.split(":") for i in inventory_data_raw.split(", ")]
             )
+            for i in self.__inventory:
+                self.__inventory[i] = literal_eval(self.__inventory[i])
+
+            print(inventory_data_raw)
         else:
             print("There are no gameslots available, create one with 'new'.")
         return None
