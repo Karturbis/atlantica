@@ -118,7 +118,9 @@ class DatabaseHandler:
     def get_item_data(self, item_id: str) -> list:
         """Calls the get_data method with
         predesigned parameters."""
-        return self.get_data("items", ["wapon", "description"], item_id)
+        return self.get_data(
+            "items", ["saturation", "description", "damage", "crit_damage"], item_id
+        )
 
     def get_chunk_data(self, chunk_id: str) -> list:
         """Calls the get_data method with
@@ -332,12 +334,23 @@ class Item:
     sword, apple, axe, lantern..."""
 
     def __init__(
-        self, item_id: str, wapon: bool, description: str, saturation: int
+        self,
+        item_id: str,
+        saturation: int,
+        description: str,
+        damage: int,
+        crit_damage: int,
     ) -> None:
-        self.__item_id = item_id
-        self.__wapon = wapon
-        self.__description = description
-        self.__saturation = saturation
+        self.__item_id: str = item_id
+        self.__saturation: int = saturation
+        self.__description: str = description
+        self.__damage: int = damage
+        self.__crit_damage: int = crit_damage
+
+    def get_saturation(self) -> int:
+        """Returns the saturation
+        of the current Item."""
+        return self.__saturation
 
 
 class Chunk:
@@ -733,6 +746,12 @@ class Main:
                 print(f"There is no {item[0]}, you could equip right now.")
         else:
             print("You wanted to equip. But what?")
+
+    def eat(self, item: list = None):
+        """Removes the eaten item
+        from the inventory and adds
+        the saturation to the hunger
+        value of the Player."""
 
     def inspect(self):
         """Outprints the items,
