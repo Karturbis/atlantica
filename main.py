@@ -670,7 +670,7 @@ class Main:
                         False  # Setting equipped parameter to False
                     )
                     self.__position.remove_item(item_selected)
-                    print(f"You took {item_selected}.")
+                    print(f"You took {item_selected[5:]}.")
                     found = True
 
                 if not found:
@@ -681,7 +681,7 @@ class Main:
         of items name is in the inventory.
         Returns either the item or False."""
         for item_avail in self.__inventory:
-            if item_avail.startswith(item) and not item == "":
+            if item_avail.startswith(item[5:]) and not item == "":
                 return item_avail
         return False
 
@@ -690,7 +690,7 @@ class Main:
         of items name is in the current Chunk.
         Returns either the item or False."""
         for item_avail in self.__position.get_items():
-            if item_avail.startswith(item) and not item == "":
+            if item_avail.startswith(item[5:]) and not item == "":
                 return item_avail
         return False
 
@@ -723,7 +723,7 @@ class Main:
             print("Your inventory contains:")
             for key, value in self.__inventory.items():
                 if value:  # check, if item is eqiupped
-                    print(f"{key} - equipped")
+                    print(f"{key[5:]} - equipped")
                 else:
                     print(key)
         else:
@@ -777,7 +777,6 @@ class Main:
         if item:
             for i in item:
                 item_selected = self.item_in_inventory(i)
-                print(item_selected)
                 if item_selected:
                     nutrition = int(database_handler.get_item_data(item_selected)[0])
                     print(nutrition)
