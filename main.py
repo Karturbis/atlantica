@@ -119,7 +119,7 @@ class DatabaseHandler:
         """Calls the get_data method with
         predesigned parameters."""
         return self.get_data(
-            "items", ["saturation", "description", "damage", "crit_damage"], item_id
+            "items", ["nutrition", "description", "damage", "crit_damage"], item_id
         )
 
     def get_chunk_data(self, chunk_id: str) -> list:
@@ -218,6 +218,7 @@ class InputHandler:
             "rest": ["main", "rest"],
             "take": ["main", "take"],
             "drop": ["main", "drop"],
+            "eat": ["main", "eat"],
             "menu": ["main", "menu"],
             "inventory": ["main", "print_inventory"],
             "equip": ["main", "equip"],
@@ -336,21 +337,21 @@ class Item:
     def __init__(
         self,
         item_id: str,
-        saturation: int,
+        nutrition: int,
         description: str,
         damage: int,
         crit_damage: int,
     ) -> None:
         self.__item_id: str = item_id
-        self.__saturation: int = saturation
+        self.__nutrition: int = nutrition
         self.__description: str = description
         self.__damage: int = damage
         self.__crit_damage: int = crit_damage
 
-    def get_saturation(self) -> int:
-        """Returns the saturation
+    def get_nutrition(self) -> int:
+        """Returns the nutrition
         of the current Item."""
-        return self.__saturation
+        return self.__nutrition
 
 
 class Chunk:
@@ -475,6 +476,7 @@ class Main:
         self.__inventory: dict = {}
         self.__position_save_id = None
         self.__name = "test"
+        self.__saturation: int = 100
 
     def load_chunk(self, chunk_id: str) -> Chunk:
         """Loads the Chunk with the given id"""
@@ -752,6 +754,19 @@ class Main:
         from the inventory and adds
         the saturation to the hunger
         value of the Player."""
+        if item:
+            for i in item:
+                if i in self.__inventory:
+                    nutrition = int(database_handler.get_item_data(i)[0])
+                    print(nutrition)
+                    self.__saturation = self.__saturation + nutrition
+                    self.__inventory.pop(i)
+                    print(f"You ate {i}, it was {nutrition} nutritious.")
+                else:
+                    print(f"You tried to eat {i}, but you had none left")
+        else:
+            print("You did not eat.")
+
 
     def inspect(self):
         """Outprints the items,
