@@ -664,23 +664,32 @@ class Main:
         if not item is None:
             for i in item:
                 found = False
-                for item_avail in self.__position.get_items():
-                    if item_avail.startswith(i):
-                        self.__inventory[item_avail] = (
-                            False  # Setting equipped parameter to False
-                        )
-                        self.__position.remove_item(item_avail)
-                        print(f"You took {item_avail}.")
-                        found = True
-                        break
+                item_selected = self.item_in_position(i)
+                if item_selected:
+                    self.__inventory[item_selected] = (
+                        False  # Setting equipped parameter to False
+                    )
+                    self.__position.remove_item(item_selected)
+                    print(f"You took {item_selected}.")
+                    found = True
+
                 if not found:
                     print(f"There is no {i} at your current location.")
 
-    def in_inventory(self, item: str) -> str:
+    def item_in_inventory(self, item: str) -> str:
         """Checks, if the given item, or start
         of items name is in the inventory.
         Returns either the item or False."""
         for item_avail in self.__inventory:
+            if item_avail.startswith(item) and not item == "":
+                return item_avail
+        return False
+
+    def item_in_position(self, item: str) -> str:
+        """Checks, if the given item, or start
+        of items name is in the current Chunk.
+        Returns either the item or False."""
+        for item_avail in self.__position.get_items():
             if item_avail.startswith(item) and not item == "":
                 return item_avail
         return False
@@ -693,7 +702,7 @@ class Main:
         else:
             for i in items:
                 dropped = False
-                item_selected = self.in_inventory(i)
+                item_selected = self.item_in_inventory(i)
                 if item_selected:
                     self.__inventory.pop(item_selected)
                     self.__position.add_item(item_selected)
@@ -767,12 +776,14 @@ class Main:
         value of the Player."""
         if item:
             for i in item:
-                if i in self.__inventory:
-                    nutrition = int(database_handler.get_item_data(i)[0])
+                item_selected = self.item_in_inventory(i)
+                print(item_selected)
+                if item_selected:
+                    nutrition = int(database_handler.get_item_data(item_selected)[0])
                     print(nutrition)
                     self.__saturation = self.__saturation + nutrition
-                    self.__inventory.pop(i)
-                    print(f"You ate {i}, it was {nutrition} nutritious.")
+                    self.__inventory.pop(item_selected)
+                    print(f"You ate {item_selected}, it was {nutrition} nutritious.")
                 else:
                     print(f"You tried to eat {i}, but you had none left")
         else:
