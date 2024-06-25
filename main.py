@@ -560,9 +560,11 @@ class Main:
             inventory_data_raw = database_handler.get_data(
                 "player", ["inventory"], self.__name
             )[0]
-            self.__inventory = dict(
-                [i.split(":") for i in inventory_data_raw.split(", ")]
-            )
+            inventory_list: list = [i.split(":") for i in inventory_data_raw.split(", ")]
+            if len(inventory_list) > 1:
+                self.__inventory = dict(inventory_list)
+            else:
+                self.__inventory = {}
             for i in self.__inventory:
                 self.__inventory[i] = literal_eval(self.__inventory[i])
 
@@ -676,25 +678,36 @@ class Main:
                 if not found:
                     print(f"There is no {i} at your current location.")
 
-    def drop(self, item: list = None) -> None:
+    def in_inventory(self, item: str) -> str:
+        """Checks, if the given item, or start
+        of items name is in the inventory.
+        Returns either the item or False."""
+        for item_avail in self.__inventory:
+            if item_avail.startswith(item) and not item == "":
+                return item_avail
+        return False
+
+    def drop(self, items: list = None) -> None:
         """Drop a given Item from the
         Inventory to the current chunk."""
-        if item is None:
+        if items is None:
             print("You dropped ... nothing.")
         else:
-            for i in item:
+            for i in items:
                 dropped = False
-                for item_avail in self.__inventory:
-                    if item_avail.startswith(i):
-                        self.__inventory.pop(item_avail)
-                        self.__position.add_item(item_avail)
-                        print(f"You dropped {item_avail}.")
-                        dropped = True
-                        break
+                item_selected = self.in_inventory(i)
+                if item_selected:
+                    self.__inventory.pop(item_selected)
+                    self.__position.add_item(item_selected)
+                    print(f"You dropped {item_selected}.")
+                    dropped = True
                 if not dropped:
-                    print(
-                        f"You tried to drop {i}, but it was not even in your inventory!"
-                    )
+                    if not i == "":
+                        print(
+                            f"You tried to drop {i}, but it was not even in your inventory!"
+                        )
+                    else:
+                        print("You dropped ... nothing.")
 
     def print_inventory(self, args=None) -> None:
         """ "Outprints the Inventory, mark
@@ -766,7 +779,6 @@ class Main:
                     print(f"You tried to eat {i}, but you had none left")
         else:
             print("You did not eat.")
-
 
     def inspect(self):
         """Outprints the items,
