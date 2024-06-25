@@ -753,7 +753,7 @@ class Main:
         of items name is in the current Chunk.
         Returns either the item or False."""
         for item_avail in self.__position.get_items():
-            if item_avail.startswith(item[5:]) and not item == "":
+            if item_avail[5:].startswith(item) and not item == "":
                 return item_avail
         return False
 
