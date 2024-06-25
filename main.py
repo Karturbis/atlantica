@@ -7,6 +7,7 @@ only for developing purposes and will change."""
 import random
 import shutil  # Used copy the content.sqlite file into a new gameslot
 import sqlite3  # Used for all database stuff (see class DatabaseHandler)
+from os import remove  # To remove files
 from os import listdir  # To list all files of a directory, used in Main.load_game()
 from os.path import exists  # Checks if given file exists. Used to prevent errors.
 from ast import literal_eval  # Used to evaluate a boolean from a string
@@ -586,6 +587,36 @@ class Main:
         the current gameslot."""
         self.save_chunk()
         self.save_player()
+
+    def delete_game(self, args=None) -> None:
+        """Delete the given Gameslot."""
+        saved_game_files = listdir("saves/")
+        if saved_game_files:
+            print("Pick your option:")
+            for index, file_name in enumerate(saved_game_files):
+                print(
+                    f"Option {index +1} is {file_name[9:-7]}"
+                )  # prints the name of the gamestate, without printing the whole file name
+                option: str = input("Input the number of your option.\n> ")
+            try:
+                option: int = int(option)
+                gameslot: str = f"{saved_game_files[option-1]}"
+            except ValueError:
+                gameslot = f"gameslot_{option}.sqlite"
+                if not gameslot in saved_game_files:
+                    print(f"Der Gameslot {gameslot[9:-7]} exisiert nicht.")
+                    return None
+            consent = input(
+                f"Bist du dir sicher, dass du Gameslot {gameslot[9:-7]} löschen möchtest? [y/N]\n> "
+            ).lower()
+            if consent == "y":
+                remove(f"saves/{gameslot}")
+                print(f"Gameslot {gameslot[9:-7]} wurde gelöscht.")
+            else:
+                print("Nichts wurde gelöscht.")
+
+        else:
+            print("There are no gameslots.")
 
     def save_player(self):
         """Saves the player data to
