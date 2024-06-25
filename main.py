@@ -538,6 +538,7 @@ class Main:
         shutil.copyfile("content.sqlite", game_file_path)
         print(f"The gameslot: {game_name} was sucessfully created.")
         database_handler.set_database(game_file_path)
+        self.quit_menu()
         return None
 
     def load_game(self, args=None) -> None:
@@ -554,9 +555,7 @@ class Main:
                 print("This option is not available.")
                 return None
             database_handler.set_database(f"saves/{saved_game_files[option-1]}")
-            self.__position = self.load_chunk(
-                database_handler.get_data("player", ["position"], self.__name)[0]
-            )
+            self.__position_save_id = database_handler.get_data("player", ["position"], self.__name)[0]
             inventory_data_raw = database_handler.get_data(
                 "player", ["inventory"], self.__name
             )[0]
@@ -567,8 +566,7 @@ class Main:
                 self.__inventory = {}
             for i in self.__inventory:
                 self.__inventory[i] = literal_eval(self.__inventory[i])
-
-            print(inventory_data_raw)
+            self.quit_menu()
         else:
             print("There are no gameslots available, create one with 'new'.")
         return None
