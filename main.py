@@ -145,6 +145,21 @@ class DatabaseHandler:
             chunk_id,
         )
 
+    def get_character_data(self, character_name: str) -> list:
+        return self.get_data(
+            "player",
+            [
+                "health",
+                "saturation",
+                "speed",
+                "strength",
+                "level",
+                "inventory",
+                "position"
+            ],
+            character_name
+        )
+
     def set_data(self, table: str, attributes: list) -> None:
         """Insert new column with given attributes
         into the given table of the self.__database"""
@@ -477,7 +492,12 @@ class Main:
         self.__inventory: dict = {}
         self.__position_save_id = None
         self.__name = "test"
-        self.__saturation: int = 100
+        character_data: list = database_handler.get_character_data(self.__name)
+        self.__health: int = int(character_data[0])
+        self.__saturation: int = int(character_data[1])
+        self.__speed: int = int(character_data[2])
+        self.__strength: int = int(character_data[3])
+        self.__level: int = int(character_data[4])
 
     def load_chunk(self, chunk_id: str) -> Chunk:
         """Loads the Chunk with the given id"""
@@ -562,12 +582,14 @@ class Main:
             except IndexError:
                 print("This option is not available.")
                 return None
-            self.__position_save_id = database_handler.get_data(
-                "player", ["position"], self.__name
-            )[0]
-            inventory_data_raw = database_handler.get_data(
-                "player", ["inventory"], self.__name
-            )[0]
+            character_data = database_handler.get_character_data(self.__name)
+            self.__health = character_data[0]
+            self.__saturation = character_data[1]
+            self.__speed = character_data[2]
+            self.__strength = character_data[3]
+            self.__level = character_data[4]
+            self.__position_save_id = character_data[6]
+            inventory_data_raw = character_data[5]
             inventory_list: list = [
                 i.split(":") for i in inventory_data_raw.split(", ")
             ]
@@ -597,7 +619,7 @@ class Main:
                 print(
                     f"Option {index +1} is {file_name[9:-7]}"
                 )  # prints the name of the gamestate, without printing the whole file name
-                option: str = input("Input the number of your option.\n> ")
+            option: str = input("Input the number of your option.\n> ")
             try:
                 option: int = int(option)
                 gameslot: str = f"{saved_game_files[option-1]}"
@@ -628,7 +650,7 @@ class Main:
         database_handler.update_character(
             {
                 "health": "",
-                "hunger": "",
+                "saturation": "",
                 "speed": "",
                 "strength": "",
                 "level": "",
@@ -722,7 +744,7 @@ class Main:
         of items name is in the inventory.
         Returns either the item or False."""
         for item_avail in self.__inventory:
-            if item_avail.startswith(item[5:]) and not item == "":
+            if item_avail[5:].startswith(item) and not item == "":
                 return item_avail
         return False
 
@@ -747,7 +769,7 @@ class Main:
                 if item_selected:
                     self.__inventory.pop(item_selected)
                     self.__position.add_item(item_selected)
-                    print(f"You dropped {item_selected}.")
+                    print(f"You dropped {item_selected[5:]}.")
                     dropped = True
                 if not dropped:
                     if not i == "":
@@ -766,7 +788,7 @@ class Main:
                 if value:  # check, if item is eqiupped
                     print(f"{key[5:]} - equipped")
                 else:
-                    print(key)
+                    print(key[5:])
         else:
             print("Your inventory is empty.")
 
@@ -793,21 +815,20 @@ class Main:
         """Equip a given Item, that either
         is in the Inventory, or in the
         curren chunk."""
-        items_avail: list = self.__position.get_items() + list(self.__inventory.keys())
-        if not item is None:
-            found = False
-            for i in items_avail:
-                if i.startswith(item[0]):
-                    self.unequip()
-                    self.__inventory[i] = True  # set the eqiupped parameter to true
-                    if i in self.__position.get_items():
-                        self.__position.remove_item(i)
-                    print(f"You equipped {i}.")
-                    found = True
-                    break
-            if not found:
-                print(f"There is no {item[0]}, you could equip right now.")
+        item_selected_inv = self.item_in_inventory(item[0])
+        item_selected_pos = self.item_in_position(item[0])
+        if item_selected_inv:
+            item_selected = item_selected_inv
+        elif item_selected_pos:
+            self.__position.remove_item(item_selected_pos)
+            item_selected = item_selected_pos
         else:
+            print(f"There is no {item[0]}, you could equip right now.")
+            return None
+        self.unequip()
+        self.__inventory[item_selected] = True  # set the eqiupped parameter to true
+        print(f"You equipped {item_selected[5:]}.")
+        if item[0] == "":
             print("You wanted to equip. But what?")
 
     def eat(self, item: list = None):
@@ -828,6 +849,7 @@ class Main:
                     print(f"You tried to eat {i}, but you had none left")
         else:
             print("You did not eat.")
+        print(f"Die Saturation ist: {self.__saturation}")
 
     def inspect(self):
         """Outprints the items,
