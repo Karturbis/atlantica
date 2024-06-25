@@ -548,18 +548,28 @@ class Main:
         if saved_game_files:
             print("Pick your option:")
             for index, file_name in enumerate(saved_game_files):
-                print(f"Option {index +1} is {file_name[9:-7]}")
+                print(
+                    f"Option {index +1} is {file_name[9:-7]}"
+                )  # prints the name of the gamestate, without printing the whole file name
             try:
                 option = int(input("Input the number of your option.\n> "))
             except ValueError:
+                print("You have to put in the NUMBER of your gameslot.")
+                return None
+            try:
+                database_handler.set_database(f"saves/{saved_game_files[option-1]}")
+            except IndexError:
                 print("This option is not available.")
                 return None
-            database_handler.set_database(f"saves/{saved_game_files[option-1]}")
-            self.__position_save_id = database_handler.get_data("player", ["position"], self.__name)[0]
+            self.__position_save_id = database_handler.get_data(
+                "player", ["position"], self.__name
+            )[0]
             inventory_data_raw = database_handler.get_data(
                 "player", ["inventory"], self.__name
             )[0]
-            inventory_list: list = [i.split(":") for i in inventory_data_raw.split(", ")]
+            inventory_list: list = [
+                i.split(":") for i in inventory_data_raw.split(", ")
+            ]
             if len(inventory_list) > 1:
                 self.__inventory = dict(inventory_list)
             else:
