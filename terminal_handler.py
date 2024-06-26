@@ -21,6 +21,12 @@ class TerminalHandler:
         self.__terminal_content.append(print_content)
         print(print_content)
 
+    def new_input(self, print_content: str = "") -> str:
+        """Input method, which logs its output to
+        the terminal_content variable."""
+        self.__terminal_content.append(print_content)
+        return input(print_content)
+
     def clear(self) -> None:
         """Clears the screen."""
         information_content_printable = self.gen_information_content_printable()
