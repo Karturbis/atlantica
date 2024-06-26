@@ -194,7 +194,6 @@ class DatabaseHandler:
                         f'UPDATE player SET {key} = "{attribute}" WHERE id = "{character_name}"'
                     )
                 if command:
-                    print(command)
                     self.__cursor.execute(command)
             self.__connection.commit()
 
@@ -264,7 +263,6 @@ class InputHandler:
             try:
                 commands_input = terminal_handler.new_input("> ").lower().split(" ")
                 if commands_input == [""]:
-
                     error_thrown = True
                     continue
                 error_thrown: bool = False
@@ -293,7 +291,6 @@ class InputHandler:
                                 error_thrown = True
             except RuntimeError:
                 break
-            terminal_handler.check_terminal_overflow()
 
     def get_commands_avail(self) -> dict:
         """Returns the commands, which
