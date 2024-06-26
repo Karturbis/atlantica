@@ -7,10 +7,15 @@ only for developing purposes and will change."""
 import random
 import shutil  # Used copy the content.sqlite file into a new gameslot
 import sqlite3  # Used for all database stuff (see class DatabaseHandler)
+
 from os import remove  # To remove files
 from os import listdir  # To list all files of a directory, used in Main.load_game()
 from os.path import exists  # Checks if given file exists. Used to prevent errors.
 from ast import literal_eval  # Used to evaluate a boolean from a string
+
+from terminal_handler import (
+    TerminalHandler,
+)  # To display data at the top of the terminal
 
 
 class Combat:
@@ -155,9 +160,9 @@ class DatabaseHandler:
                 "strength",
                 "level",
                 "inventory",
-                "position"
+                "position",
             ],
-            character_name
+            character_name,
         )
 
     def set_data(self, table: str, attributes: list) -> None:
@@ -242,6 +247,7 @@ class InputHandler:
             "help": ["main", "print_help"],
             "inspect": ["main", "inspect"],
             "quit": ["main", "quit_game"],
+            "clear": ["terminal_handler", "clear"]
         }
         if commands_avail is None:
             self.__commands_avail = self.__commands_std
@@ -256,8 +262,9 @@ class InputHandler:
         inputing = True
         while inputing:
             try:
-                commands_input = input("> ").lower().split(" ")
+                commands_input = terminal_handler.new_input("> ").lower().split(" ")
                 if commands_input == [""]:
+
                     error_thrown = True
                     continue
                 error_thrown: bool = False
@@ -267,25 +274,26 @@ class InputHandler:
                         if key.startswith(commands_input[0]):
                             if func_list[0] == "main":
                                 func = getattr(main, func_list[1])
-                            elif func_list[0] == "combat":
-                                func = getattr(combat, func_list[1])
+                            elif func_list[0] == "terminal_handler":
+                                func = getattr(terminal_handler, func_list[1])
                             func(commands_input[1:])
                 elif len(commands_input) == 1:
                     for key, func_list in self.__commands_avail.items():
                         if key.startswith(commands_input[0]):
                             if func_list[0] == "main":
                                 func = getattr(main, func_list[1])
-                            elif func_list[0] == "combat":
-                                func = getattr(combat, func_list[1])
+                            elif func_list[0] == "terminal_handler":
+                                func = getattr(terminal_handler, func_list[1])
                             func()
                         else:
                             if not error_thrown:
-                                print(
+                                terminal_handler.new_print(
                                     "Please enter a valid command, type 'help' for help."
                                 )
                                 error_thrown = True
             except RuntimeError:
                 break
+            terminal_handler.check_terminal_overflow()
 
     def get_commands_avail(self) -> dict:
         """Returns the commands, which
@@ -303,6 +311,7 @@ class InputHandler:
             self.__commands_avail = {
                 "help": ["main", "print_help"],
                 "quit": ["main", "quit_game"],
+                "clear": ["terminal_handler", "clear"]
             }
         for key in commands:
             self.__commands_avail.pop(key)
@@ -499,13 +508,24 @@ class Main:
         self.__strength: int = int(character_data[3])
         self.__level: int = int(character_data[4])
 
+    def get_character_data(self) -> dict:
+        """Returns the character data
+        as a dict."""
+        return {
+            "health": self.__health,
+            "saturation": self.__saturation,
+            "speed": self.__speed,
+            "strength": self.__strength,
+            "level": self.__level,
+        }
+
     def load_chunk(self, chunk_id: str) -> Chunk:
         """Loads the Chunk with the given id"""
         try:
             chunk_data = database_handler.get_chunk_data(chunk_id)
             print(chunk_data[4])
         except IndexError:
-            print("Where you wanted to go, there is just void.")
+            terminal_handler.new_print("Where you wanted to go, there is just void.")
             return self.__position
         self.save_chunk()  # save the state of the current chunk.
         input_handler.reset_commands()  # reset commands, so previous chunk has no effecet anymore
@@ -537,9 +557,9 @@ class Main:
 
     def print_help(self, args=None) -> None:
         """Outprints all available commands."""
-        print("\nAvailable commands:\n")
+        terminal_handler.new_print("\nAvailable commands:\n")
         for key in input_handler.get_commands_avail():
-            print(key)
+            terminal_handler.new_print(key)
 
     def quit_game(self, args=None) -> None:
         """Saves and quits the game."""
@@ -548,16 +568,16 @@ class Main:
 
     def new_game(self, args=None) -> None:
         """Creates a new game save slot"""
-        game_name = input("Please input the name of the gameslot\n> ")
+        game_name = terminal_handler.new_input("Please input the name of the gameslot\n> ")
         game_file_path = f"saves/gameslot_{game_name}.sqlite"
         if exists(game_file_path):
-            overwrite = input(
+            overwrite = terminal_handler.new_input(
                 "This gameslot is already occupied, do you want to overwrite? [y/N]\n> "
             ).lower()
             if not overwrite == "y" or overwrite == "yes":
                 return None
         shutil.copyfile("content.sqlite", game_file_path)
-        print(f"The gameslot: {game_name} was sucessfully created.")
+        terminal_handler.new_print(f"The gameslot: {game_name} was sucessfully created.")
         database_handler.set_database(game_file_path)
         self.quit_menu()
         return None
@@ -567,32 +587,32 @@ class Main:
         a given slot."""
         saved_game_files = listdir("saves/")
         if saved_game_files:
-            print("Pick your option:")
+            terminal_handler.new_print("Pick your option:")
             for index, file_name in enumerate(saved_game_files):
-                print(
+                terminal_handler.new_print(
                     f"Option {index +1} is {file_name[9:-7]}"
                 )  # prints the name of the gamestate, without printing the whole file name
             try:
-                option = int(input("Input the number of your option.\n> "))
+                option = int(terminal_handler.new_input("Input the number of your option.\n> "))
             except ValueError:
-                print("You have to put in the NUMBER of your gameslot.")
+                terminal_handler.new_print("You have to put in the NUMBER of your gameslot.")
                 return None
             try:
                 database_handler.set_database(f"saves/{saved_game_files[option-1]}")
             except IndexError:
-                print("This option is not available.")
+                terminal_handler.new_print("This option is not available.")
                 return None
             character_data = database_handler.get_character_data(self.__name)
-            self.__health = character_data[0]
-            self.__saturation = character_data[1]
-            self.__speed = character_data[2]
-            self.__strength = character_data[3]
-            self.__level = character_data[4]
+            self.__health: int = int(character_data[0])
+            self.__saturation: int = int(character_data[1])
+            self.__speed: int = int(character_data[2])
+            self.__strength: int = int(character_data[3])
+            self.__level: int = int(character_data[4])
             self.__position_save_id = character_data[6]
             inventory_data_raw: str = character_data[5]
             if inventory_data_raw:
                 inventory_list: list = [
-                  i.split(":") for i in inventory_data_raw.split(", ")
+                    i.split(":") for i in inventory_data_raw.split(", ")
                 ]
             else:
                 inventory_list: list = []
@@ -604,7 +624,7 @@ class Main:
                 self.__inventory[i] = literal_eval(self.__inventory[i])
             self.quit_menu()
         else:
-            print("There are no gameslots available, create one with 'new'.")
+            terminal_handler.new_print("There are no gameslots available, create one with 'new'.")
         return None
 
     def save_game(self, arguments=None):
@@ -617,31 +637,31 @@ class Main:
         """Delete the given Gameslot."""
         saved_game_files = listdir("saves/")
         if saved_game_files:
-            print("Pick your option:")
+            terminal_handler.new_print("Pick your option:")
             for index, file_name in enumerate(saved_game_files):
-                print(
+                terminal_handler.new_print(
                     f"Option {index +1} is {file_name[9:-7]}"
                 )  # prints the name of the gamestate, without printing the whole file name
-            option: str = input("Input the number of your option.\n> ")
+            option: str = terminal_handler.new_input("Input the number of your option.\n> ")
             try:
                 option: int = int(option)
                 gameslot: str = f"{saved_game_files[option-1]}"
             except ValueError:
                 gameslot = f"gameslot_{option}.sqlite"
                 if not gameslot in saved_game_files:
-                    print(f"Der Gameslot {gameslot[9:-7]} exisiert nicht.")
+                    terminal_handler.new_print(f"Der Gameslot {gameslot[9:-7]} exisiert nicht.")
                     return None
-            consent = input(
+            consent = terminal_handler.new_input(
                 f"Bist du dir sicher, dass du Gameslot {gameslot[9:-7]} löschen möchtest? [y/N]\n> "
             ).lower()
             if consent == "y":
                 remove(f"saves/{gameslot}")
-                print(f"Gameslot {gameslot[9:-7]} wurde gelöscht.")
+                terminal_handler.new_print(f"Gameslot {gameslot[9:-7]} wurde gelöscht.")
             else:
-                print("Nichts wurde gelöscht.")
+                terminal_handler.new_print("Nichts wurde gelöscht.")
 
         else:
-            print("There are no gameslots.")
+            terminal_handler.new_print("There are no gameslots.")
 
     def save_player(self):
         """Saves the player data to
@@ -652,11 +672,11 @@ class Main:
         inventory = inventory[:-2]
         database_handler.update_character(
             {
-                "health": "",
-                "saturation": "",
-                "speed": "",
-                "strength": "",
-                "level": "",
+                "health": str(self.__health),
+                "saturation": str(self.__saturation),
+                "speed": str(self.__speed),
+                "strength": str(self.__strength),
+                "level": str(self.__level),
                 "inventory": inventory,
                 "position": self.__position.get_chunk_id(),
             },
@@ -670,7 +690,7 @@ class Main:
         items = self.__position.get_items()
         database_handler.update_items(items, chunk_id)
 
-    def menu(self) -> None:
+    def menu(self, args = None) -> None:
         """Opens the menu, by setting the
         current position to the menu Chunk."""
         self.__position_save_id = self.__position.get_chunk_id()
@@ -680,6 +700,7 @@ class Main:
         """Restores the Chunk, where the
         player was located, before opening
         the menu."""
+        terminal_handler.clear()
         self.__position = self.load_chunk(self.__position_save_id)
 
     def move(self, direction: list = None) -> None:
@@ -709,14 +730,14 @@ class Main:
                             self.__position.get_west_chunk_id()
                         )
                     else:
-                        print(
+                        terminal_handler.new_print(
                             "You did not walk, the direction you want to go does not exist."
                         )
             except ValueError:
-                print("\nFirstly, write the direction, you want to go,")
-                print("and secondly, write the number of steps you want to take.")
+                terminal_handler.new_print("\nFirstly, write the direction, you want to go,")
+                terminal_handler.new_print("and secondly, write the number of steps you want to take.")
         else:
-            print("You did not walk, because you don't know which direction.")
+            terminal_handler.new_print("You did not walk, because you don't know which direction.")
 
     def rest(self, args=None) -> None:
         """Rest, no other actions
@@ -736,11 +757,11 @@ class Main:
                         False  # Setting equipped parameter to False
                     )
                     self.__position.remove_item(item_selected)
-                    print(f"You took {item_selected[5:]}.")
+                    terminal_handler.new_print(f"You took {item_selected[5:]}.")
                     found = True
 
                 if not found:
-                    print(f"There is no {i} at your current location.")
+                    terminal_handler.new_print(f"There is no {i} at your current location.")
 
     def item_in_inventory(self, item: str) -> str:
         """Checks, if the given item, or start
@@ -764,7 +785,7 @@ class Main:
         """Drop a given Item from the
         Inventory to the current chunk."""
         if items is None:
-            print("You dropped ... nothing.")
+            terminal_handler.new_print("You dropped ... nothing.")
         else:
             for i in items:
                 dropped = False
@@ -772,28 +793,28 @@ class Main:
                 if item_selected:
                     self.__inventory.pop(item_selected)
                     self.__position.add_item(item_selected)
-                    print(f"You dropped {item_selected[5:]}.")
+                    terminal_handler.new_print(f"You dropped {item_selected[5:]}.")
                     dropped = True
                 if not dropped:
                     if not i == "":
-                        print(
+                        terminal_handler.new_print(
                             f"You tried to drop {i}, but it was not even in your inventory!"
                         )
                     else:
-                        print("You dropped ... nothing.")
+                        terminal_handler.new_print("You dropped ... nothing.")
 
     def print_inventory(self, args=None) -> None:
         """ "Outprints the Inventory, mark
         which item is equiped."""
         if self.__inventory:
-            print("Your inventory contains:")
+            terminal_handler.new_print("Your inventory contains:")
             for key, value in self.__inventory.items():
                 if value:  # check, if item is eqiupped
-                    print(f"{key[5:]} - equipped")
+                    terminal_handler.new_print(f"{key[5:]} - equipped")
                 else:
-                    print(key[5:])
+                    terminal_handler.new_print(key[5:])
         else:
-            print("Your inventory is empty.")
+            terminal_handler.new_print("Your inventory is empty.")
 
     def unequip(self, item: list = None, first_iter: bool = True) -> None:
         """Unequip the Item, which
@@ -804,7 +825,7 @@ class Main:
                     self.__inventory[inventory_item] = (
                         False  # set the equipped parameter to false
                     )
-                    print(f"You unequipped {inventory_item}.")
+                    terminal_handler.new_print(f"You unequipped {inventory_item}.")
         else:
             found = False
             for inventory_item, equipped in self.__inventory.items():
@@ -812,7 +833,7 @@ class Main:
                     found = True
                     self.unequip(None, False)
             if not found:
-                print(f"{item[0]} was no equipped.")
+                terminal_handler.new_print(f"{item[0]} was no equipped.")
 
     def equip(self, item: list = None) -> None:
         """Equip a given Item, that either
@@ -826,13 +847,13 @@ class Main:
             self.__position.remove_item(item_selected_pos)
             item_selected = item_selected_pos
         else:
-            print(f"There is no {item[0]}, you could equip right now.")
+            terminal_handler.new_print(f"There is no {item[0]}, you could equip right now.")
             return None
         self.unequip()
         self.__inventory[item_selected] = True  # set the eqiupped parameter to true
-        print(f"You equipped {item_selected[5:]}.")
+        terminal_handler.new_print(f"You equipped {item_selected[5:]}.")
         if item[0] == "":
-            print("You wanted to equip. But what?")
+            terminal_handler.new_print("You wanted to equip. But what?")
 
     def eat(self, item: list = None):
         """Removes the eaten item
@@ -844,20 +865,22 @@ class Main:
                 item_selected = self.item_in_inventory(i)
                 if item_selected:
                     nutrition = int(database_handler.get_item_data(item_selected)[0])
-                    print(nutrition)
-                    self.__saturation = self.__saturation + nutrition
+                    terminal_handler.new_print(nutrition)
+                    print(type(self.__saturation))
+                    self.__saturation = int(self.__saturation) + nutrition
                     self.__inventory.pop(item_selected)
-                    print(f"You ate {item_selected}, it was {nutrition} nutritious.")
+                    terminal_handler.new_print(f"You ate {item_selected[5:]}, it was {nutrition} nutritious.")
+                    terminal_handler.set_information("saturation", self.__saturation)
                 else:
-                    print(f"You tried to eat {i}, but you had none left")
+                    terminal_handler.new_print(f"You tried to eat {i}, but you had none left")
         else:
-            print("You did not eat.")
-        print(f"Die Saturation ist: {self.__saturation}")
+            terminal_handler.new_print("You did not eat.")
+        
 
     def inspect(self):
         """Outprints the items,
         which are in the current Chunk."""
-        print(f"There are: {self.__position.get_items()}")
+        terminal_handler.new_print(f"There are: {self.__position.get_items()}")
 
     def game_start(self) -> None:
         """The Text, which gets
@@ -875,6 +898,7 @@ class Main:
 
 database_handler = DatabaseHandler("content.sqlite")
 main = Main(True)
+terminal_handler = TerminalHandler(main.get_character_data())
 combat = Combat()
 input_handler = InputHandler()
 main.menu()
