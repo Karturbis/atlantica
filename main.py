@@ -589,10 +589,13 @@ class Main:
             self.__strength = character_data[3]
             self.__level = character_data[4]
             self.__position_save_id = character_data[6]
-            inventory_data_raw = character_data[5]
-            inventory_list: list = [
-                i.split(":") for i in inventory_data_raw.split(", ")
-            ]
+            inventory_data_raw: str = character_data[5]
+            if inventory_data_raw:
+                inventory_list: list = [
+                  i.split(":") for i in inventory_data_raw.split(", ")
+                ]
+            else:
+                inventory_list: list = []
             if len(inventory_list) > 1:
                 self.__inventory = dict(inventory_list)
             else:
