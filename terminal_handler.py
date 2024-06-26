@@ -24,8 +24,9 @@ class TerminalHandler:
     def new_input(self, print_content: str = "") -> str:
         """Input method, which logs its output to
         the terminal_content variable."""
-        self.__terminal_content.append(print_content)
-        return input(print_content)
+        terminal_input = input(print_content)
+        self.__terminal_content.append(f"{print_content}{terminal_input}")
+        return terminal_input
 
     def clear(self) -> None:
         """Clears the screen."""
