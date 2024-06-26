@@ -20,12 +20,14 @@ class TerminalHandler:
         logs it into the terminal_content variable."""
         self.__terminal_content.append(print_content)
         print(print_content)
+        self.check_terminal_overflow()
 
     def new_input(self, print_content: str = "") -> str:
         """Input method, which logs its output to
         the terminal_content variable."""
         terminal_input = input(print_content)
         self.__terminal_content.append(f"{print_content}{terminal_input}")
+        self.check_terminal_overflow()
         return terminal_input
 
     def clear(self) -> None:
