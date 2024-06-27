@@ -9,13 +9,85 @@ class LanguageHandlerDE:
     def __init__(self):
         pass
 
+        def n_deklination(self, grundform: str, fall: str, genus: str, numerus: str) -> str:
+
+    def create_nomen(self, grundform: str, fall: str, genus: str, numerus: str) -> str:
+        ausnahmen: dict = {
+            "nomen": {
+                "nominativ": {
+                    "maskulin":{
+                        "singular": "",
+                        "plural": ""
+                    },
+                    "feminin": {
+                        "singular": "",
+                        "plural": ""
+                    },
+                    "neutrum": {
+                        "singular": "",
+                        "plural": ""
+                    }
+                },
+                "akkusativ": {
+                    "maskulin":{
+                        "singular": "",
+                        "plural": ""
+                    },
+                    "feminin": {
+                        "singular": "",
+                        "plural": ""
+                    },
+                    "neutrum": {
+                        "singular": "",
+                        "plural": ""
+                    }
+                },
+                "dativ": {
+                    "maskulin":{
+                        "singular": "",
+                        "plural": ""
+                    },
+                    "feminin": {
+                        "singular": "",
+                        "plural": ""
+                    },
+                    "neutrum": {
+                        "singular": "",
+                        "plural": ""
+                    }
+                },
+                "genitiv": {
+                    "maskulin":{
+                        "singular": "",
+                        "plural": ""
+                    },
+                    "feminin": {
+                        "singular": "",
+                        "plural": ""
+                    },
+                    "neutrum": {
+                        "singular": "",
+                        "plural": ""
+                    }
+                }
+            }
+        }
+        if grundform in ausnahmen:
+            nomen = ausnahmen[grundform][fall][genus][numerus]
+
+        
+
+
+        return nomen
+
+
     def create_possesiv_artikel(
         self,
         fall: str,
-        geschlecht_objekt: str,
-        anzahl: str = None,
+        genus_objekt: str,
+        numerus: str = None,
         person: str = None,
-        geschlecht_subjekt: str = None,
+        genus_subjekt: str = None,
     ) -> str:
         """Returns the 'possesiv artikel',
         with the given properties."""
@@ -54,26 +126,26 @@ class LanguageHandlerDE:
             },
         }
         if (
-            anzahl == "plural"
+            numerus == "plural"
             and person == "person_2"
-            and not endungen[fall][geschlecht_objekt] == ""
+            and not endungen[fall][genus_objekt] == ""
         ):
             person = "person_2_no_e"
         try:
-            possesiv_artikel: str = grundformen[anzahl][person][geschlecht_subjekt]
+            possesiv_artikel: str = grundformen[numerus][person][genus_subjekt]
         except TypeError:
-            possesiv_artikel: str = grundformen[anzahl][person]
-        possesiv_artikel = f"{possesiv_artikel}{endungen[fall][geschlecht_objekt]}"
+            possesiv_artikel: str = grundformen[numerus][person]
+        possesiv_artikel = f"{possesiv_artikel}{endungen[fall][genus_objekt]}"
         return possesiv_artikel
 
     def create_artikel(
         self,
         art: str,
         fall: str,
-        geschlecht_objekt: str,
-        anzahl: str,
+        genus_objekt: str,
+        numerus: str,
         person: str = None,
-        geschlecht_subjekt: str = None
+        genus_subjekt: str = None
     ) -> str:
         artikel_liste: dict = {
             "definitiv": {
@@ -124,9 +196,9 @@ class LanguageHandlerDE:
             }
         }
         if art == "possesiv":
-            return self.create_possesiv_artikel(fall, geschlecht_objekt, anzahl, person, geschlecht_subjekt)
-        if anzahl == "plural":
-            geschlecht_objekt = "plural"
+            return self.create_possesiv_artikel(fall, genus_objekt, numerus, person, genus_subjekt)
+        if numerus == "plural":
+            genus_objekt = "plural"
             if art == "indefinitiv":
                 return ""
         if art == "negativ":
@@ -134,9 +206,9 @@ class LanguageHandlerDE:
             art = "indefinitiv"
         else:
             artikel: str = ""
-        if geschlecht_objekt != "maskulin" and fall == "akkusativ":
+        if genus_objekt != "maskulin" and fall == "akkusativ":
             fall = "nominativ"
-        artikel = f"{artikel}{artikel_liste[art][fall][geschlecht_objekt]}"
+        artikel = f"{artikel}{artikel_liste[art][fall][genus_objekt]}"
         return artikel
 
 
@@ -145,5 +217,5 @@ if __name__ == "__main__":
     var1 = input("Type the art of the article: ")
     var2 = input("Fall: ")
     var3 = input("Genus: ")
-    var4 = input("Anzahl: ")
+    var4 = input("numerus: ")
     print(lh_de.create_artikel(var1, var2, var3, var4))
