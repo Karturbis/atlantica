@@ -62,10 +62,10 @@ class TerminalHandler:
         system("cls" if name == "nt" else "clear")
         print(f"{information_content_printable}{terminal_content_printable}")
 
-    def set_information(self, name: str, value: int):
+    def set_information(self, key: str, value: int):
         """Set the information, which is
         displayed at the top of the screen."""
-        self.__information_content[name] = value
+        self.__information_content[key] = value
         self.update_terminal()
 
     def check_terminal_overflow(self):
