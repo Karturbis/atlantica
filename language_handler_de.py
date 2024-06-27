@@ -9,7 +9,8 @@ class LanguageHandlerDE:
     def __init__(self):
         pass
 
-        def n_deklination(self, grundform: str, fall: str, genus: str, numerus: str) -> str:
+    def n_deklination(self, grundform: str, fall: str, genus: str, numerus: str) -> str:
+        pass
 
     def create_nomen(self, grundform: str, fall: str, genus: str, numerus: str) -> str:
         ausnahmen: dict = {
