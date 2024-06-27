@@ -189,12 +189,6 @@ class LanguageHandlerDE:
         }
 
 
-    def chunk_description(self, attributes: dict) -> str:
-        """Compiles the chunk desciprion
-        from the given attributes."""
-        output: str = f"Du bist in {attributes["room"]}"
-        return output
-
     def create_possesiv_artikel(
         self,
         fall: str,
@@ -252,7 +246,7 @@ class LanguageHandlerDE:
             person = "person_2_no_e"
         try:
             possesiv_artikel: str = grundformen[anzahl][person][geschlecht_subjekt]
-        except Exception:
+        except TypeError:
             possesiv_artikel: str = grundformen[anzahl][person]
         possesiv_artikel = f"{possesiv_artikel}{endungen[fall][geschlecht_objekt]}"
         return possesiv_artikel
