@@ -33,23 +33,23 @@ class LanguageHandlerDE:
             },
         }
         endungen: dict = {
-            "nominativ": {"maskulin": "", "feminin": "e", "neutral": "", "plural": "e"},
+            "nominativ": {"maskulin": "", "feminin": "e", "neutrum": "", "plural": "e"},
             "akkusativ": {
                 "maskulin": "en",
                 "feminin": "e",
-                "neutral": "",
+                "neutrum": "",
                 "plural": "e",
             },
             "dativ": {
                 "maskulin": "em",
                 "feminin": "er",
-                "neutral": "em",
+                "neutrum": "em",
                 "plural": "en",
             },
             "genitiv": {
                 "maskulin": "es",
                 "feminin": "er",
-                "neutral": "es",
+                "neutrum": "es",
                 "plural": "er",
             },
         }
@@ -66,13 +66,84 @@ class LanguageHandlerDE:
         possesiv_artikel = f"{possesiv_artikel}{endungen[fall][geschlecht_objekt]}"
         return possesiv_artikel
 
+    def create_artikel(
+        self,
+        art: str,
+        fall: str,
+        geschlecht_objekt: str,
+        anzahl: str,
+        person: str = None,
+        geschlecht_subjekt: str = None
+    ) -> str:
+        artikel_liste: dict = {
+            "definitiv": {
+                "nominativ": {
+                    "maskulin": "der",
+                    "feminin": "die",
+                    "neutrum": "das",
+                    "plural": "die"
+                },
+                "akkusativ": {
+                    "maskulin": "den",
+                },
+                "dativ": {
+                    "maskulin": "dem",
+                    "feminin": "der",
+                    "neutrum": "dem",
+                    "plural": "den"
+                },
+                "genitiv": {
+                    "maskulin": "des",
+                    "feminin": "der",
+                    "neutrum": "des",
+                    "plural": "der"
+                }
+            },
+            "indefinitiv":{
+                "nominativ": {
+                    "maskulin": "ein",
+                    "feminin": "eine",
+                    "neutrum": "ein",
+                    "plural": ""
+                },
+                "akkusativ": {
+                    "maskulin": "einen",
+                },
+                "dativ": {
+                    "maskulin": "einem",
+                    "feminin": "einer",
+                    "neutrum": "einem",
+                    "plural": ""
+                },
+                "genitiv": {
+                    "maskulin": "eines",
+                    "feminin": "einer",
+                    "neutrum": "eines",
+                    "plural": "einer"
+                }
+            }
+        }
+        if art == "possesiv":
+            return self.create_possesiv_artikel(fall, geschlecht_objekt, anzahl, person, geschlecht_subjekt)
+        if anzahl == "plural":
+            geschlecht_objekt = "plural"
+            if art == "indefinitiv":
+                return ""
+        if art == "negativ":
+            artikel: str = "k"
+            art = "indefinitiv"
+        else:
+            artikel: str = ""
+        if geschlecht_objekt != "maskulin" and fall == "akkusativ":
+            fall = "nominativ"
+        artikel = f"{artikel}{artikel_liste[art][fall][geschlecht_objekt]}"
+        return artikel
+
 
 if __name__ == "__main__":
-    # for testing
     lh_de = LanguageHandlerDE()
-
-    print(
-        lh_de.create_possesiv_artikel(
-            "dativ", "maskulin", "plural", "person_2", "neutral"
-        )
-    )
+    var1 = input("Type the art of the article: ")
+    var2 = input("Fall: ")
+    var3 = input("Genus: ")
+    var4 = input("Anzahl: ")
+    print(lh_de.create_artikel(var1, var2, var3, var4))
