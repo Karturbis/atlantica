@@ -9,78 +9,87 @@ class LanguageHandlerDE:
     def __init__(self):
         pass
 
-    def n_deklination(self, grundform: str, fall: str, genus: str, numerus: str) -> str:
-        pass
+    def nomen_deklination_n(
+        self, grundform: str, fall: str, genus: str, numerus: str, ausnahme: int
+    ) -> str:
+        if ausnahme == 0:
+            if fall == "nominativ" and numerus == "singular":
+
+        if ausnahme == 1:
+            pass
+        if ausnahme == 2:
+            pass
+        return ""
+
+    def nomen_deklination_standart(
+        self, grundform: str, fall: str, genus: str, numerus: str
+    ) -> str:
+        return ""
 
     def create_nomen(self, grundform: str, fall: str, genus: str, numerus: str) -> str:
         ausnahmen: dict = {
             "nomen": {
                 "nominativ": {
-                    "maskulin":{
-                        "singular": "",
-                        "plural": ""
-                    },
-                    "feminin": {
-                        "singular": "",
-                        "plural": ""
-                    },
-                    "neutrum": {
-                        "singular": "",
-                        "plural": ""
-                    }
+                    "maskulin": {"singular": "", "plural": ""},
+                    "feminin": {"singular": "", "plural": ""},
+                    "neutrum": {"singular": "", "plural": ""},
                 },
                 "akkusativ": {
-                    "maskulin":{
-                        "singular": "",
-                        "plural": ""
-                    },
-                    "feminin": {
-                        "singular": "",
-                        "plural": ""
-                    },
-                    "neutrum": {
-                        "singular": "",
-                        "plural": ""
-                    }
+                    "maskulin": {"singular": "", "plural": ""},
+                    "feminin": {"singular": "", "plural": ""},
+                    "neutrum": {"singular": "", "plural": ""},
                 },
                 "dativ": {
-                    "maskulin":{
-                        "singular": "",
-                        "plural": ""
-                    },
-                    "feminin": {
-                        "singular": "",
-                        "plural": ""
-                    },
-                    "neutrum": {
-                        "singular": "",
-                        "plural": ""
-                    }
+                    "maskulin": {"singular": "", "plural": ""},
+                    "feminin": {"singular": "", "plural": ""},
+                    "neutrum": {"singular": "", "plural": ""},
                 },
                 "genitiv": {
-                    "maskulin":{
-                        "singular": "",
-                        "plural": ""
-                    },
-                    "feminin": {
-                        "singular": "",
-                        "plural": ""
-                    },
-                    "neutrum": {
-                        "singular": "",
-                        "plural": ""
-                    }
-                }
+                    "maskulin": {"singular": "", "plural": ""},
+                    "feminin": {"singular": "", "plural": ""},
+                    "neutrum": {"singular": "", "plural": ""},
+                },
             }
         }
         if grundform in ausnahmen:
-            nomen = ausnahmen[grundform][fall][genus][numerus]
+            return ausnahmen[grundform][fall][genus][numerus]
+        if fall == "nominativ" and numerus == "singular":
+            return grundform
+        n_deklinations_endungen: list = [
+            "oge",
+            "ent",
+            "ant",
+            "at",
+            "ist",
+            "e",
+            "et",
+            "it",
+            "graf",
+            "ot",
+            "soph",
+        ]
+        n_deklinations_ausnahmen: list = [
+            "bauer",
+            "bär",
+            "held",
+            "mensch",
+            "nachbar",
+            "prinz",
+        ]
+        n_deklinations_ausnahmen_2: list = ["herz", "herr"]
+        for i in n_deklinations_endungen:
+            if grundform.endswith(i):
+                nomen = self.nomen_deklination_n(grundform, fall, genus, numerus, 0)
+        if not nomen:
+            if grundform in n_deklinations_ausnahmen:
+                nomen = self.nomen_deklination_n(grundform, fall, genus, numerus, 1)
+            elif grundform in n_deklinations_ausnahmen_2:
+                nomen = self.nomen_deklination_n(grundform, fall, genus, numerus, 2)
+        if nomen:
+            return nomen
+        nomen = self.nomen_deklination_standart(grundform, fall, genus, numerus)
 
-        
-
-
-        return nomen
-
+        return "nomen"
 
     def create_possesiv_artikel(
         self,
@@ -146,7 +155,7 @@ class LanguageHandlerDE:
         genus_objekt: str,
         numerus: str,
         person: str = None,
-        genus_subjekt: str = None
+        genus_subjekt: str = None,
     ) -> str:
         artikel_liste: dict = {
             "definitiv": {
@@ -154,7 +163,7 @@ class LanguageHandlerDE:
                     "maskulin": "der",
                     "feminin": "die",
                     "neutrum": "das",
-                    "plural": "die"
+                    "plural": "die",
                 },
                 "akkusativ": {
                     "maskulin": "den",
@@ -163,21 +172,21 @@ class LanguageHandlerDE:
                     "maskulin": "dem",
                     "feminin": "der",
                     "neutrum": "dem",
-                    "plural": "den"
+                    "plural": "den",
                 },
                 "genitiv": {
                     "maskulin": "des",
                     "feminin": "der",
                     "neutrum": "des",
-                    "plural": "der"
-                }
+                    "plural": "der",
+                },
             },
-            "indefinitiv":{
+            "indefinitiv": {
                 "nominativ": {
                     "maskulin": "ein",
                     "feminin": "eine",
                     "neutrum": "ein",
-                    "plural": ""
+                    "plural": "",
                 },
                 "akkusativ": {
                     "maskulin": "einen",
@@ -186,18 +195,20 @@ class LanguageHandlerDE:
                     "maskulin": "einem",
                     "feminin": "einer",
                     "neutrum": "einem",
-                    "plural": ""
+                    "plural": "",
                 },
                 "genitiv": {
                     "maskulin": "eines",
                     "feminin": "einer",
                     "neutrum": "eines",
-                    "plural": "einer"
-                }
-            }
+                    "plural": "einer",
+                },
+            },
         }
         if art == "possesiv":
-            return self.create_possesiv_artikel(fall, genus_objekt, numerus, person, genus_subjekt)
+            return self.create_possesiv_artikel(
+                fall, genus_objekt, numerus, person, genus_subjekt
+            )
         if numerus == "plural":
             genus_objekt = "plural"
             if art == "indefinitiv":
