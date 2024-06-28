@@ -12,13 +12,28 @@ class LanguageHandlerDE:
     def nomen_deklination_n(
         self, grundform: str, fall: str, genus: str, numerus: str, ausnahme: int
     ) -> str:
-        if ausnahme == 0:
-            if fall == "nominativ" and numerus == "singular":
+        if ausnahme == 0:  # Regelfall:
+            # Kein check für nominativ-singular, da in create_nomen gecheckt.
+            endungen_e_gebraucht: list = ["f", "t", "d"]
+            for i in endungen_e_gebraucht:
+                if grundform.endswith(i):
+                    return f"{grundform}en"
+            # if not endung = "f" or "t" or "d"
+            return f"{grundform}n"
+        if ausnahme == 1:  # Ausnahmefall 1
+            if fall == "genitv":
+                return (
+                    f"{self.nomen_deklination_n(grundform, fall, genus, numerus, 0)}s"
+                )
+            # Else:
+            return self.nomen_deklination_n(grundform, fall, genus, numerus, 0)
 
-        if ausnahme == 1:
-            pass
-        if ausnahme == 2:
-            pass
+        if ausnahme == 2:  # Ausnahmefall Herr
+            if numerus == "plural":
+                return self.nomen_deklination_n("herre", fall, genus, numerus, 0)
+            # Else:
+            return self.nomen_deklination_n("herr", fall, genus, numerus, 0)
+
         return ""
 
     def nomen_deklination_standart(
@@ -76,20 +91,21 @@ class LanguageHandlerDE:
             "nachbar",
             "prinz",
         ]
-        n_deklinations_ausnahmen_2: list = ["herz", "herr"]
+        n_deklinations_ausnahmen_1: list = ["herz", "buchstabe", "gedanke", "name"]
         for i in n_deklinations_endungen:
             if grundform.endswith(i):
                 nomen = self.nomen_deklination_n(grundform, fall, genus, numerus, 0)
         if not nomen:
             if grundform in n_deklinations_ausnahmen:
+                nomen = self.nomen_deklination_n(grundform, fall, genus, numerus, 0)
+            elif grundform in n_deklinations_ausnahmen_1:
                 nomen = self.nomen_deklination_n(grundform, fall, genus, numerus, 1)
-            elif grundform in n_deklinations_ausnahmen_2:
+            elif grundform == "herr":
                 nomen = self.nomen_deklination_n(grundform, fall, genus, numerus, 2)
         if nomen:
             return nomen
         nomen = self.nomen_deklination_standart(grundform, fall, genus, numerus)
-
-        return "nomen"
+        return nomen
 
     def create_possesiv_artikel(
         self,
@@ -226,8 +242,9 @@ class LanguageHandlerDE:
 
 if __name__ == "__main__":
     lh_de = LanguageHandlerDE()
+    var0 = input("Type the nomen you want: ").lower()
     var1 = input("Type the art of the article: ")
     var2 = input("Fall: ")
     var3 = input("Genus: ")
     var4 = input("numerus: ")
-    print(lh_de.create_artikel(var1, var2, var3, var4))
+    print(f"{lh_de.create_artikel(var1, var2, var3, var4)} {lh_de.create_nomen(var0, var2, var3, var4)}")
