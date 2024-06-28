@@ -247,4 +247,6 @@ if __name__ == "__main__":
     var2 = input("Fall: ")
     var3 = input("Genus: ")
     var4 = input("numerus: ")
-    print(f"{lh_de.create_artikel(var1, var2, var3, var4)} {lh_de.create_nomen(var0, var2, var3, var4)}")
+    print(
+        f"{lh_de.create_artikel(var1, var2, var3, var4)} {lh_de.create_nomen(var0, var2, var3, var4)}"
+    )
