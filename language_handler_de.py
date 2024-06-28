@@ -1,5 +1,5 @@
 """Compiles the given sentence
-to valid german language code."""
+to valid german language output."""
 
 
 class LanguageHandlerDE:
@@ -12,6 +12,8 @@ class LanguageHandlerDE:
     def nomen_deklination_n(
         self, grundform: str, fall: str, genus: str, numerus: str, ausnahme: int
     ) -> str:
+        """dekliniert das übergebene Nomen nach den
+        Regeln der n-deklination"""
         if ausnahme == 0:  # Regelfall:
             # Kein check für nominativ-singular, da in create_nomen gecheckt.
             endungen_e_gebraucht: list = ["f", "t", "d"]
@@ -36,14 +38,18 @@ class LanguageHandlerDE:
 
         return ""
 
-    def nomen_deklination_standart(
+    def nomen_deklination_standard(
         self, grundform: str, fall: str, genus: str, numerus: str
     ) -> str:
+        """Dekliniert das übergebene Nomen
+        nach den standard deklinations Regeln."""
         return ""
 
     def create_nomen(self, grundform: str, fall: str, genus: str, numerus: str) -> str:
+        """Erzeugt ein Nomen, greift auf
+        nomen_deklination_standard()"""
         ausnahmen: dict = {
-            "nomen": {
+            "platzhalter": {
                 "nominativ": {
                     "maskulin": {"singular": "", "plural": ""},
                     "feminin": {"singular": "", "plural": ""},
@@ -104,7 +110,7 @@ class LanguageHandlerDE:
                 nomen = self.nomen_deklination_n(grundform, fall, genus, numerus, 2)
         if nomen:
             return nomen
-        nomen = self.nomen_deklination_standart(grundform, fall, genus, numerus)
+        nomen = self.nomen_deklination_standard(grundform, fall, genus, numerus)
         return nomen
 
     def create_possesiv_artikel(
@@ -173,6 +179,8 @@ class LanguageHandlerDE:
         person: str = None,
         genus_subjekt: str = None,
     ) -> str:
+        """Erzeugt einen Artikel
+        mit den übergebenen Parametern."""
         artikel_liste: dict = {
             "definitiv": {
                 "nominativ": {
