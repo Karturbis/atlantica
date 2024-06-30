@@ -100,18 +100,15 @@ class LanguageHandlerDE:
         n_deklinations_ausnahmen_1: list = ["herz", "buchstabe", "gedanke", "name"]
         for i in n_deklinations_endungen:
             if grundform.endswith(i):
-                nomen = self.nomen_deklination_n(grundform, fall, genus, numerus, 0)
-        if not nomen:
-            if grundform in n_deklinations_ausnahmen:
-                nomen = self.nomen_deklination_n(grundform, fall, genus, numerus, 0)
-            elif grundform in n_deklinations_ausnahmen_1:
-                nomen = self.nomen_deklination_n(grundform, fall, genus, numerus, 1)
-            elif grundform == "herr":
-                nomen = self.nomen_deklination_n(grundform, fall, genus, numerus, 2)
-        if nomen:
-            return nomen
-        nomen = self.nomen_deklination_standard(grundform, fall, genus, numerus)
-        return nomen
+                return self.nomen_deklination_n(grundform, fall, genus, numerus, 0)
+        if grundform in n_deklinations_ausnahmen:
+            return self.nomen_deklination_n(grundform, fall, genus, numerus, 0)
+        if grundform in n_deklinations_ausnahmen_1:
+            return self.nomen_deklination_n(grundform, fall, genus, numerus, 1)
+        if grundform == "herr":
+            nomen = self.nomen_deklination_n(grundform, fall, genus, numerus, 2)
+        # Else:
+        return self.nomen_deklination_standard(grundform, fall, genus, numerus)
 
     def create_possesiv_artikel(
         self,
