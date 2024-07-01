@@ -89,7 +89,7 @@ class LanguageHandlerDE:
             "ot",
             "soph",
             "at",
-            "nom"
+            "nom",
         ]
         n_deklinations_ausnahmen: list = [
             "bauer",
