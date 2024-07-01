@@ -16,7 +16,7 @@ class LanguageHandlerDE:
         Regeln der n-deklination"""
         if ausnahme == 0:  # Regelfall:
             # Kein check für nominativ-singular, da in create_nomen gecheckt.
-            endungen_e_gebraucht: list = ["f", "t", "d"]
+            endungen_e_gebraucht: list = ["f", "t", "d", "h", "r", "z", "m"]
             for i in endungen_e_gebraucht:
                 if grundform.endswith(i):
                     return f"{grundform}en"
@@ -43,7 +43,7 @@ class LanguageHandlerDE:
     ) -> str:
         """Dekliniert das übergebene Nomen
         nach den standard deklinations Regeln."""
-        return ""
+        return "NoName"
 
     def create_nomen(self, grundform: str, fall: str, genus: str, numerus: str) -> str:
         """Erzeugt ein Nomen, greift auf
@@ -88,6 +88,8 @@ class LanguageHandlerDE:
             "graf",
             "ot",
             "soph",
+            "at",
+            "nom"
         ]
         n_deklinations_ausnahmen: list = [
             "bauer",
@@ -106,7 +108,7 @@ class LanguageHandlerDE:
         if grundform in n_deklinations_ausnahmen_1:
             return self.nomen_deklination_n(grundform, fall, genus, numerus, 1)
         if grundform == "herr":
-            nomen = self.nomen_deklination_n(grundform, fall, genus, numerus, 2)
+            return self.nomen_deklination_n(grundform, fall, genus, numerus, 2)
         # Else:
         return self.nomen_deklination_standard(grundform, fall, genus, numerus)
 
