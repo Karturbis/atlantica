@@ -7,7 +7,7 @@ class LanguageHandlerDE:
     language output."""
 
     def __init__(self):
-        self.__SCHWA_SILBEN: list = ["el", "er", "en", "e"]
+        self.__schwa_silben: list = ["el", "er", "en", "e"]
 
     def nomen_deklination_n(
         self, grundform: str, fall: str, genus: str, numerus: str, ausnahme: int
@@ -16,7 +16,7 @@ class LanguageHandlerDE:
         Regeln der n-deklination"""
         if ausnahme == 0:  # Regelfall:
             # Kein check für nominativ-singular, da in create_nomen gecheckt.
-            for i in self.__SCHWA_SILBEN:
+            for i in self.__schwa_silben:
                 if grundform.endswith(i):
                     return f"{grundform}n"
             # if not endung = ein schwa laut:
