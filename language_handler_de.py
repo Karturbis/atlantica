@@ -28,7 +28,7 @@ class LanguageHandlerDE:
 
 
     def nomen_deklination_n(
-        self, grundform: str, fall: str, genus: str, numerus: str, ausnahme: int
+        self, grundform: str, kasus: str, genus: str, numerus: str, ausnahme: int
     ) -> str:
         """dekliniert das übergebene Nomen nach den
         Regeln der n-deklination"""
@@ -40,27 +40,29 @@ class LanguageHandlerDE:
             # if not endung = ein schwa laut:
             return f"{grundform}en"
         if ausnahme == 1:  # Ausnahmefall 1
-            if fall == "genitv":
+            if kasus == "genitv":
                 return (
-                    f"{self.nomen_deklination_n(grundform, fall, genus, numerus, 0)}s"
+                    f"{self.nomen_deklination_n(grundform, kasus, genus, numerus, 0)}s"
                 )
             # Else:
-            return self.nomen_deklination_n(grundform, fall, genus, numerus, 0)
+            return self.nomen_deklination_n(grundform, kasus, genus, numerus, 0)
 
         if ausnahme == 2:  # Ausnahmefall Herr
             if numerus == "plural":
-                return self.nomen_deklination_n("herre", fall, genus, numerus, 0)
+                return self.nomen_deklination_n("herre", kasus, genus, numerus, 0)
             # Else:
-            return self.nomen_deklination_n("herr", fall, genus, numerus, 0)
+            return self.nomen_deklination_n("herr", kasus, genus, numerus, 0)
 
         return ""
 
     def nomen_deklination_standard(
-        self, grundform: str, fall: str, genus: str, numerus: str
+        self, grundform: str, grundform_plural: str, kasus: str, genus: str, numerus: str
     ) -> str:
         """Dekliniert das übergebene Nomen
         nach den standard deklinations Regeln."""
-        return "NoName"
+        if numerus == "plural":
+            grundform = self.nomen_pluralisierung(grundform_plural, genus)
+        return f"DK{grundform}"
 
     def create_nomen(self, grundform: str, grundform_plural: str, kasus: str, genus: str, numerus: str) -> str:
         """Erzeugt ein Nomen, greift auf
@@ -127,11 +129,11 @@ class LanguageHandlerDE:
         if grundform == "herr":
             return self.nomen_deklination_n(grundform, kasus, genus, numerus, 2)
         # Else:
-        return self.nomen_deklination_standard(grundform, kasus, genus, numerus)
+        return self.nomen_deklination_standard(grundform, grundform_plural, kasus, genus, numerus)
 
     def create_possesiv_artikel(
         self,
-        fall: str,
+        kasus: str,
         genus_objekt: str,
         numerus: str = None,
         person: str = None,
@@ -176,20 +178,20 @@ class LanguageHandlerDE:
         if (
             numerus == "plural"
             and person == "person_2"
-            and not endungen[fall][genus_objekt] == ""
+            and not endungen[kasus][genus_objekt] == ""
         ):
             person = "person_2_no_e"
         try:
             possesiv_artikel: str = grundformen[numerus][person][genus_subjekt]
         except TypeError:
             possesiv_artikel: str = grundformen[numerus][person]
-        possesiv_artikel = f"{possesiv_artikel}{endungen[fall][genus_objekt]}"
+        possesiv_artikel = f"{possesiv_artikel}{endungen[kasus][genus_objekt]}"
         return possesiv_artikel
 
     def create_artikel(
         self,
         art: str,
-        fall: str,
+        kasus: str,
         genus_objekt: str,
         numerus: str,
         person: str = None,
@@ -247,7 +249,7 @@ class LanguageHandlerDE:
         }
         if art == "possesiv":
             return self.create_possesiv_artikel(
-                fall, genus_objekt, numerus, person, genus_subjekt
+                kasus, genus_objekt, numerus, person, genus_subjekt
             )
         if numerus == "plural":
             genus_objekt = "plural"
@@ -258,9 +260,9 @@ class LanguageHandlerDE:
             art = "indefinitiv"
         else:
             artikel: str = ""
-        if genus_objekt != "maskulin" and fall == "akkusativ":
-            fall = "nominativ"
-        artikel = f"{artikel}{artikel_liste[art][fall][genus_objekt]}"
+        if genus_objekt != "maskulin" and kasus == "akkusativ":
+            kasus = "nominativ"
+        artikel = f"{artikel}{artikel_liste[art][kasus][genus_objekt]}"
         return artikel
 
 
@@ -268,7 +270,7 @@ if __name__ == "__main__":
     lh_de = LanguageHandlerDE()
     var0 = input("Type the nomen you want: ").lower()
     var1 = input("Type the art of the article: ")
-    var2 = input("Fall: ")
+    var2 = input("kasus: ")
     var3 = input("Genus: ")
     var4 = input("numerus: ")
     print(
