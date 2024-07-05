@@ -1,0 +1,11 @@
+Ein Substantiv hat 1-2 Grundformen, immer eine für Singular und manchmal
+eine zusätzliche für Plural.
+    z.B. Mensch(singular), Mensch(plural); Buch(singular), Büche(plural)
+
+
+Im Singular wird an die Grundform das Kasussuffix angehängt.
+    z.B. (des) Mensch+en; (des) Buch+es
+
+Im Plural wird zwingend als erstes das Pluralsuffix angehängt
+und danach eventl. ein Kasussuffix.
+    z.B. (die) Mensch+en;(die) Bücher, (den) Büch+er+n
