@@ -9,6 +9,24 @@ class LanguageHandlerDE:
     def __init__(self):
         self.__schwa_silben: list = ["el", "er", "en", "e"]
 
+    def nomen_pluralisierung(self, grundform_plural: str, genus: str) -> str:
+        """Bildet den Plural eines Nomens."""
+        ausnahmen = {
+            "besipiel": "plural des beispiels"
+        }
+        if grundform_plural in ausnahmen:
+            return ausnahmen[grundform_plural]
+        if genus == "feminin":
+            return f"{grundform_plural}en"
+        if grundform_plural.endswith("e") and genus == "maskulin":
+            return f"{grundform_plural}en"
+        for i in self.__schwa_silben:
+            if grundform_plural.endswith(i):
+                return grundform_plural
+        # Else:
+        return f"{grundform_plural}e"
+
+
     def nomen_deklination_n(
         self, grundform: str, fall: str, genus: str, numerus: str, ausnahme: int
     ) -> str:
@@ -44,7 +62,7 @@ class LanguageHandlerDE:
         nach den standard deklinations Regeln."""
         return "NoName"
 
-    def create_nomen(self, grundform: str, fall: str, genus: str, numerus: str) -> str:
+    def create_nomen(self, grundform: str, grundform_plural: str, fall: str, genus: str, numerus: str) -> str:
         """Erzeugt ein Nomen, greift auf
         nomen_deklination_standard()"""
         ausnahmen: dict = {
@@ -254,5 +272,5 @@ if __name__ == "__main__":
     var3 = input("Genus: ")
     var4 = input("numerus: ")
     print(
-        f"{lh_de.create_artikel(var1, var2, var3, var4)} {lh_de.create_nomen(var0, var2, var3, var4)}"
+        f"{lh_de.create_artikel(var1, var2, var3, var4)} {lh_de.create_nomen(var0, "PLURAKSL", var2, var3, var4)}"
     )
