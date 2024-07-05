@@ -62,7 +62,7 @@ class LanguageHandlerDE:
         nach den standard deklinations Regeln."""
         return "NoName"
 
-    def create_nomen(self, grundform: str, grundform_plural: str, fall: str, genus: str, numerus: str) -> str:
+    def create_nomen(self, grundform: str, grundform_plural: str, kasus: str, genus: str, numerus: str) -> str:
         """Erzeugt ein Nomen, greift auf
         nomen_deklination_standard()"""
         ausnahmen: dict = {
@@ -90,8 +90,8 @@ class LanguageHandlerDE:
             }
         }
         if grundform in ausnahmen:
-            return ausnahmen[grundform][fall][genus][numerus]
-        if fall == "nominativ" and numerus == "singular":
+            return ausnahmen[grundform][kasus][genus][numerus]
+        if kasus == "nominativ" and numerus == "singular":
             return grundform
         n_deklinations_endungen: list = [
             "oge",
@@ -119,15 +119,15 @@ class LanguageHandlerDE:
         n_deklinations_ausnahmen_1: list = ["herz", "buchstabe", "gedanke", "name"]
         for i in n_deklinations_endungen:
             if grundform.endswith(i):
-                return self.nomen_deklination_n(grundform, fall, genus, numerus, 0)
+                return self.nomen_deklination_n(grundform, kasus, genus, numerus, 0)
         if grundform in n_deklinations_ausnahmen:
-            return self.nomen_deklination_n(grundform, fall, genus, numerus, 0)
+            return self.nomen_deklination_n(grundform, kasus, genus, numerus, 0)
         if grundform in n_deklinations_ausnahmen_1:
-            return self.nomen_deklination_n(grundform, fall, genus, numerus, 1)
+            return self.nomen_deklination_n(grundform, kasus, genus, numerus, 1)
         if grundform == "herr":
-            return self.nomen_deklination_n(grundform, fall, genus, numerus, 2)
+            return self.nomen_deklination_n(grundform, kasus, genus, numerus, 2)
         # Else:
-        return self.nomen_deklination_standard(grundform, fall, genus, numerus)
+        return self.nomen_deklination_standard(grundform, kasus, genus, numerus)
 
     def create_possesiv_artikel(
         self,
