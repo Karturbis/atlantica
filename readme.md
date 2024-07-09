@@ -3,9 +3,9 @@ As of right now, atlcantica is an unfinished text adventure.
 At the moment functional:
 
 Open menu:
-    Create new game,
-    load old game,
-    remove game,
+    Create new game,\n
+    load old game,\n
+    remove game,\n
     close menu
 
 Go in every direction.
