@@ -78,6 +78,10 @@ class TerminalHandler:
                         len(information_content_left)
                         + len(information_content_center)
                         + len(information_content_right)
+                        + len(list(self.__information_content_left.keys())[i])
+                        + len(list(self.__information_content_center.keys())[i])
+                        + len(list(self.__information_content_right.keys())[i])
+                        + 6  # To account for the three colons and spaces that will be printed.
                     )
                 )
                 / 2
