@@ -48,23 +48,41 @@ class TerminalHandler:
         """Returns a printeble string of the
         information, which is to be displayed
         at the top of the window."""
-        spaces: int = int(
-            (
-                get_terminal_size()[0]
-                - (
-                    len(self.__information_content_left)
-                    + len(self.__information_content_center)
-                    + len(self.__information_content_right)
-                )
-            )
-            / 2
-        )
-        border: str = str(get_terminal_size()[0]*"-")
+        border: str = str(get_terminal_size()[0] * "-")
         information_content_printable: str = border
-        for key, item in self.__information_content_left.items():
-            information_content_printable = (
-                f"{information_content_printable}\n{key}: {item}"
+        longest_data_dict: dict = self.__information_content_left
+        if len(longest_data_dict) < len(self.__information_content_center):
+            longest_data_dict = self.__information_content_center
+        if len(longest_data_dict) < len(self.__information_content_right):
+            longest_data_dict = self.__information_content_right
+        for i in range(len(longest_data_dict)):
+            information_content_left: str = str(
+                self.__information_content_left[
+                    list(self.__information_content_left.keys())[i]
+                ]
             )
+            information_content_center: str = str(
+                self.__information_content_center[
+                    list(self.__information_content_center.keys())[i]
+                ]
+            )
+            information_content_right: str = str(
+                self.__information_content_right[
+                    list(self.__information_content_right.keys())[i]
+                ]
+            )
+            spaces: int = int(
+                (
+                    get_terminal_size()[0]
+                    - (
+                        len(information_content_left)
+                        + len(information_content_center)
+                        + len(information_content_right)
+                    )
+                )
+                / 2
+            )
+            information_content_printable = f"{information_content_printable}\n{list(self.__information_content_left.keys())[i]}: {information_content_left}{spaces}{list(self.__information_content_center.keys())[i]}: {information_content_center}{spaces}{list(self.__information_content_right.keys())[i]}: {information_content_right}"
         return f"{information_content_printable}\n{border}"
 
     def get_terminal_content_printable(self) -> str:
@@ -100,6 +118,9 @@ class TerminalHandler:
             self.__terminal_content.pop(0)
             self.update_terminal()
 
+
 if __name__ == "__main__":
-    th = TerminalHandler({"a": 1, "b": 2, "c": 3},{"d": 1, "e": 2, "f": 3},{"g": 1, "h": 2, "i": 3})
+    th = TerminalHandler(
+        {"a": 1, "b": 2, "c": 3}, {"d": 1, "e": 2, "f": 3}, {"g": 1, "h": 2, "i": 3}
+    )
     th.new_print("Hello Woreld")
