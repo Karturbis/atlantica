@@ -64,7 +64,14 @@ class LanguageHandlerDE:
             grundform = self.nomen_pluralisierung(grundform_plural, genus)
         return f"DK{grundform}"
 
-    def create_nomen(self, grundform: str, grundform_plural: str, kasus: str, genus: str, numerus: str) -> str:
+    def create_nomen(
+        self,
+        grundform: str,
+        grundform_plural: str,
+        kasus: str,
+        genus: str,
+        numerus: str
+    ) -> str:
         """Erzeugt ein Nomen, greift auf
         nomen_deklination_standard()"""
         ausnahmen: dict = {
@@ -279,4 +286,10 @@ if __name__ == "__main__":
     )
     print(
         f"{lh_de.create_artikel("indefinitiv", "nominativ", var3, "singular").capitalize()} {lh_de.create_nomen(var0, var0, "nominativ", var3, "singular").capitalize()} tut so etwas nicht!"
+    )
+    print(
+        f"Du hast {lh_de.create_artikel("indefinitiv", "akkusativ", var3, "singular")} {lh_de.create_nomen(var0, var0, "akkusativ", var3, "singular").capitalize()} gegessen."
+    )
+    print(
+        f"Das gehört {lh_de.create_artikel("definitiv", "dativ", var3, "singular")} {lh_de.create_nomen(var0, var0, "dativ", var3, "singular").capitalize()}"
     )
