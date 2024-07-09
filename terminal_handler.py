@@ -6,12 +6,19 @@ from os import get_terminal_size
 
 
 class TerminalHandler:
-    """Contains all methods needed,
+    """Contains all methods needed
     to display stats at the top of the
     terminal window."""
 
-    def __init__(self, information_content: dict = None):
-        self.__information_content: dict = information_content
+    def __init__(
+        self,
+        information_content_left: dict = None,
+        information_content_center: dict = None,
+        information_content_right: dict = None,
+    ):
+        self.__information_content_left: dict = information_content_left
+        self.__information_content_center: dict = information_content_center
+        self.__information_content_right: dict = information_content_right
         self.__terminal_content: list = []
         print(self.gen_information_content_printable())
 
@@ -41,10 +48,24 @@ class TerminalHandler:
         """Returns a printeble string of the
         information, which is to be displayed
         at the top of the window."""
-        information_content_printable: str = "-------------"
-        for key, item in self.__information_content.items():
-            information_content_printable = f"{information_content_printable}\n{key}: {item}"
-        return f"{information_content_printable}\n-------------"
+        spaces: int = int(
+            (
+                get_terminal_size()[0]
+                - (
+                    len(self.__information_content_left)
+                    + len(self.__information_content_center)
+                    + len(self.__information_content_right)
+                )
+            )
+            / 2
+        )
+        border: str = str(get_terminal_size()[0]*"-")
+        information_content_printable: str = border
+        for key, item in self.__information_content_left.items():
+            information_content_printable = (
+                f"{information_content_printable}\n{key}: {item}"
+            )
+        return f"{information_content_printable}\n{border}"
 
     def get_terminal_content_printable(self) -> str:
         """Returns a printable string of the
@@ -74,7 +95,11 @@ class TerminalHandler:
         if not, the oldest entries in the
         terminal history get deleted."""
         if get_terminal_size()[1] <= (
-            len(self.__information_content) + len(self.__terminal_content) + 3
-        ):  # The two account for the two lines, whoch are printed for design reasons
+            len(self.__information_content_left) + len(self.__terminal_content) + 3
+        ):  # The three accounts for the two lines, which are printed for design reasons
             self.__terminal_content.pop(0)
             self.update_terminal()
+
+if __name__ == "__main__":
+    th = TerminalHandler({"a": 1, "b": 2, "c": 3},{"d": 1, "e": 2, "f": 3},{"g": 1, "h": 2, "i": 3})
+    th.new_print("Hello Woreld")
