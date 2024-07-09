@@ -96,7 +96,7 @@ class TerminalHandler:
         terminal history get deleted."""
         if get_terminal_size()[1] <= (
             len(self.__information_content_left) + len(self.__terminal_content) + 3
-        ):  # The three accounts for the two lines, which are printed for design reasons
+        ):  # The 3 accounts for the two lines, which are printed for design reasons
             self.__terminal_content.pop(0)
             self.update_terminal()
 
