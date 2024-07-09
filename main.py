@@ -893,7 +893,9 @@ class Main:
                     terminal_handler.new_print(
                         f"You ate {item_selected[5:]}, it was {nutrition} nutritious."
                     )
-                    terminal_handler.set_information("saturation", self.__saturation)
+                    terminal_handler.set_information_left(
+                        "saturation", self.__saturation
+                    )
                 else:
                     terminal_handler.new_print(
                         f"You tried to eat {i}, but you had none left"
@@ -922,7 +924,7 @@ class Main:
 
 database_handler = DatabaseHandler("content.sqlite")
 main = Main(True)
-terminal_handler = TerminalHandler(main.get_character_data())
+terminal_handler = TerminalHandler(main.get_character_data(), {}, {})
 combat = Combat()
 input_handler = InputHandler()
 main.menu()
