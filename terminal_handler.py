@@ -82,7 +82,7 @@ class TerminalHandler:
                 )
                 / 2
             )
-            information_content_printable = f"{information_content_printable}\n{list(self.__information_content_left.keys())[i]}: {information_content_left}{spaces}{list(self.__information_content_center.keys())[i]}: {information_content_center}{spaces}{list(self.__information_content_right.keys())[i]}: {information_content_right}"
+            information_content_printable = f"{information_content_printable}\n{list(self.__information_content_left.keys())[i]}: {information_content_left}{spaces*" "}{list(self.__information_content_center.keys())[i]}: {information_content_center}{spaces*" "}{list(self.__information_content_right.keys())[i]}: {information_content_right}"
         return f"{information_content_printable}\n{border}"
 
     def get_terminal_content_printable(self) -> str:
