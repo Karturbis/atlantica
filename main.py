@@ -924,7 +924,7 @@ class Main:
 
 database_handler = DatabaseHandler("content.sqlite")
 main = Main(True)
-terminal_handler = TerminalHandler(main.get_character_data(), {}, {})
+terminal_handler = TerminalHandler(main.get_character_data(), main.get_character_data(), main.get_character_data())
 combat = Combat()
 input_handler = InputHandler()
 main.menu()
