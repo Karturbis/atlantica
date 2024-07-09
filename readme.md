@@ -1,11 +1,13 @@
 As of right now, atlcantica is an unfinished text adventure.
 
-Now doable:
+At the moment functional:
 
 Open menu:
     Create new game,
     load old game,
+    remove game,
     close menu
+
 Go in every direction.
 Rest (does no really do anything yet).
 Pickup items.
@@ -15,3 +17,5 @@ List inventory.
 Quit (saves the game and exits).
 Inspect (See all items in current Chunk).
 help (print all available commands)
+eat (removes item from inventory and adds
+nutrition value of item to saturation value of the player)
