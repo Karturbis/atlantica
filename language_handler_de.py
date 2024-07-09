@@ -266,13 +266,17 @@ class LanguageHandlerDE:
         return artikel
 
 
+# Tests:
 if __name__ == "__main__":
     lh_de = LanguageHandlerDE()
     var0 = input("Type the nomen you want: ").lower()
-    var1 = input("Type the art of the article: ")
-    var2 = input("kasus: ")
     var3 = input("Genus: ")
-    var4 = input("numerus: ")
     print(
-        f"{lh_de.create_artikel(var1, var2, var3, var4)} {lh_de.create_nomen(var0, "PLURAKSL", var2, var3, var4)}"
+        f"{lh_de.create_artikel("negativ", "nominativ", var3, "singular").capitalize()} {lh_de.create_nomen(var0, var0, "nominativ", var3, "singular").capitalize()} würde das tun."
+    )
+    print(
+        f"{lh_de.create_nomen(var0, var0, "dativ", var3, "plural").capitalize()} würden so etwas nicht tun."
+    )
+    print(
+        f"{lh_de.create_artikel("indefinitiv", "nominativ", var3, "singular").capitalize()} {lh_de.create_nomen(var0, var0, "nominativ", var3, "singular").capitalize()} tut so etwas nicht!"
     )
