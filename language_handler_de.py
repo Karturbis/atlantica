@@ -26,7 +26,6 @@ class LanguageHandlerDE:
         # Else:
         return f"{grundform_plural}e"
 
-
     def nomen_deklination_n(
         self, grundform: str, kasus: str, genus: str, numerus: str, ausnahme: int
     ) -> str:
@@ -62,7 +61,16 @@ class LanguageHandlerDE:
         nach den standard deklinations Regeln."""
         if numerus == "plural":
             grundform = self.nomen_pluralisierung(grundform_plural, genus)
-        return f"DK{grundform}"
+        if genus == "maskulin" or genus == "neutrum":
+            endungen: dict = {
+                "nominativ": "",
+                "genitiv": "s",
+                "dativ": "",
+                "akkusativ": ""
+            }
+            grundform = f"{grundform}{endungen[kasus]}"
+
+        return f"{grundform}"
 
     def create_nomen(
         self,
@@ -277,19 +285,20 @@ class LanguageHandlerDE:
 if __name__ == "__main__":
     lh_de = LanguageHandlerDE()
     var0 = input("Type the nomen you want: ").lower()
+    var1 = input("Grundform_plural: ")
     var3 = input("Genus: ")
     print(
-        f"{lh_de.create_artikel("negativ", "nominativ", var3, "singular").capitalize()} {lh_de.create_nomen(var0, var0, "nominativ", var3, "singular").capitalize()} würde das tun."
+        f"{lh_de.create_artikel("negativ", "nominativ", var3, "singular").capitalize()} {lh_de.create_nomen(var0, var1, "nominativ", var3, "singular").capitalize()} würde das tun."
     )
     print(
-        f"{lh_de.create_nomen(var0, var0, "dativ", var3, "plural").capitalize()} würden so etwas nicht tun."
+        f"{lh_de.create_nomen(var0, var1, "dativ", var3, "plural").capitalize()} würden so etwas nicht tun."
     )
     print(
-        f"{lh_de.create_artikel("indefinitiv", "nominativ", var3, "singular").capitalize()} {lh_de.create_nomen(var0, var0, "nominativ", var3, "singular").capitalize()} tut so etwas nicht!"
+        f"{lh_de.create_artikel("indefinitiv", "nominativ", var3, "singular").capitalize()} {lh_de.create_nomen(var0, var1, "nominativ", var3, "singular").capitalize()} tut so etwas nicht!"
     )
     print(
-        f"Du hast {lh_de.create_artikel("indefinitiv", "akkusativ", var3, "singular")} {lh_de.create_nomen(var0, var0, "akkusativ", var3, "singular").capitalize()} gegessen."
+        f"Du hast {lh_de.create_artikel("indefinitiv", "akkusativ", var3, "singular")} {lh_de.create_nomen(var0, var1, "akkusativ", var3, "singular").capitalize()} gegessen."
     )
     print(
-        f"Das gehört {lh_de.create_artikel("definitiv", "dativ", var3, "singular")} {lh_de.create_nomen(var0, var0, "dativ", var3, "singular").capitalize()}"
+        f"Das gehört {lh_de.create_artikel("definitiv", "dativ", var3, "singular")} {lh_de.create_nomen(var0, var1, "dativ", var3, "singular").capitalize()}."
     )
