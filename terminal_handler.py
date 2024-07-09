@@ -122,9 +122,9 @@ class TerminalHandler:
             self.__terminal_content.pop(0)
             self.update_terminal()
 
-
+# Tests:
 if __name__ == "__main__":
     th = TerminalHandler(
-        {"a": 1, "b": 2, "c": 3}, {"d": 1, "e": 2, "f": 3}, {"g": 1, "h": 2, "i": 3}
+        {"ghfdg": 2331, "ghb": 2, "cgh": 3}, {"d": 1, "sdf": 2, "fdf": 3}, {"ser": 1, "fds": 2, "ssd": 3}
     )
     th.new_print("Hello Woreld")
