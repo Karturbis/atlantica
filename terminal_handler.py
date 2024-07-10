@@ -44,17 +44,22 @@ class TerminalHandler:
         self.__terminal_content = []
         print(information_content_printable)
 
+    def longest_dict(self, dicts:list [dict]) -> dict:
+        """Returns the longest dict from a list
+        of given dicts."""
+        longest_dict: dict = {}
+        for i in dicts:
+            if len(i) > len(longest_dict):
+                longest_dict = i
+        return longest_dict
+
     def gen_information_content_printable(self) -> str:
         """Returns a printeble string of the
         information, which is to be displayed
         at the top of the window."""
         border: str = str(get_terminal_size()[0] * "-")
         information_content_printable: str = border
-        longest_data_dict: dict = self.__information_content_left
-        if len(longest_data_dict) < len(self.__information_content_center):
-            longest_data_dict = self.__information_content_center
-        if len(longest_data_dict) < len(self.__information_content_right):
-            longest_data_dict = self.__information_content_right
+        longest_data_dict: dict = self.longest_dict([self.__information_content_left, self.__information_content_center, self.__information_content_right])
         for i in range(len(longest_data_dict)):
             information_content_left: str = str(
                 self.__information_content_left[
