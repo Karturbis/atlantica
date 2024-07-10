@@ -17,8 +17,11 @@ class TerminalHandler:
         information_content_right: dict = None,
     ):
         self.__information_content_left: dict = information_content_left
+        self.__information_content_left["spaces"] = "SPACES"
         self.__information_content_center: dict = information_content_center
+        self.__information_content_center["spaces"] = "SPACES"
         self.__information_content_right: dict = information_content_right
+        self.__information_content_right["spaces"] = "SPACES"
         self.__terminal_content: list = []
         print(self.gen_information_content_printable())
 
@@ -61,37 +64,40 @@ class TerminalHandler:
         information_content_printable: str = border
         longest_data_dict: dict = self.longest_dict([self.__information_content_left, self.__information_content_center, self.__information_content_right])
         for i in range(len(longest_data_dict)):
-            information_content_left: str = str(
-                self.__information_content_left[
-                    list(self.__information_content_left.keys())[i]
-                ]
-            )
-            information_content_center: str = str(
-                self.__information_content_center[
-                    list(self.__information_content_center.keys())[i]
-                ]
-            )
-            information_content_right: str = str(
-                self.__information_content_right[
-                    list(self.__information_content_right.keys())[i]
-                ]
-            )
+            if i < len(self.__information_content_left.keys()):
+                information_content_key_left: str = str(
+                        list(self.__information_content_left.keys())[i]
+                )
+            else:
+                information_content_key_left: str = "spaces"
+            if i < len(self.__information_content_center.keys()):
+                information_content_key_center: str = str(
+                        list(self.__information_content_center.keys())[i]
+                )
+            else:
+                information_content_key_center: str = "spaces"
+            if i < len(self.__information_content_right.keys()):
+                information_content_key_right: str = str(
+                        list(self.__information_content_right.keys())[i]
+                )
+            else:
+                information_content_key_right: str = "spaces"
             spaces: int = int(
                 (
                     get_terminal_size()[0]
                     - (
-                        len(information_content_left)
-                        + len(information_content_center)
-                        + len(information_content_right)
-                        + len(list(self.__information_content_left.keys())[i])
-                        + len(list(self.__information_content_center.keys())[i])
-                        + len(list(self.__information_content_right.keys())[i])
+                        len(str(self.__information_content_left[information_content_key_left]))
+                        + len(str(self.__information_content_center[information_content_key_center]))
+                        + len(str(self.__information_content_right[information_content_key_right]))
+                        + len(information_content_key_left)
+                        + len(information_content_key_center)
+                        + len(information_content_key_right)
                         + 6  # To account for the three colons and spaces that will be printed.
                     )
                 )
                 / 2
             )
-            information_content_printable = f"{information_content_printable}\n{list(self.__information_content_left.keys())[i]}: {information_content_left}{spaces*" "}{list(self.__information_content_center.keys())[i]}: {information_content_center}{spaces*" "}{list(self.__information_content_right.keys())[i]}: {information_content_right}"
+            information_content_printable = f"{information_content_printable}\n{information_content_key_left}: {self.__information_content_left[information_content_key_left]}{spaces*" "}{information_content_key_center}: {self.__information_content_center[information_content_key_center]}{spaces*" "}{information_content_key_right}: {self.__information_content_right[information_content_key_right]}"
         return f"{information_content_printable}\n{border}"
 
     def get_terminal_content_printable(self) -> str:
@@ -142,6 +148,6 @@ class TerminalHandler:
 # Tests:
 if __name__ == "__main__":
     th = TerminalHandler(
-        {"ghfdg": 2331, "ghb": 2, "cgh": 3}, {"d": 1, "sdf": 2, "fdf": 3}, {"ser": 1, "fds": 2, "ssd": 3}
+        {"ghfdg": 2331, "ghb": 2, "cgh": 3}, {"d": 1, "sdf": 2, "fdf": 3}, {"ser": 1, "fds": 2, "ssd": 3, "dfd": 45}
     )
     th.new_print("Hello Woreld")
