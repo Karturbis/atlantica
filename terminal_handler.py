@@ -88,17 +88,23 @@ class TerminalHandler:
         len_biggest_str_content_right: int = len(max(information_content_right_str))
         for i in range(len(longest_data_dict)):
             if i < len(information_content_left_str):
-                information_content_part_left: str = self.get_content_parts(len_biggest_str_content_left, information_content_left_str[i])
+                information_content_part_left: str = self.get_content_parts(
+                    len_biggest_str_content_left, information_content_left_str[i]
+                )
             else:
                 information_content_part_left: str = ""
             if i < len(information_content_center_str):
-                information_content_part_center: str = self.get_content_parts(len_biggest_str_content_center, information_content_center_str[i])
+                information_content_part_center: str = self.get_content_parts(
+                    len_biggest_str_content_center, information_content_center_str[i]
+                )
             else:
                 information_content_part_center: str = ""
             if i < len(information_content_right_str):
-                information_content_part_right: str = self.get_content_parts(len_biggest_str_content_right, information_content_right_str[i])
+                information_content_part_right: str = self.get_content_parts(
+                    len_biggest_str_content_right, information_content_right_str[i]
+                )
             else:
-                information_content_part_right: str = ""
+                information_content_part_right: str = "  "
             spaces: str = (
                 int(
                     (
@@ -160,3 +166,13 @@ class TerminalHandler:
         ):  # The 3 accounts for the two lines, which are printed for design reasons
             self.__terminal_content.pop(0)
             self.update_terminal()
+
+
+# Tests:
+if __name__ == "__main__":
+    th = TerminalHandler(
+        {"ghgzuoitpoifdg": 2331, "ghb": 2, "cgh": 3},
+        {"d": 1, "sdhlf": 2, "fdf": 3, "dfd": 45},
+        {"ser": 1, "fds": 2, "swetsdfgdssd": 3},
+    )
+    th.new_print("Hello Woreld")
