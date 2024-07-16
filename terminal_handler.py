@@ -54,6 +54,8 @@ class TerminalHandler:
         return longest_dict
 
     def get_content_parts(self, len_biggest_str: int, content_str: str) -> str:
+        """Centers the given string between spaces with the given
+        over all length."""
         spaces = int((len_biggest_str - len(content_str)) / 2) * " "
         return f"{spaces}{content_str}{spaces}"
 
