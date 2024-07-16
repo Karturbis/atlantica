@@ -924,7 +924,7 @@ class Main:
 
 database_handler = DatabaseHandler("content.sqlite")
 main = Main(True)
-terminal_handler = TerminalHandler(main.get_character_data(), main.get_character_data(), main.get_character_data())
+terminal_handler = TerminalHandler({k: main.get_character_data()[k] for k in ["health", "saturation"]}, {k: main.get_character_data()[k] for k in ["speed", "strength"]}, {"level": main.get_character_data()["level"]})
 combat = Combat()
 input_handler = InputHandler()
 main.menu()
