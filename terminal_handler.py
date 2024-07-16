@@ -17,11 +17,11 @@ class TerminalHandler:
         information_content_right: dict = None,
     ):
         self.__information_content_left: dict = information_content_left
-        self.__information_content_left["spaces"] = "SPACES"
+        self.__information_content_left[" "] = " "
         self.__information_content_center: dict = information_content_center
-        self.__information_content_center["spaces"] = "SPACES"
+        self.__information_content_center[" "] = " "
         self.__information_content_right: dict = information_content_right
-        self.__information_content_right["spaces"] = "SPACES"
+        self.__information_content_right[" "] = " "
         self.__terminal_content: list = []
         print(self.gen_information_content_printable())
 
@@ -69,19 +69,19 @@ class TerminalHandler:
                         list(self.__information_content_left.keys())[i]
                 )
             else:
-                information_content_key_left: str = "spaces"
+                information_content_key_left: str = " "
             if i < len(self.__information_content_center.keys()):
                 information_content_key_center: str = str(
                         list(self.__information_content_center.keys())[i]
                 )
             else:
-                information_content_key_center: str = "spaces"
+                information_content_key_center: str = " "
             if i < len(self.__information_content_right.keys()):
                 information_content_key_right: str = str(
                         list(self.__information_content_right.keys())[i]
                 )
             else:
-                information_content_key_right: str = "spaces"
+                information_content_key_right: str = " "
             spaces: int = int(
                 (
                     get_terminal_size()[0]
