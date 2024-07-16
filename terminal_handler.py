@@ -17,11 +17,8 @@ class TerminalHandler:
         information_content_right: dict = None,
     ):
         self.__information_content_left: dict = information_content_left
-        self.__information_content_left[" "] = " "
         self.__information_content_center: dict = information_content_center
-        self.__information_content_center[" "] = " "
         self.__information_content_right: dict = information_content_right
-        self.__information_content_right[" "] = " "
         self.__terminal_content: list = []
         print(self.gen_information_content_printable())
 
@@ -47,7 +44,7 @@ class TerminalHandler:
         self.__terminal_content = []
         print(information_content_printable)
 
-    def longest_dict(self, dicts:list [dict]) -> dict:
+    def longest_dict(self, dicts: list[dict]) -> dict:
         """Returns the longest dict from a list
         of given dicts."""
         longest_dict: dict = {}
@@ -56,49 +53,66 @@ class TerminalHandler:
                 longest_dict = i
         return longest_dict
 
+    def get_content_parts(self, len_biggest_str: int, content_str: str) -> str:
+        spaces = int((len_biggest_str - len(content_str)) / 2) * " "
+        return f"{spaces}{content_str}{spaces}"
+
     def gen_information_content_printable(self) -> str:
         """Returns a printeble string of the
         information, which is to be displayed
         at the top of the window."""
         border: str = str(get_terminal_size()[0] * "-")
-        information_content_printable: str = border
-        longest_data_dict: dict = self.longest_dict([self.__information_content_left, self.__information_content_center, self.__information_content_right])
+        information_content_printable: str = f"{border}\n"
+        longest_data_dict: dict = self.longest_dict(
+            [
+                self.__information_content_left,
+                self.__information_content_center,
+                self.__information_content_right,
+            ]
+        )
+        # Extract dict to list of strings:
+        information_content_left_str: list[str] = [
+            f"{key}: {value}" for key, value in self.__information_content_left.items()
+        ]
+        information_content_center_str: list[str] = [
+            f"{key}: {value}"
+            for key, value in self.__information_content_center.items()
+        ]
+        information_content_right_str: list[str] = [
+            f"{key}: {value}" for key, value in self.__information_content_right.items()
+        ]
+        len_biggest_str_content_left: int = len(max(information_content_left_str))
+        len_biggest_str_content_center: int = len(max(information_content_center_str))
+        len_biggest_str_content_right: int = len(max(information_content_right_str))
         for i in range(len(longest_data_dict)):
-            if i < len(self.__information_content_left.keys()):
-                information_content_key_left: str = str(
-                        list(self.__information_content_left.keys())[i]
-                )
+            if i < len(information_content_left_str):
+                information_content_part_left = f"{self.get_content_parts(len_biggest_str_content_left, information_content_left_str[i])}"
             else:
-                information_content_key_left: str = " "
-            if i < len(self.__information_content_center.keys()):
-                information_content_key_center: str = str(
-                        list(self.__information_content_center.keys())[i]
-                )
+                information_content_part_left = ""
+            if i < len(information_content_center_str):
+                information_content_part_center = f"{self.get_content_parts(len_biggest_str_content_center, information_content_center_str[i])}"
             else:
-                information_content_key_center: str = " "
-            if i < len(self.__information_content_right.keys()):
-                information_content_key_right: str = str(
-                        list(self.__information_content_right.keys())[i]
-                )
+                information_content_part_center = ""
+            if i < len(information_content_right_str):
+                information_content_part_right = f"{self.get_content_parts(len_biggest_str_content_right, information_content_right_str[i])}"
             else:
-                information_content_key_right: str = " "
-            spaces: int = int(
-                (
-                    get_terminal_size()[0]
-                    - (
-                        len(str(self.__information_content_left[information_content_key_left]))
-                        + len(str(self.__information_content_center[information_content_key_center]))
-                        + len(str(self.__information_content_right[information_content_key_right]))
-                        + len(information_content_key_left)
-                        + len(information_content_key_center)
-                        + len(information_content_key_right)
-                        + 6  # To account for the three colons and spaces that will be printed.
+                information_content_part_right = ""
+            spaces: str = (
+                int(
+                    (
+                        get_terminal_size()[0]
+                        - (
+                            len(information_content_part_left)
+                            + len(information_content_part_center)
+                            + len(information_content_part_right)
+                        )
                     )
+                    / 2
                 )
-                / 2
+                * " "
             )
-            information_content_printable = f"{information_content_printable}\n{information_content_key_left}: {self.__information_content_left[information_content_key_left]}{spaces*" "}{information_content_key_center}: {self.__information_content_center[information_content_key_center]}{spaces*" "}{information_content_key_right}: {self.__information_content_right[information_content_key_right]}"
-        return f"{information_content_printable}\n{border}"
+            information_content_printable = f"{information_content_printable}{information_content_part_left}{spaces}{information_content_part_center}{spaces}{information_content_part_right}\n"
+        return information_content_printable
 
     def get_terminal_content_printable(self) -> str:
         """Returns a printable string of the
@@ -145,9 +159,12 @@ class TerminalHandler:
             self.__terminal_content.pop(0)
             self.update_terminal()
 
+
 # Tests:
 if __name__ == "__main__":
     th = TerminalHandler(
-        {"ghfdg": 2331, "ghb": 2, "cgh": 3}, {"d": 1, "sdf": 2, "fdf": 3}, {"ser": 1, "fds": 2, "ssd": 3, "dfd": 45}
+        {"ghgzuoitpoifdg": 2331, "ghb": 2, "cgh": 3},
+        {"d": 1, "sdhlf": 2, "fdf": 3},
+        {"ser": 1, "fds": 2, "swetsdfgdssd": 3, "dfd": 45},
     )
     th.new_print("Hello Woreld")
