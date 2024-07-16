@@ -160,13 +160,3 @@ class TerminalHandler:
         ):  # The 3 accounts for the two lines, which are printed for design reasons
             self.__terminal_content.pop(0)
             self.update_terminal()
-
-
-# Tests:
-if __name__ == "__main__":
-    th = TerminalHandler(
-        {"ghgzuoitpoifdg": 2331, "ghb": 2, "cgh": 3},
-        {"d": 1, "sdhlf": 2, "fdf": 3},
-        {"ser": 1, "fds": 2, "swetsdfgdssd": 3, "dfd": 45},
-    )
-    th.new_print("Hello Woreld")
