@@ -88,17 +88,17 @@ class TerminalHandler:
         len_biggest_str_content_right: int = len(max(information_content_right_str))
         for i in range(len(longest_data_dict)):
             if i < len(information_content_left_str):
-                information_content_part_left = f"{self.get_content_parts(len_biggest_str_content_left, information_content_left_str[i])}"
+                information_content_part_left: str = self.get_content_parts(len_biggest_str_content_left, information_content_left_str[i])
             else:
-                information_content_part_left = ""
+                information_content_part_left: str = ""
             if i < len(information_content_center_str):
-                information_content_part_center = f"{self.get_content_parts(len_biggest_str_content_center, information_content_center_str[i])}"
+                information_content_part_center: str = self.get_content_parts(len_biggest_str_content_center, information_content_center_str[i])
             else:
-                information_content_part_center = ""
+                information_content_part_center: str = ""
             if i < len(information_content_right_str):
-                information_content_part_right = f"{self.get_content_parts(len_biggest_str_content_right, information_content_right_str[i])}"
+                information_content_part_right: str = self.get_content_parts(len_biggest_str_content_right, information_content_right_str[i])
             else:
-                information_content_part_right = ""
+                information_content_part_right: str = ""
             spaces: str = (
                 int(
                     (
