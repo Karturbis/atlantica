@@ -114,7 +114,7 @@ class TerminalHandler:
                 * " "
             )
             information_content_printable = f"{information_content_printable}{information_content_part_left}{spaces}{information_content_part_center}{spaces}{information_content_part_right}\n"
-        return information_content_printable
+        return f"{information_content_printable}{border}"
 
     def get_terminal_content_printable(self) -> str:
         """Returns a printable string of the
