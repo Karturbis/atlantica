@@ -81,7 +81,7 @@ class LanguageHandlerDE:
         numerus: str
     ) -> str:
         """Erzeugt ein Nomen, greift auf
-        nomen_deklination_standard()"""
+        nomen_deklination_standard() zu"""
         ausnahmen: dict = {
             "platzhalter": {
                 "nominativ": {
@@ -280,6 +280,8 @@ class LanguageHandlerDE:
         artikel = f"{artikel}{artikel_liste[art][kasus][genus_objekt]}"
         return artikel
 
+    def create_verb(self, grundform: str, kasus: str, genus: str, numerus: str) -> str:
+        """Erstellt ein Verb mit den gegebenen Parametern"""
 
 # Tests:
 if __name__ == "__main__":
