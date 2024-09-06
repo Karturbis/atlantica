@@ -4,3 +4,4 @@ test*
 saves/
 content.sqlite-journal
 .vscode/
+language_handler_de_data/*
