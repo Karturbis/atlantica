@@ -10,7 +10,6 @@ class DatabaseHandler:
     reads and writes to sqlite databases..."""
 
     def __init__(self, database: str) -> None:
-        self.__database: str = database
         self.__connection = sqlite3.connect(database)
         self.__cursor = self.__connection.cursor()
     
