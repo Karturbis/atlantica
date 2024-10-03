@@ -3,19 +3,26 @@ than on trying to implement the structure of the language, because
 natural Languages are too complex and have too many exceptions
 from their rules to be easily implemented, the systematic approach
 is something, wich can be tried with Esperanto."""
+
 import json
+
 
 class Wort:
     word_data_path: str = "language_handler_de_data_chunked/"
 
+
 class Nomen(Wort):
     def __init__(self):
-        self.word_data_file = f"{super.word_data_path}nomen.json"
+        self.word_data_file: str = f"{super.word_data_path}nomen.json"
 
 
 class Verb(Wort):
     def __init__(self):
-        self.word_data_files = f"{super.word_data_path}.json"
+        self.word_data_files: dict = {
+            "a": f"{super.word_data_path}verben_a.json",
+            "b-e": f"{super.word_data_path}verben_b-e.json",
+        }
+
 
 class Adjektiv(Wort):
     pass
