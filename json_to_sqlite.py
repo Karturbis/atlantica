@@ -1,9 +1,9 @@
 import sqlite3
 import json
 
-json_file = "language_handler_de_data/verben_1mio-end.json"
-database = "language_handler_de_data/test_json_to.sqlite"
-database_table = "verben"
+json_file = "language_handler_de_data/nomen.json"
+database = "language_handler_de_data/wordtypes.sqlite"
+database_table = "nomen"
 
 
 with open(json_file, "r", encoding="utf-8") as reader:
