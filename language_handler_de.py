@@ -21,10 +21,15 @@ class Wort:
 class Nomen(Wort):
     tags_nomen: dict = {
         "0-Wortart": {"EIG": "eigenname", "SUB": "substantiv"},
-        "1-kasus": {"NOM": "nominativ", "AKK": "akkusativ", "GEN": "genitiv", "DAT": "dativ"},
+        "1-kasus": {
+            "NOM": "nominativ",
+            "AKK": "akkusativ",
+            "GEN": "genitiv",
+            "DAT": "dativ",
+        },
         "2-numerus": {"SIN": "singular", "PLU": "plural"},
         "3-genus": {"MAS": "maskulin", "FEM": "feminin", "NEU": "neutrum"},
-        }
+    }
     word_data_file: str = f"{super.word_data_path}nomen.json"
 
 
