@@ -20,20 +20,37 @@ class Wort:
 
 class Nomen(Wort):
     tags_nomen: dict = {
-        "0-Wortart": {"EIG": "eigenname", "SUB": "substantiv"},
-        "1-kasus": {
+        "wortart": {"EIG": "eigenname", "SUB": "substantiv"},
+        "kasus": {
             "NOM": "nominativ",
-            "AKK": "akkusativ",
             "GEN": "genitiv",
             "DAT": "dativ",
+            "AKK": "akkusativ",
         },
-        "2-numerus": {"SIN": "singular", "PLU": "plural"},
-        "3-genus": {"MAS": "maskulin", "FEM": "feminin", "NEU": "neutrum"},
+        "numerus": {"SIN": "singular", "PLU": "plural"},
+        "genus": {
+            "MAS": "maskulin",
+            "FEM": "feminin",
+            "NEU": "neutrum",
+            "NOG": "no_genus",
+        },
     }
     word_data_file: str = f"{super.word_data_path}nomen.json"
 
 
 class Verb(Wort):
+    tags_verben: dict = {
+        "wortart": {"VER": "verb", "SKZ": "wortform_zu", "ZUS": "zusatz"},
+        "typ": {"AUX": "hilfsverb", "MOD": "modal"},
+        "form": {
+            "INF": "infinitiv",
+            "PA1": "partizip_1",
+            "PA2": "partizip_2",
+            "EIZ": "erweiterter_infinitiv_mit_zu",
+            "IMP": "imperativ",
+        },
+        "person": {"1": "1_person", "2": "2_person", "3": "3_person"},
+    }
     word_data_files: dict = {
         "a": f"{super.word_data_path}verben_a.json",
         "b-e": f"{super.word_data_path}verben_b-e.json",
@@ -44,6 +61,16 @@ class Verb(Wort):
 
 
 class Adjektiv(Wort):
+    tags_adjektive: dict = {
+        "wortart": {"ADJ": "adjektiv", "PA1": "partizip_1", "PA2": "partizip_2"},
+        "art": {"SOL": "alleinstehend", "DEF": "definitiv", "IND": "indefinitiv"},
+        "kasus": {
+            "NOM": "nominativ",
+            "GEN": "genitiv",
+            "DAT": "dativ",
+            "AKK": "akkusativ",
+        },
+    }
     word_data_files: dict = {
         "a-j": f"{super.word_data_path}adjektive_a-j.json",
         "k-s": f"{super.word_data_path}adjektive_k-s.json",
