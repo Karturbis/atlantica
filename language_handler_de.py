@@ -12,7 +12,16 @@ class Wort:
 
     @classmethod
     def create_word(
-        cls, wortart: str, lemma: str, genus: str, numerus: str, kasus: str
+        cls,
+        wortart: str,
+        lemma: str,
+        kasus: str = None,
+        numerus: str = None,
+        genus: str = None,
+        typ: str = None,
+        form: str = None,
+        person: str = None,
+        gebrauch: str = None,
     ):
         word = ""
         return word
