@@ -70,6 +70,9 @@ class Adjektiv(Wort):
             "DAT": "dativ",
             "AKK": "akkusativ",
         },
+        "numerus": {"SIN": "singular", "PLU": "plural"},
+        "genus": {"MAS": "maskulin", "FEM": "feminin", "NEU": "neutrum"},
+        "gebrauch": {"ADV": "adverb"},
     }
     word_data_files: dict = {
         "a-j": f"{super.word_data_path}adjektive_a-j.json",
