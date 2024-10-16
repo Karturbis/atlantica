@@ -24,7 +24,7 @@ for table, files in JSON_FILES.items():
     for file in files:
         print(f"Copying data from json file {file}.")
         raw_data: list[dict] = json.load(
-            open(f"{PATH_TO_JSON_FILES}/{file}.json")
+            open(f"{PATH_TO_JSON_FILES}/{file}.json", encoding="UTF-8")
         )  # loads data from json file
         for i in range(len(raw_data)):      #  strips the data of the last_modified
             raw_data[i].pop("last_modified")#  attribute, becuase it is irrelevant
