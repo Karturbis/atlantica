@@ -1,4 +1,5 @@
-"""This file turns all the json files into
+"""This file turns the json files with
+the language_handler content into
 one sqlite database with three tables."""
 
 import sqlite3
