@@ -4,11 +4,11 @@ natural Languages are too complex and have too many exceptions
 from their rules to be easily implemented, the systematic approach
 is something, wich can be tried with Esperanto."""
 
-import json
+import sqlite3
 
 
 class Wort:
-    word_data_path: str = "language_handler_de_data_chunked/"
+    word_data_path: str = "data/test_language_handler_de_data.sqlite"
 
     @classmethod
     def create_word(
@@ -23,12 +23,14 @@ class Wort:
         person: str = None,
         gebrauch: str = None,
     ):
-        word = ""
-        return word
+        connection = sqlite3.connect(cls.word_data_path)
+        cursor = connection.cursor()
+        if wortart in {"EIG", "SUB"}:
+            return Nomen.create_nomen(connection, cursor, wortart, lemma, kasus, numerus, genus)
 
 
 class Nomen(Wort):
-    tags_nomen: dict = {
+    tags_nomen: dict = { 
         "wortart": {"EIG": "eigenname", "SUB": "substantiv"},
         "kasus": {
             "NOM": "nominativ",
@@ -44,7 +46,21 @@ class Nomen(Wort):
             "NOG": "no_genus",
         },
     }
-    word_data_file: str = f"{super.word_data_path}nomen.json"
+
+    @classmethod
+    def create_nomen(cls,
+        connection,
+        cursor,
+        wortart: str,
+        lemma: str,
+        kasus: str = None,
+        numerus: str = None,
+        genus: str = None
+    ):
+        form = connection.execute(f"SELECT form FROM nomen WHERE lemma='{lemma}'")
+        return form.fetchall()
+
+
 
 
 class Verb(Wort):
@@ -59,13 +75,6 @@ class Verb(Wort):
             "IMP": "imperativ",
         },
         "person": {"1": "1_person", "2": "2_person", "3": "3_person"},
-    }
-    word_data_files: dict = {
-        "a": f"{super.word_data_path}verben_a.json",
-        "b-e": f"{super.word_data_path}verben_b-e.json",
-        "f-i": f"{super.word_data_path}verben_f-i.json",
-        "j-t": f"{super.word_data_path}verben_j-t.json",
-        "u-z": f"{super.word_data_path}verben_u-z.json",
     }
 
 
@@ -83,8 +92,7 @@ class Adjektiv(Wort):
         "genus": {"MAS": "maskulin", "FEM": "feminin", "NEU": "neutrum"},
         "gebrauch": {"ADV": "adverb"},
     }
-    word_data_files: dict = {
-        "a-j": f"{super.word_data_path}adjektive_a-j.json",
-        "k-s": f"{super.word_data_path}adjektive_k-s.json",
-        "t-z": f"{super.word_data_path}adjektive_t-z.json",
-    }
+
+
+if __name__ == "__main__":
+    print(Wort.create_word("SUB", "Aachen", "Akkusativ", "plural", "feminin"))
