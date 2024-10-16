@@ -20,9 +20,9 @@ cur = con.cursor()
 
 
 for table, files in JSON_FILES.items():
-    print(f"started to run on {table}.")
+    print(f"Copying data to table {table}.")
     for file in files:
-        print(f"started to run on {file}")
+        print(f"Copying data from json file {file}.")
         raw_data: list[dict] = json.load(
             open(f"{PATH_TO_JSON_FILES}/{file}.json")
         )  # loads data from json file
