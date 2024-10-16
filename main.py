@@ -922,7 +922,7 @@ class Main:
         )
 
 
-database_handler = DatabaseHandler("content.sqlite")
+database_handler = DatabaseHandler("data/game_content.sqlite")
 main = Main(True)
 terminal_handler = TerminalHandler({k: main.get_character_data()[k] for k in ["health", "saturation"]}, {k: main.get_character_data()[k] for k in ["speed", "strength"]}, {"level": main.get_character_data()["level"]})
 combat = Combat()
