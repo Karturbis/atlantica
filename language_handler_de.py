@@ -71,32 +71,32 @@ class Nomen(Wort):
 
 class Verb(Wort):
     tags_verben: dict = {
-        "wortart": {"VER": "verb", "SKZ": "wortform_zu", "ZUS": "zusatz"},
-        "typ": {"AUX": "hilfsverb", "MOD": "modal"},
+        "wortart": {"verb": "VER", "wortform_zu": "SKZ", "zusatz": "ZUS"},
+        "typ": {"hilfsverb": "AUX", "modal": "MOD"},
         "form": {
-            "INF": "infinitiv",
-            "PA1": "partizip_1",
-            "PA2": "partizip_2",
-            "EIZ": "erweiterter_infinitiv_mit_zu",
-            "IMP": "imperativ",
+            "infinitiv": "INF",
+            "partizip_1": "PA1",
+            "partizip_2": "PA2",
+            "erweiterter_infinitiv_mit_zu": "EIZ",
+            "imperativ": "IMP",
         },
-        "person": {"1": "1_person", "2": "2_person", "3": "3_person"},
+        "person": {"1_person": "1", "2_person": "2", "3_person": "3"},
     }
 
 
 class Adjektiv(Wort):
     tags_adjektive: dict = {
-        "wortart": {"ADJ": "adjektiv", "PA1": "partizip_1", "PA2": "partizip_2"},
-        "art": {"SOL": "alleinstehend", "DEF": "definitiv", "IND": "indefinitiv"},
+        "wortart": {"adjektiv": "ADJ", "partizip_1": "PA1", "partizip_2": "PA2"},
+        "art": {"alleinstehend": "SOL", "definitiv": "DEF", "indefinitiv": "IND"},
         "kasus": {
-            "NOM": "nominativ",
-            "GEN": "genitiv",
-            "DAT": "dativ",
-            "AKK": "akkusativ",
+            "nominativ": "NOM",
+            "genitiv": "GEN",
+            "dativ": "DAT",
+            "akkusativ": "AKK",
         },
-        "numerus": {"SIN": "singular", "PLU": "plural"},
-        "genus": {"MAS": "maskulin", "FEM": "feminin", "NEU": "neutrum"},
-        "gebrauch": {"ADV": "adverb"},
+        "numerus": {"singular": "SIN", "plural": "PLU"},
+        "genus": {"maskulin": "MAS", "feminin": "FEM", "neutrum": "NEU"},
+        "gebrauch": {"adverb": "ADV"},
     }
 
 
