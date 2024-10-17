@@ -25,12 +25,15 @@ class Wort:
     ):
         connection = sqlite3.connect(cls.word_data_path)
         cursor = connection.cursor()
-        if wortart in {"EIG", "SUB"}:
-            return Nomen.create_nomen(connection, cursor, wortart, lemma, kasus, numerus, genus)
+        if wortart in {"eigenname", "substantiv"}:
+            return Nomen.create_nomen(
+                connection, cursor, wortart, lemma, kasus, numerus, genus
+            )
+        return "ERROR IN create word"
 
 
 class Nomen(Wort):
-    tags_nomen: dict = { 
+    tags_nomen: dict = {
         "wortart": {"eigenname": "EIG", "substantiv": "SUB"},
         "kasus": {
             "nominativ": "NOM",
@@ -48,20 +51,22 @@ class Nomen(Wort):
     }
 
     @classmethod
-    def create_nomen(cls,
+    def create_nomen(
+        cls,
         connection,
         cursor,
         wortart: str,
         lemma: str,
-        kasus: str = None,
-        numerus: str = None,
-        genus: str = None
+        kasus: str = "",
+        numerus: str = "",
+        genus: str = "",
     ):
-        tags = f"{}"
-        form = connection.execute(f"SELECT form FROM nomen WHERE lemma='{lemma}'")
-        return form.fetchall()
-
-
+        tags = f"{cls.tags_nomen["wortart"][wortart]}:{cls.tags_nomen["kasus"][kasus]}:{cls.tags_nomen["numerus"][numerus]}:{cls.tags_nomen["genus"][genus]}"
+        database_return = connection.execute(
+            f"SELECT form FROM nomen WHERE lemma='{lemma}' AND tags='{tags}'"
+        )
+        form = database_return.fetchall()[0][0]
+        return form
 
 
 class Verb(Wort):
@@ -96,4 +101,4 @@ class Adjektiv(Wort):
 
 
 if __name__ == "__main__":
-    print(Wort.create_word("SUB", "Aachen", "Akkusativ", "plural", "feminin"))
+    print(Wort.create_word("substantiv", "Aal", "dativ", "singular", "maskulin"))
