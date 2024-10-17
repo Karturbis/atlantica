@@ -31,19 +31,19 @@ class Wort:
 
 class Nomen(Wort):
     tags_nomen: dict = { 
-        "wortart": {"EIG": "eigenname", "SUB": "substantiv"},
+        "wortart": {"eigenname": "EIG", "substantiv": "SUB"},
         "kasus": {
-            "NOM": "nominativ",
-            "GEN": "genitiv",
-            "DAT": "dativ",
-            "AKK": "akkusativ",
+            "nominativ": "NOM",
+            "genitiv": "GEN",
+            "dativ": "DAT",
+            "akkusativ": "AKK",
         },
-        "numerus": {"SIN": "singular", "PLU": "plural"},
+        "numerus": {"singular": "SIN", "plural": "PLU"},
         "genus": {
-            "MAS": "maskulin",
-            "FEM": "feminin",
-            "NEU": "neutrum",
-            "NOG": "no_genus",
+            "maskulin": "MAS",
+            "feminin": "FEM",
+            "neutrum": "NEU",
+            "no_genus": "NOG",
         },
     }
 
@@ -57,6 +57,7 @@ class Nomen(Wort):
         numerus: str = None,
         genus: str = None
     ):
+        tags = f"{}"
         form = connection.execute(f"SELECT form FROM nomen WHERE lemma='{lemma}'")
         return form.fetchall()
 
