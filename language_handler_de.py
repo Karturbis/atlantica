@@ -9,7 +9,6 @@ import sqlite3
 
 class Wort:
     word_data_path: str = "data/test_language_handler_de_data.sqlite"
-    connection = sqlite3.connect(word_data_path)
     cursor = connection.cursor()
 
     @classmethod
