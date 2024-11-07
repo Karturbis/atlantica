@@ -26,7 +26,7 @@ for table, files in JSON_FILES.items():
         raw_data: list[dict] = json.load(
             open(f"{PATH_TO_JSON_FILES}/{file}.json", encoding="UTF-8")
         )  # loads data from json file
-        for i in range(len(raw_data)):      #  strips the data of the last_modified
+        for i in range(len(raw_data)):      #  strips the data of the last_modified attribute
             raw_data[i].pop("last_modified")#  attribute, becuase it is irrelevant
         data: list[tuple] = [  # converts list of dicts to list of tuples of dict values
             tuple(j[1] for j in raw_data[i].items()) for i in range(len(raw_data))
