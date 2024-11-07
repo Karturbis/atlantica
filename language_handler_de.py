@@ -14,7 +14,7 @@ class Wort:
 
     @classmethod
     def get_form(cls, table: str, tags: list, lemma: str):
-        command = f"SELECT form FROM {table} WHERE lemma LIKE '{lemma}' AND tags LIKE '%{tags[0]}%'"
+        command = f"SELECT form FROM {table} WHERE lemma LIKE '{lemma}'"
         for tag in tags:
             command = f"{command} AND tags LIKE '%{tag}%'"
         return cls.cursor.execute(command).fetchall()
@@ -84,11 +84,11 @@ class Verb(Wort):
         try:
             tags.append(cls.tags_verben["wortart"][wortart])
         except KeyError:
-            pass
+            print("create verb: unknown wortart")
         try:
             cls.tags_verben["typ"][typ],
         except KeyError:
-            pass
+            print("create verb: unknown typ")
         cls.tags_verben["form"][form],
         cls.tags_verben["person"][person],
         form = super().get_form("verben", tags, lemma)
@@ -199,7 +199,7 @@ class Artikel(Wort):
     }
 
     @classmethod
-    def create_possessiv_artikel(
+    def _create_possessiv_artikel(
         cls,
         kasus: str,
         genus_objekt: str,
@@ -242,7 +242,7 @@ class Artikel(Wort):
         mit den übergebenen Parametern."""
 
         if wortart == "possessiv_artikel":
-            return cls.create_possessiv_artikel(
+            return cls._create_possessiv_artikel(
                 kasus, genus_objekt, numerus, person, genus_subjekt
             )
         if numerus == "plural":
