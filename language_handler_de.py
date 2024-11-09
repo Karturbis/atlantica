@@ -89,9 +89,15 @@ class Verb(Wort):
             cls.tags_verben["typ"][typ],
         except KeyError:
             print("create verb: unknown typ")
-        cls.tags_verben["form"][form],
-        cls.tags_verben["person"][person],
-        form = super().get_form("verben", tags, lemma)
+        try:
+            tags.append(cls.tags_verben["form"][form])
+        except KeyError:
+            print("create verb: unknown form")
+        try:
+            tags.append(cls.tags_verben["person"][person])
+        except KeyError:
+            print("create verb: person not found")
+        form = super().get_form("verben", tags, lemma)[0][0]
         return form
 
 
@@ -261,6 +267,9 @@ class Artikel(Wort):
 
 
 if __name__ == "__main__":
-    print(Nomen.create_nomen("substantiv", "Aal", "dativ", "singular", "maskulin"))
-    print(Artikel.create_artikel("definitiv", genus_objekt="neutrum", wortart="artikel", genus_subjekt="maskulin", kasus="dativ", numerus="plural"))
-    # print(Wort.create_word("verb", "rückenschwimmen", form="partizip_1"))
+    print(Artikel.create_artikel("definitiv", genus_objekt="maskulin", wortart="artikel", genus_subjekt="maskulin", kasus="nominativ", numerus="singular"))
+    print(Nomen.create_nomen("substantiv", "Aal", "nominativ", "singular", "maskulin"))
+    print(Verb.create_verb("verb", "schwimmen", person="3_person"))
+    print("durch")
+    print(Artikel.create_artikel("definitiv", genus_objekt="neutrum", genus_subjekt="maskulin", wortart="artikel", kasus="nominativ", numerus="singular"))
+    print(Nomen.create_nomen("substantiv", "wasser", "nominativ", "singular", "neutrum"))
