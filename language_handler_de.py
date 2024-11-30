@@ -5,6 +5,10 @@ from their rules to be easily implemented, the systematic approach
 is something, wich can be tried with Esperanto."""
 
 import sqlite3
+from colorama import Fore, Style
+
+class Satz:
+    pass
 
 
 class Wort:
@@ -45,13 +49,11 @@ class Nomen(Wort):
         lemma: str,
         kasus: str = "",
         numerus: str = "",
-        genus: str = "",
     ):
         tags = [
             cls.tags_nomen["wortart"][wortart],
             cls.tags_nomen["kasus"][kasus],
             cls.tags_nomen["numerus"][numerus],
-            cls.tags_nomen["genus"][genus],
         ]
         form = super().get_form("nomen", tags, lemma)[0][0]
         return form
@@ -84,19 +86,19 @@ class Verb(Wort):
         try:
             tags.append(cls.tags_verben["wortart"][wortart])
         except KeyError:
-            print("create verb: unknown wortart")
+            print(f"{Fore.YELLOW}Warning:{Style.RESET_ALL} create verb: unknown wortart")
         try:
             cls.tags_verben["typ"][typ],
         except KeyError:
-            print("create verb: unknown typ")
+            print(f"{Fore.YELLOW}Warning:{Style.RESET_ALL} create verb: unknown typ")
         try:
             tags.append(cls.tags_verben["form"][form])
         except KeyError:
-            print("create verb: unknown form")
+            print(f"{Fore.YELLOW}Warning:{Style.RESET_ALL} create verb: unknown form")
         try:
             tags.append(cls.tags_verben["person"][person])
         except KeyError:
-            print("create verb: person not found")
+            print(f"{Fore.YELLOW}Warning:{Style.RESET_ALL} create verb: person not found")
         form = super().get_form("verben", tags, lemma)[0][0]
         return form
 
@@ -268,8 +270,8 @@ class Artikel(Wort):
 
 if __name__ == "__main__":
     print(Artikel.create_artikel("definitiv", genus_objekt="maskulin", wortart="artikel", genus_subjekt="maskulin", kasus="nominativ", numerus="singular"))
-    print(Nomen.create_nomen("substantiv", "Aal", "nominativ", "singular", "maskulin"))
+    print(Nomen.create_nomen("substantiv", "Aal", "nominativ", "singular"))
     print(Verb.create_verb("verb", "schwimmen", person="3_person"))
     print("durch")
     print(Artikel.create_artikel("definitiv", genus_objekt="neutrum", genus_subjekt="maskulin", wortart="artikel", kasus="nominativ", numerus="singular"))
-    print(Nomen.create_nomen("substantiv", "wasser", "nominativ", "singular", "neutrum"))
+    print(Nomen.create_nomen("substantiv", "wasser", "nominativ", "singular"))
