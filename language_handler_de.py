@@ -12,12 +12,17 @@ class Satz:
 
 
 class Wort:
+    """Parent class, for all classes, who need
+    to create a word."""
+    # Setup the sqlite3 database connection:
     word_data_path: str = "data/test_language_handler_de_data.sqlite"
     connection = sqlite3.connect(word_data_path)
     cursor = connection.cursor()
 
     @classmethod
     def get_form(cls, table: str, tags: list, lemma: str):
+        """Creates and executes a sqlite command, to get
+        the needed word from the sqlite database."""
         command = f"SELECT form FROM {table} WHERE lemma LIKE '{lemma}'"
         for tag in tags:
             command = f"{command} AND tags LIKE '%{tag}%'"
@@ -25,6 +30,9 @@ class Wort:
 
 
 class Nomen(Wort):
+    """Class with all the tags and methods
+    needed to create a Nomen."""
+    # possible tags for Nomen in the database:
     tags_nomen: dict = {
         "wortart": {"eigenname": "EIG", "substantiv": "SUB"},
         "kasus": {
@@ -50,6 +58,8 @@ class Nomen(Wort):
         kasus: str = "",
         numerus: str = "",
     ):
+        """Creates the Nomen, using the get_form()
+        method from the Word class."""
         tags = [
             cls.tags_nomen["wortart"][wortart],
             cls.tags_nomen["kasus"][kasus],
@@ -60,6 +70,9 @@ class Nomen(Wort):
 
 
 class Verb(Wort):
+    """Contains all the Tag-data and the
+    method to create a verb."""
+    # possible tags for verbs in the database:
     tags_verben: dict = {
         "wortart": {"verb": "VER", "wortform_zu": "SKZ", "zusatz": "ZUS"},
         "typ": {"hilfsverb": "AUX", "modal": "MOD"},
@@ -82,6 +95,10 @@ class Verb(Wort):
         form: str = None,
         person: str = None,
     ):
+        """Sets the tags for the database
+        query, prints a Warning, if a tag is
+        not found. Calls the Word.get_form()
+        method to get the correct verb."""
         tags = []
         try:
             tags.append(cls.tags_verben["wortart"][wortart])
@@ -104,6 +121,8 @@ class Verb(Wort):
 
 
 class Adjektiv(Wort):
+    """Contains all the tags needed
+    to create an Adjektiv."""
     tags_adjektive: dict = {
         "wortart": {"adjektiv": "ADJ", "partizip_1": "PA1", "partizip_2": "PA2"},
         "art": {"alleinstehend": "SOL", "definitiv": "DEF", "indefinitiv": "IND"},
@@ -119,8 +138,9 @@ class Adjektiv(Wort):
     }
 
 
-class Artikel(Wort):
-
+class Artikel():
+    """Contains all data and methods
+    to create every german article."""
     artikel_liste: dict = {
         "definitiv": {
             "nominativ": {
@@ -246,8 +266,8 @@ class Artikel(Wort):
         person: str = None,
         genus_subjekt: str = None,
     ) -> str:
-        """Erzeugt einen Artikel
-        mit den übergebenen Parametern."""
+        """Creates an article with the
+        given parameters."""
 
         if wortart == "possessiv_artikel":
             return cls._create_possessiv_artikel(
@@ -268,6 +288,7 @@ class Artikel(Wort):
         return artikel
 
 
+# For testing:
 if __name__ == "__main__":
     print(Artikel.create_artikel("definitiv", genus_objekt="maskulin", wortart="artikel", genus_subjekt="maskulin", kasus="nominativ", numerus="singular"))
     print(Nomen.create_nomen("substantiv", "Aal", "nominativ", "singular"))
