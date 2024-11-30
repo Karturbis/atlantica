@@ -7,13 +7,57 @@ is something, wich can be tried with Esperanto."""
 import sqlite3
 from colorama import Fore, Style
 
+
 class Satz:
-    pass
+
+    @classmethod
+    def create_satz(cls, args: list[dict]):
+        satz = ""
+        for word in args:
+            wortart = word["wortart"]
+            if wortart == "eigenname" or wortart == "substantiv":
+                satz = (
+                    satz
+                    + " "
+                    + Nomen.create_nomen(
+                        wortart, word["lemma"], word["kasus"], word["numerus"]
+                    )
+                )
+            elif wortart == "adjektiv":
+                pass
+                # satz = satz + " " + Adjektiv()
+            elif wortart == "verb":
+                satz = (
+                    satz
+                    + " "
+                    + Verb.create_verb(
+                        wortart,
+                        word["lemma"],
+                        word["typ"],
+                        word["form"],
+                        word["person"],
+                    )
+                )
+            elif wortart == "artikel" or wortart == "possesiv_artikel":
+                satz = satz + " " + Artikel.create_artikel(
+                    word["art"],
+                    wortart,
+                    word["kasus"],
+                    word["genus_objekt"],
+                    word["numerus"],
+                    word["person"],
+                    word["genus_subjekt"]
+                )
+            else:
+                satz = satz + word["satzzeichen"]
+        satz[0] = satz[0].capitalize()
+        return satz
 
 
 class Wort:
     """Parent class, for all classes, who need
     to create a word."""
+
     # Setup the sqlite3 database connection:
     word_data_path: str = "data/test_language_handler_de_data.sqlite"
     connection = sqlite3.connect(word_data_path)
@@ -32,6 +76,7 @@ class Wort:
 class Nomen(Wort):
     """Class with all the tags and methods
     needed to create a Nomen."""
+
     # possible tags for Nomen in the database:
     tags_nomen: dict = {
         "wortart": {"eigenname": "EIG", "substantiv": "SUB"},
@@ -72,6 +117,7 @@ class Nomen(Wort):
 class Verb(Wort):
     """Contains all the Tag-data and the
     method to create a verb."""
+
     # possible tags for verbs in the database:
     tags_verben: dict = {
         "wortart": {"verb": "VER", "wortform_zu": "SKZ", "zusatz": "ZUS"},
@@ -103,7 +149,9 @@ class Verb(Wort):
         try:
             tags.append(cls.tags_verben["wortart"][wortart])
         except KeyError:
-            print(f"{Fore.YELLOW}Warning:{Style.RESET_ALL} create verb: unknown wortart")
+            print(
+                f"{Fore.YELLOW}Warning:{Style.RESET_ALL} create verb: unknown wortart"
+            )
         try:
             cls.tags_verben["typ"][typ],
         except KeyError:
@@ -115,7 +163,9 @@ class Verb(Wort):
         try:
             tags.append(cls.tags_verben["person"][person])
         except KeyError:
-            print(f"{Fore.YELLOW}Warning:{Style.RESET_ALL} create verb: person not found")
+            print(
+                f"{Fore.YELLOW}Warning:{Style.RESET_ALL} create verb: person not found"
+            )
         form = super().get_form("verben", tags, lemma)[0][0]
         return form
 
@@ -123,6 +173,7 @@ class Verb(Wort):
 class Adjektiv(Wort):
     """Contains all the tags needed
     to create an Adjektiv."""
+
     tags_adjektive: dict = {
         "wortart": {"adjektiv": "ADJ", "partizip_1": "PA1", "partizip_2": "PA2"},
         "art": {"alleinstehend": "SOL", "definitiv": "DEF", "indefinitiv": "IND"},
@@ -138,9 +189,10 @@ class Adjektiv(Wort):
     }
 
 
-class Artikel():
+class Artikel:
     """Contains all data and methods
     to create every german article."""
+
     artikel_liste: dict = {
         "definitiv": {
             "nominativ": {
@@ -290,9 +342,27 @@ class Artikel():
 
 # For testing:
 if __name__ == "__main__":
-    print(Artikel.create_artikel("definitiv", genus_objekt="maskulin", wortart="artikel", genus_subjekt="maskulin", kasus="nominativ", numerus="singular"))
+    print(
+        Artikel.create_artikel(
+            "definitiv",
+            genus_objekt="maskulin",
+            wortart="artikel",
+            genus_subjekt="maskulin",
+            kasus="nominativ",
+            numerus="singular",
+        )
+    )
     print(Nomen.create_nomen("substantiv", "Aal", "nominativ", "singular"))
     print(Verb.create_verb("verb", "schwimmen", person="3_person"))
     print("durch")
-    print(Artikel.create_artikel("definitiv", genus_objekt="neutrum", genus_subjekt="maskulin", wortart="artikel", kasus="nominativ", numerus="singular"))
+    print(
+        Artikel.create_artikel(
+            "definitiv",
+            genus_objekt="neutrum",
+            genus_subjekt="maskulin",
+            wortart="artikel",
+            kasus="nominativ",
+            numerus="singular",
+        )
+    )
     print(Nomen.create_nomen("substantiv", "wasser", "nominativ", "singular"))
