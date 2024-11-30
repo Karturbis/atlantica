@@ -1,4 +1,4 @@
-venv
+atlantica_venv/
 __pycache__
 test*
 saves/
