@@ -11,18 +11,26 @@ from colorama import Fore, Style
 class Satz:
 
     @classmethod
-    def create_satz(cls, args: list[dict]):
+    def create_satz(cls, kasus, zeitform, args: list[dict]):
         satz = ""
+        # use string and not list, to be able to add
+        # punctuations without spaces.
+        subjekt = None
+        objekt = None
         for word in args:
             wortart = word["wortart"]
             if wortart == "eigenname" or wortart == "substantiv":
-                satz = (
-                    satz
-                    + " "
-                    + Nomen.create_nomen(
-                        wortart, word["lemma"], word["kasus"], word["numerus"]
-                    )
+                word["form"] = Nomen.create_nomen(
+                    wortart, word["lemma"], kasus, word["numerus"]
                 )
+                word["genus"] = Wort.get_genus("nomen", word["form"])
+                satz = f"{satz} {word["form"]}"
+                if word["funktion"] == "subjekt":
+                    subjekt = word
+                elif word["funktion"] == "objekt":
+                    objekt = word
+                    subjekt = word
+
             elif wortart == "adjektiv":
                 pass
                 # satz = satz + " " + Adjektiv()
@@ -39,18 +47,26 @@ class Satz:
                     )
                 )
             elif wortart == "artikel" or wortart == "possesiv_artikel":
-                satz = satz + " " + Artikel.create_artikel(
-                    word["art"],
-                    wortart,
-                    word["kasus"],
-                    word["genus_objekt"],
-                    word["numerus"],
-                    word["person"],
-                    word["genus_subjekt"]
+                satz = (
+                    satz
+                    + " "
+                    + Artikel.create_artikel(
+                        word["art"],
+                        wortart,
+                        kasus,
+                        objekt["genus"],
+                        objekt["numerus"],
+                        word["person"],
+                        subjekt["genus"],
+                    )
                 )
+            elif wortart == "konst":
+                satz = satz + " " + word["wort"]
             else:
                 satz = satz + word["satzzeichen"]
+        satz = satz.split(" ")
         satz[0] = satz[0].capitalize()
+        satz = " ".join(satz)[1:]
         return satz
 
 
@@ -64,13 +80,30 @@ class Wort:
     cursor = connection.cursor()
 
     @classmethod
-    def get_form(cls, table: str, tags: list, lemma: str):
+    def get_form(cls, table: str, tags: list, lemma: str) -> str:
         """Creates and executes a sqlite command, to get
         the needed word from the sqlite database."""
         command = f"SELECT form FROM {table} WHERE lemma LIKE '{lemma}'"
         for tag in tags:
             command = f"{command} AND tags LIKE '%{tag}%'"
         return cls.cursor.execute(command).fetchall()
+
+    @classmethod
+    def get_tags(cls, table: str, form: str) -> str:
+        """Creates and executes a sqlite command, to get
+        the tags of the given word from the sqlite database."""
+        command = f"SELECT tags FROM {table} WHERE form LIKE '{form}'"
+        return cls.cursor.execute(command).fetchall()
+
+    @classmethod
+    def get_genus(cls, table: str, form: str) -> str:
+        tags = str(cls.get_tags(table, form)).upper()
+        if "FEM" in tags:
+            return "feminin"
+        if "MAS" in tags:
+            return "maskulin"
+        if "NEU" in tags:
+            return "neutrum"
 
 
 class Nomen(Wort):
@@ -130,6 +163,8 @@ class Verb(Wort):
             "imperativ": "IMP",
         },
         "person": {"1_person": "1", "2_person": "2", "3_person": "3"},
+        "zeitform": {"präteritum": "PRÄ"
+        }
     }
 
     @classmethod
@@ -342,6 +377,7 @@ class Artikel:
 
 # For testing:
 if __name__ == "__main__":
+    """
     print(
         Artikel.create_artikel(
             "definitiv",
@@ -366,3 +402,17 @@ if __name__ == "__main__":
         )
     )
     print(Nomen.create_nomen("substantiv", "wasser", "nominativ", "singular"))
+    """
+
+
+satz = Satz.create_satz(
+    "nominativ",
+    "perfekt"
+    [
+        {"wortart": "konst", "wort": "du"},
+        {"wortart": "verb", }
+        {"wortart": "konst"}
+    ]
+)
+
+print(satz)
