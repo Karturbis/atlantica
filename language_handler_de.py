@@ -407,10 +407,10 @@ if __name__ == "__main__":
 
 satz = Satz.create_satz(
     "nominativ",
-    "perfekt"
+    "perfekt",
     [
         {"wortart": "konst", "wort": "du"},
-        {"wortart": "verb", }
+        {"wortart": "verb", },
         {"wortart": "konst"}
     ]
 )
