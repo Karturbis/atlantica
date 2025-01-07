@@ -575,7 +575,7 @@ class Main:
             ).lower()
             if not overwrite == "y" or overwrite == "yes":
                 return None
-        shutil.copyfile("content.sqlite", game_file_path)
+        shutil.copyfile("data/game_content.sqlite", game_file_path)
         terminal_handler.new_print(
             f"The gameslot: {game_name} was sucessfully created."
         )
@@ -639,6 +639,7 @@ class Main:
         the current gameslot."""
         self.save_chunk()
         self.save_player()
+        terminal_handler.new_print("Game has been saved.")
 
     def delete_game(self, args=None) -> None:
         """Delete the given Gameslot."""
@@ -650,7 +651,7 @@ class Main:
                     f"Option {index +1} is {file_name[9:-7]}"
                 )  # prints the name of the gamestate, without printing the whole file name
             option: str = terminal_handler.new_input(
-                "Input the number of your option.\n> "
+                "Input the number of your option.\ndel> "
             )
             try:
                 option: int = int(option)
@@ -689,22 +690,27 @@ class Main:
                 "strength": str(self.__strength),
                 "level": str(self.__level),
                 "inventory": inventory,
-                "position": self.__position.get_chunk_id(),
+                "position": self.__position_save_id,
             },
             self.__name,
         )
 
-    def save_chunk(self) -> None:
+    def save_chunk(self, position=None) -> None:
         """Saves the current chunk data
         to the current game slot."""
-        chunk_id = self.__position.get_chunk_id()
-        items = self.__position.get_items()
+        if not position:
+            chunk_id = self.__position.get_chunk_id()
+            items = self.__position.get_items()
+        else:
+            chunk_id = position.get_chunk_id()
+            items = position.get_items()
         database_handler.update_items(items, chunk_id)
 
     def menu(self, args=None) -> None:
         """Opens the menu, by setting the
         current position to the menu Chunk."""
         self.__position_save_id = self.__position.get_chunk_id()
+        terminal_handler.clear()
         self.__position = self.load_chunk("menu")
 
     def quit_menu(self) -> None:
