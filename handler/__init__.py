@@ -1,3 +1,3 @@
-from terminal_handler import TerminalHandler
-from database_handler import DatabaseHandler
-from language_handler_de import Satz
+from .terminal_handler import TerminalHandler
+from .database_handler import DatabaseHandler
+from .language_handler_de import Satz
