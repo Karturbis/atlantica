@@ -100,6 +100,7 @@ class Combat:
         pass
 
 
+
 class DatabaseHandler:
     """Handles the sqlite instances,
     reads and writes to sqlite databases..."""
