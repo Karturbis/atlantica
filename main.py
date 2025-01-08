@@ -13,9 +13,8 @@ from os import listdir  # To list all files of a directory, used in Main.load_ga
 from os.path import exists  # Checks if given file exists. Used to prevent errors.
 from ast import literal_eval  # Used to evaluate a boolean from a string
 
-from terminal_handler import (
-    TerminalHandler,
-)  # To display data at the top of the terminal
+from handler import TerminalHandler  # To display data at the top of the terminal
+from handler import DatabaseHandler
 
 
 class Combat:
@@ -98,133 +97,6 @@ class Combat:
 
     def flee(self, player, opponent):
         pass
-
-
-
-class DatabaseHandler:
-    """Handles the sqlite instances,
-    reads and writes to sqlite databases..."""
-
-    def __init__(self, database: str) -> None:
-        self.__database: str = database
-        self.__connection = sqlite3.connect(database)
-        self.__cursor = self.__connection.cursor()
-
-    def get_data(self, table: str, items: list, data_id: str) -> list:
-        """Takes the arguments table, items and data_id.
-        Returns a list of entrys in the given data table,
-        at the given column(data_id)."""
-        command: str = "SELECT "
-        for i in items:
-            command = f"{command} {i}, "
-        command = f"{command[:-2]} FROM {table} WHERE id='{data_id.strip()}'"
-        data = self.__cursor.execute(command)
-        fetched_data: list = data.fetchall()
-        return list(fetched_data[0])
-
-    def get_item_data(self, item_id: str) -> list:
-        """Calls the get_data method with
-        predesigned parameters."""
-        return self.get_data(
-            "items", ["nutrition", "description", "damage", "crit_damage"], item_id
-        )
-
-    def get_chunk_data(self, chunk_id: str) -> list:
-        """Calls the get_data method with
-        predesigned parameters."""
-        print(chunk_id)
-        return self.get_data(
-            "chunks",
-            [
-                "north_id",
-                "east_id",
-                "south_id",
-                "west_id",
-                "description",
-                "items",
-                "stage",
-                "characters",
-                "containers",
-                "add_commands",
-                "rem_commands",
-            ],
-            chunk_id,
-        )
-
-    def get_character_data(self, character_name: str) -> list:
-        return self.get_data(
-            "player",
-            [
-                "health",
-                "saturation",
-                "speed",
-                "strength",
-                "level",
-                "inventory",
-                "position",
-            ],
-            character_name,
-        )
-
-    def set_data(self, table: str, attributes: list) -> None:
-        """Insert new column with given attributes
-        into the given table of the self.__database"""
-        if not self.__database == "content.sqlite":
-            command: str = f"INSERT INTO {table} VALUES ("
-            for i in attributes:
-                command = f"{command} {i},"
-            command = f"{command[:-2]})"
-            self.__cursor.execute(command)
-            self.__connection.commit()
-        else:
-            print("No gameslot is selected, please make a new game, or load a game.")
-
-    def update_character(self, attributes: dict, character_name: str) -> None:
-        """Update the attributes of the given character."""
-        if not self.__database == "content.sqlite":
-            for key, attribute in attributes.items():
-                if isinstance(attribute, list):
-                    command: str = f"UPDATE player SET {key} = "
-                    for i in attribute:
-                        command = f"{command} {i}, "
-                    command = f"{command[:-2]} WHERE id = {character_name}"
-                elif key == "":
-                    command = None
-                else:
-                    command: str = (
-                        f'UPDATE player SET {key} = "{attribute}" WHERE id = "{character_name}"'
-                    )
-                if command:
-                    self.__cursor.execute(command)
-            self.__connection.commit()
-
-        else:
-            print("No gameslot is selected, please make a new game, or load a game.")
-
-    def update_items(self, items: list, chunk_id: str) -> None:
-        "Update the items of a given chunk"
-        if not self.__database == "content.sqlite":
-            command: str = 'UPDATE chunks SET items = "'
-            if items:
-                for i in items:
-                    command = f"{command}{i}, "
-                command = f'{command[:-2]}" WHERE id = "{chunk_id}"'
-            else:
-                command = f'{command}" WHERE id = "{chunk_id}"'
-            self.__cursor.execute(command)
-            self.__connection.commit()
-        else:
-            print("No gameslot is selected, please make a new game, or load a game.")
-
-    def set_chunk_data(self, chunk_id: str, attributes: list) -> None:
-        pass
-
-    def set_database(self, database: str) -> None:
-        """Sets the database to the input."""
-        self.__database: str = database
-        self.__connection = sqlite3.connect(self.__database)
-        self.__cursor = self.__connection.cursor()
-        print(f"Database was set to {self.__database}")
 
 
 class InputHandler:
