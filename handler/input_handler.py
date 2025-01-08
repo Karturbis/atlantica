@@ -6,7 +6,8 @@ class InputHandler:
     calling the right funcionts associated
     with the input."""
 
-    def __init__(self, commands_avail=None) -> None:
+    def __init__(self, main_method, commands_avail=None) -> None:
+        self.main = main_method
         self.__commands_std = {
             "go": ["main", "move"],
             "rest": ["main", "rest"],
@@ -45,7 +46,7 @@ class InputHandler:
                     for key, func_list in self.__commands_avail.items():
                         if key.startswith(commands_input[0]):
                             if func_list[0] == "main":
-                                func = getattr(main, func_list[1])
+                                func = getattr(self.main, func_list[1])
                             elif func_list[0] == "TerminalHandler":
                                 func = getattr(TerminalHandler, func_list[1])
                             func(commands_input[1:])
@@ -53,7 +54,7 @@ class InputHandler:
                     for key, func_list in self.__commands_avail.items():
                         if key.startswith(commands_input[0]):
                             if func_list[0] == "main":
-                                func = getattr(main, func_list[1])
+                                func = getattr(self.main, func_list[1])
                             elif func_list[0] == "TerminalHandler":
                                 func = getattr(TerminalHandler, func_list[1])
                             func()

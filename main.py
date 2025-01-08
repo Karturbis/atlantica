@@ -713,7 +713,7 @@ database_handler = DatabaseHandler("data/game_content.sqlite")
 main = Main(True)
 TerminalHandler.init({k: main.get_character_data()[k] for k in ["health", "saturation"]}, {k: main.get_character_data()[k] for k in ["speed", "strength"]}, {"level": main.get_character_data()["level"]})
 combat = Combat()
-input_handler = InputHandler()
+input_handler = InputHandler(main)
 main.menu()
 while True:
     input_handler.input_loop()
