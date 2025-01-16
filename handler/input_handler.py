@@ -77,7 +77,7 @@ class InputHandler:
         for key, value in commands.items():
             self.__commands_avail[key] = value
 
-    def remove_commands(self, commands: dict, remove_all=False) -> None:
+    def remove_commands(self, commands: dict=None, remove_all=False) -> None:
         """Remove a command from the combat commands list."""
         if remove_all:
             self.__commands_avail = {
@@ -85,8 +85,9 @@ class InputHandler:
                 "quit": ["main", "quit_game"],
                 "clear": ["TerminalHandler", "clear"],
             }
-        for key in commands:
-            self.__commands_avail.pop(key)
+        else:
+            for key in commands:
+                self.__commands_avail.pop(key)
 
     def reset_commands(self) -> None:
         """Reset the commands to standard."""
