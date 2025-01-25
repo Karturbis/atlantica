@@ -2,13 +2,13 @@ from handler import TerminalHandler
 
 class InputHandler:
     """The InputHandler is in charge
-    of taking in put from the user and
-    calling the right funcionts associated
+    of taking input from the user and
+    calling the right functions associated
     with the input."""
 
     def __init__(self, main_method, commands_avail=None) -> None:
         self.main = main_method
-        self.__commands_std = {
+        self.__commands_std: dict = {
             "go": ["main", "move"],
             "rest": ["main", "rest"],
             "take": ["main", "take"],
