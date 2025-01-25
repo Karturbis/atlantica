@@ -16,89 +16,6 @@ from handler import TerminalHandler  # To display data at the top of the termina
 from handler import DatabaseHandler  # To handle insteractions with the Database
 from handler import InputHandler
 
-
-class Combat:
-    """The Combat class contains all
-    code, that is used when in combat."""
-
-    def __init__(self):
-        self.__combat_commands = {
-            "punch": self.punch,
-            "kick": self.kick,
-            "stab": self.stab,
-            "cut": self.cut,
-            "flee": self.flee,
-        }
-        self.__combat_input_handler = InputHandler(self.__combat_commands)
-        self.__fighting = True
-
-    def get_combat_commands(self) -> dict:
-        """Returns the combat commands."""
-        return self.__combat_commands
-
-    def add_combat_commands(self, commands: dict) -> None:
-        """Add a command to the combat commands list."""
-        for key, value in commands.items():
-            self.__combat_commands[key] = value
-
-    def remove_combat_commands(self, commands: list) -> None:
-        """Remove a command from the combat commands list."""
-        for key in commands:
-            self.__combat_commands.pop(key)
-
-    def combat_loop(self, player, opponent):
-        """Represents phase3 of the fight,
-        starts a new fighting round, if
-        none of the opponents died or
-        fled this round."""
-        while self.__fighting:
-            player_begins = self.phase_1(player.get_speed(), opponent.get_speed())
-            self.phase_2(player_begins)
-
-    def phase_1(self, player_speed: int, opponent_speed: int) -> bool:
-        """Returns true, if the player begins."""
-        random_num = random.randint(0, 100)
-        # the beginner_value depends on the speed of the player and the opponent,
-        # the greater the distance between these two, the higher gets the
-        # probability, that the character with the higher speed starts the fight.
-        beginner_value = player_speed - opponent_speed + 50
-        return random_num <= beginner_value
-
-    def phase_2(self, player_begins):
-        """Handles the actual fighting,
-        gets the information, which player
-        begins and redirects tasks to
-        other methods."""
-        if player_begins:
-            self.player_attack()
-            self.npc_attack()
-        else:
-            self.npc_attack()
-            self.player_attack()
-
-    def npc_attack(self):
-        """Handles the attacks of
-        NPCs."""
-
-    def player_attack(self, player, opponent):
-        pass
-
-    def punch(self, player, opponent):
-        pass
-
-    def kick(self, player, opponent):
-        pass
-
-    def stab(self, player, opponent, wapon):
-        pass
-
-    def cut(self, player, opponent, wapon):
-        pass
-
-    def flee(self, player, opponent):
-        pass
-
-
 class Container:
     """A Container is an element in a Chunk,
     which contains Items or triggers Events,
@@ -132,7 +49,7 @@ class Container:
 class Item:
     """An Item is a small objekt,
     that can be found in atlanctica.
-    Items are spwning in Chunks, in
+    Items are spawning in Chunks, in
     Containers and when enemys die.
     Examples for an Item would be:
     sword, apple, axe, lantern..."""
@@ -152,9 +69,16 @@ class Item:
         self.__crit_damage: int = crit_damage
 
     def get_nutrition(self) -> int:
-        """Returns the nutrition
-        of the current Item."""
         return self.__nutrition
+    
+    def get_description(self) -> str:
+        return self.__description
+    
+    def get_damage(self) -> int:
+        return self.__damage
+
+    def get_crit_damage(self) -> int:
+        return self.__crit_damage
 
 
 class Chunk:
