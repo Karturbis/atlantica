@@ -18,7 +18,6 @@ from handler import DatabaseHandler  # To handle insteractions with the Database
 from handler import InputHandler
 from handler import NetworkHandler
 from handler import NetworkPacket
-from handler import TerminalHandler
 
 
 class Container:
@@ -265,9 +264,12 @@ class Main:
 
     def print_help(self, args=None) -> None:
         """Outprints all available commands."""
-        TerminalHandler.new_print("\nAvailable commands:\n")
+        network_handler.send_print(
+            "\nAvailable commands:\n",
+            self.__connection,
+            )
         for key in input_handler.get_commands_avail():
-            TerminalHandler.new_print(key)
+            network_handler.send_print(key, self.__connection,)
 
     def quit_game(self, args=None) -> None:
         """Saves and quits the game."""
@@ -276,22 +278,25 @@ class Main:
 
     def new_game(self, args=None) -> None:
         """Creates a new game save slot"""
-        game_name = TerminalHandler.new_input(
-            "Please input the name of the gameslot\n> "
-        )
+        game_name = network_handler.send_prompt(
+                "Please input the name of the gameslot\n> ",
+                self.__connection,
+            )
         game_file_path = f"saves/gameslot_{game_name}.sqlite"
         if exists(game_file_path):
-            overwrite = TerminalHandler.new_input(
-                "This gameslot is already occupied, do you want to overwrite? [y/N]\n> "
-            ).lower()
+            overwrite = network_handler.send_prompt(
+                    "This gameslot is already occupied, do you want to overwrite? [y/N]\n> ",
+                    self.__connection,
+                ).lower()
             if not overwrite == "y" or overwrite == "yes":
                 return None
         shutil.copyfile("data/game_content.sqlite", game_file_path)
-        TerminalHandler.new_print(
-            f"The gameslot: {game_name} was sucessfully created."
-        )
         database_handler.set_database(game_file_path)
         self.quit_menu()
+        network_handler.send_prompt(
+            f"The gameslot: {game_name} was sucessfully created.",
+            self.__connection
+        )
         return None
 
     def load_game(self, args=None) -> None:
@@ -299,24 +304,30 @@ class Main:
         a given slot."""
         saved_game_files = listdir("saves/")
         if saved_game_files:
-            TerminalHandler.new_print("Pick your option:")
+            network_handler.send_print("Pick your option:", self.__connection)
             for index, file_name in enumerate(saved_game_files):
-                TerminalHandler.new_print(
-                    f"Option {index +1} is {file_name[9:-7]}"
+                network_handler.send_print(
+                    f"Option {index +1} is {file_name[9:-7]}",
+                    self.__connection,
                 )  # prints the name of the gamestate, without printing the whole file name
             try:
                 option = int(
-                    TerminalHandler.new_input("Input the number of your option.\n> ")
+                    network_handler.send_prompt(
+                        "Input the number of your option.\n> ",
+                        self.__connection)
                 )
             except ValueError:
-                TerminalHandler.new_print(
-                    "You have to put in the NUMBER of your gameslot."
+                network_handler.send_print(
+                    "You have to put in the NUMBER of your gameslot.",
+                    self.__connection
                 )
                 return None
             try:
                 database_handler.set_database(f"saves/{saved_game_files[option-1]}")
             except IndexError:
-                TerminalHandler.new_print("This option is not available.")
+                network_handler.send_print(
+                    "This option is not available.", self.__connection,
+                    )
                 return None
             character_data = database_handler.get_character_data(self.__name)
             self.__health: int = int(character_data[0])
@@ -340,8 +351,9 @@ class Main:
                 self.__inventory[i] = literal_eval(self.__inventory[i])
             self.quit_menu()
         else:
-            TerminalHandler.new_print(
-                "There are no gameslots available, create one with 'new'."
+            network_handler.send_print(
+                "There are no gameslots available, create one with 'new'.",
+                self.__connection,
             )
         return None
 
@@ -350,19 +362,21 @@ class Main:
         the current gameslot."""
         self.save_chunk()
         self.save_player()
-        TerminalHandler.new_print("Game has been saved.")
+        network_handler.send_print("Game has been saved.", self.__connection)
 
     def delete_game(self, args=None) -> None:
         """Delete the given Gameslot."""
         saved_game_files = listdir("saves/")
         if saved_game_files:
-            TerminalHandler.new_print("Pick your option:")
+            network_handler.send_print("Pick your option:", self.__connection)
             for index, file_name in enumerate(saved_game_files):
-                TerminalHandler.new_print(
-                    f"Option {index +1} is {file_name[9:-7]}"
+                network_handler.send_print(
+                    f"Option {index +1} is {file_name[9:-7]}",
+                    self.__connection,
                 )  # prints the name of the gamestate, without printing the whole file name
-            option: str = TerminalHandler.new_input(
-                "Input the number of your option.\ndel> "
+            option: str = network_handler.send_prompt(
+                "Input the number of your option.\ndel> ",
+                self.__connection,
             )
             try:
                 option: int = int(option)
@@ -370,21 +384,32 @@ class Main:
             except ValueError:
                 gameslot = f"gameslot_{option}.sqlite"
                 if not gameslot in saved_game_files:
-                    TerminalHandler.new_print(
-                        f"Der Gameslot {gameslot[9:-7]} exisiert nicht."
+                    network_handler.send_print(
+                        f"Der Gameslot {gameslot[9:-7]} exisiert nicht.",
+                        self.__connection,
                     )
                     return None
-            consent = TerminalHandler.new_input(
-                f"Bist du dir sicher, dass du Gameslot {gameslot[9:-7]} löschen möchtest? [y/N]\n> "
+            consent = network_handler.send_prompt(
+                f"Bist du dir sicher, dass du Gameslot {gameslot[9:-7]} löschen möchtest? [y/N]\n> ",
+                self.__connection,
             ).lower()
             if consent == "y":
                 remove(f"saves/{gameslot}")
-                TerminalHandler.new_print(f"Gameslot {gameslot[9:-7]} wurde gelöscht.")
+                network_handler.send_print(
+                    f"Gameslot {gameslot[9:-7]} wurde gelöscht.",
+                    self.__connection,
+                    )
             else:
-                TerminalHandler.new_print("Nichts wurde gelöscht.")
+                network_handler.send_print(
+                    "Nichts wurde gelöscht.",
+                    self.__connection
+                    )
 
         else:
-            TerminalHandler.new_print("There are no gameslots.")
+            network_handler.send_print(
+                "There are no gameslots.",
+                self.__connection,
+                )
 
     def save_player(self):
         """Saves the player data to
@@ -421,14 +446,14 @@ class Main:
         """Opens the menu, by setting the
         current position to the menu Chunk."""
         self.__position_save_id = self.__position.get_chunk_id()
-        TerminalHandler.clear()
+        network_handler.send_command(self.__connection, "clear")
         self.__position = self.load_chunk("menu")
 
     def quit_menu(self) -> None:
         """Restores the Chunk, where the
         player was located, before opening
         the menu."""
-        TerminalHandler.clear()
+        network_handler.send_command(self.__connection, "clear")
         self.__position = self.load_chunk(self.__position_save_id)
 
     def move(self, direction: list = None) -> None:
@@ -458,19 +483,23 @@ class Main:
                             self.__position.get_west_chunk_id()
                         )
                     else:
-                        TerminalHandler.new_print(
-                            "You did not walk, the direction you want to go does not exist."
+                        network_handler.send_print(
+                            "You did not walk, the direction you want to go does not exist.",
+                            self.__connection,
                         )
             except ValueError:
-                TerminalHandler.new_print(
-                    "\nFirstly, write the direction, you want to go,"
+                network_handler.send_print(
+                    "\nFirstly, write the direction, you want to go,",
+                    self.__connection,
                 )
-                TerminalHandler.new_print(
-                    "and secondly, write the number of steps you want to take."
+                network_handler.send_print(
+                    "and secondly, write the number of steps you want to take.",
+                    self.__connection,
                 )
         else:
-            TerminalHandler.new_print(
-                "You did not walk, because you don't know which direction."
+            network_handler.send_print(
+                "You did not walk, because you don't know which direction.",
+                self.__connection,
             )
 
     def rest(self, args=None) -> None:
@@ -491,12 +520,16 @@ class Main:
                         False  # Setting equipped parameter to False
                     )
                     self.__position.remove_item(item_selected)
-                    TerminalHandler.new_print(f"You took {item_selected[5:]}.")
+                    network_handler.send_print(
+                        f"You took {item_selected[5:]}.",
+                        self.__connection,
+                        )
                     found = True
 
                 if not found:
-                    TerminalHandler.new_print(
-                        f"There is no {i} at your current location."
+                    network_handler.send_print(
+                        f"There is no {i} at your current location.",
+                        self.__connection,
                     )
 
     def item_in_inventory(self, item: str) -> str:
@@ -521,7 +554,10 @@ class Main:
         """Drop a given Item from the
         Inventory to the current chunk."""
         if items is None:
-            TerminalHandler.new_print("You dropped ... nothing.")
+            network_handler.send_print(
+                "You dropped ... nothing.",
+                self.__connection,
+                )
         else:
             for i in items:
                 dropped = False
@@ -529,28 +565,47 @@ class Main:
                 if item_selected:
                     self.__inventory.pop(item_selected)
                     self.__position.add_item(item_selected)
-                    TerminalHandler.new_print(f"You dropped {item_selected[5:]}.")
+                    network_handler.send_print(
+                        f"You dropped {item_selected[5:]}.",
+                        self.__connection,
+                        )
                     dropped = True
                 if not dropped:
                     if not i == "":
-                        TerminalHandler.new_print(
-                            f"You tried to drop {i}, but it was not even in your inventory!"
+                        network_handler.send_print(
+                            f"You tried to drop {i}, but it was not even in your inventory!",
+                            self.__connection,
                         )
                     else:
-                        TerminalHandler.new_print("You dropped ... nothing.")
+                        network_handler.send_print(
+                            "You dropped ... nothing.",
+                            self.__connection,
+                            )
 
     def print_inventory(self, args=None) -> None:
         """ "Outprints the Inventory, mark
         which item is equiped."""
         if self.__inventory:
-            TerminalHandler.new_print("Your inventory contains:")
+            network_handler.send_print(
+                "Your inventory contains:",
+                self.__connection,
+                )
             for key, value in self.__inventory.items():
                 if value:  # check, if item is eqiupped
-                    TerminalHandler.new_print(f"{key[5:]} - equipped")
+                    network_handler.send_print(
+                        f"{key[5:]} - equipped",
+                        self.__connection,
+                        )
                 else:
-                    TerminalHandler.new_print(key[5:])
+                    network_handler.send_print(
+                        key[5:],
+                        self.__connection,
+                        )
         else:
-            TerminalHandler.new_print("Your inventory is empty.")
+            network_handler.send_print(
+                "Your inventory is empty.",
+                self.__connection,
+                )
 
     def unequip(self, item: list = None, first_iter: bool = True) -> None:
         """Unequip the Item, which
@@ -561,7 +616,10 @@ class Main:
                     self.__inventory[inventory_item] = (
                         False  # set the equipped parameter to false
                     )
-                    TerminalHandler.new_print(f"You unequipped {inventory_item}.")
+                    network_handler.send_print(
+                        f"You unequipped {inventory_item}.",
+                        self.__connection,
+                        )
         else:
             found = False
             for inventory_item, equipped in self.__inventory.items():
@@ -569,7 +627,10 @@ class Main:
                     found = True
                     self.unequip(None, False)
             if not found:
-                TerminalHandler.new_print(f"{item[0]} was no equipped.")
+                network_handler.send_print(
+                    f"{item[0]} was no equipped.",
+                    self.__connection,
+                    )
 
     def equip(self, item: list = None) -> None:
         """Equip a given Item, that either
@@ -583,15 +644,20 @@ class Main:
             self.__position.remove_item(item_selected_pos)
             item_selected = item_selected_pos
         else:
-            TerminalHandler.new_print(
-                f"There is no {item[0]}, you could equip right now."
+            network_handler.send_print(
+                f"There is no {item[0]}, you could equip right now.",
+                self.__connection,
             )
             return None
         self.unequip()
         self.__inventory[item_selected] = True  # set the eqiupped parameter to true
-        TerminalHandler.new_print(f"You equipped {item_selected[5:]}.")
+        network_handler.send_print(
+            f"You equipped {item_selected[5:]}.",
+            self.__connection,)
         if item[0] == "":
-            TerminalHandler.new_print("You wanted to equip. But what?")
+            network_handler.send_print(
+                "You wanted to equip. But what?",
+                self.__connection,)
 
     def eat(self, item: list = None):
         """Removes the eaten item
@@ -607,33 +673,43 @@ class Main:
                     #check if item is safely eatable:
                     if nutrition > 1:
                         self.__saturation = int(self.__saturation) + nutrition
-                        TerminalHandler.new_print(
-                        f"You ate {item_selected[5:]}, it was {nutrition} nutritious."
+                        network_handler.send_print(
+                        f"You ate {item_selected[5:]}, it was {nutrition} nutritious.",
+                        self.__connection,
                         )
                         # update player info:
-                        TerminalHandler.set_information_left(
-                        "saturation", self.__saturation
+                        network_handler.send_command(
+                            self.__connection,
+                            "update_information",
+                            ["saturation", self.__saturation]
                         )
                     else:
                         self.__health = int(self.__health) +  nutrition
-                        TerminalHandler.new_print(
-                        f"You ate {item_selected[5:]}, it hurt you {abs(nutrition)} health."
+                        network_handler.send_print(
+                        f"You ate {item_selected[5:]}, it hurt you {abs(nutrition)} health.",
+                        self.__connection
                         )
                         # update player info:
-                        TerminalHandler.set_information_left(
-                            "health", self.__health
+                        network_handler.send_command(
+                            self.__connection,
+                            "update_information",
+                            ["health", self.__health]
                         )
                 else:
-                    TerminalHandler.new_print(
-                        f"You tried to eat {i}, but you had none left"
+                    network_handler.send_print(
+                        f"You tried to eat {i}, but you had none left",
+                        self.__connection,
                     )
         else:
-            TerminalHandler.new_print("You did not eat.")
+            network_handler.send_print("You did not eat.", self.__connection)
 
     def inspect(self):
         """Outprints the items,
         which are in the current Chunk."""
-        TerminalHandler.new_print(f"There are: {self.__position.get_items()}")
+        network_handler.send_print(
+            f"There are: {self.__position.get_items()}",
+            self.__connection,
+            )
 
     def game_start(self) -> None:
         """The Text, which gets

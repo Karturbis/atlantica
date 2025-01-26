@@ -46,6 +46,12 @@ class NetworkHandler:
         print("Connected to:", address)
         return connection
 
+    def send_prompt(self, prompt, connection):
+        reply = self.send_data(
+            NetworkPacket(packet_class="prompt", string_data=prompt)
+            )
+        return reply.string_data
+
     def send_data(self, data, connection = None):
         if not connection:
             connection = self.aktive_socket
@@ -76,6 +82,12 @@ class NetworkHandler:
             packet_class="command"
             )
         self.send_data(connection, command_packet)
+
+    def send_print(self, data, connection):
+        self.send_data(
+            NetworkPacket(packet_class="print", string_data=data)
+            )
+
 
 class NetworkPacket():
 
