@@ -81,7 +81,7 @@ class NetworkHandler:
             command_attributes=command_attributes,
             packet_class="command"
             )
-        self.send_data(connection, command_packet)
+        return self.send_data(connection, command_packet)
 
     def send_print(self, data, connection):
         self.send_data(
@@ -98,7 +98,7 @@ class NetworkPacket():
         command_attributes: list = None,
         packet_class:str = None
         ) -> None:
-        self.string_data: str = data
+        self.data: str = data
         self.command_name: str = command_name
         self.command_attributes: list = command_attributes
         self.packet_class: str = packet_class
