@@ -597,16 +597,26 @@ class Main:
                 item_selected = self.item_in_inventory(i)
                 if item_selected:
                     nutrition = int(database_handler.get_item_data(item_selected)[0])
-                    TerminalHandler.new_print(nutrition)
-                    print(type(self.__saturation))
-                    self.__saturation = int(self.__saturation) + nutrition
                     self.__inventory.pop(item_selected)
-                    TerminalHandler.new_print(
+                    #check if item is safely eatable:
+                    if nutrition > 1:
+                        self.__saturation = int(self.__saturation) + nutrition
+                        TerminalHandler.new_print(
                         f"You ate {item_selected[5:]}, it was {nutrition} nutritious."
-                    )
-                    TerminalHandler.set_information_left(
+                        )
+                        # update player info:
+                        TerminalHandler.set_information_left(
                         "saturation", self.__saturation
-                    )
+                        )
+                    else:
+                        self.__health = int(self.__health) +  nutrition
+                        TerminalHandler.new_print(
+                        f"You ate {item_selected[5:]}, it hurt you {abs(nutrition)} health."
+                        )
+                        # update player info:
+                        TerminalHandler.set_information_left(
+                            "health", self.__health
+                        )
                 else:
                     TerminalHandler.new_print(
                         f"You tried to eat {i}, but you had none left"
@@ -635,7 +645,11 @@ class Main:
 
 database_handler = DatabaseHandler("data/game_content.sqlite")
 main = Main(True)
-TerminalHandler.init({k: main.get_character_data()[k] for k in ["health", "saturation"]}, {k: main.get_character_data()[k] for k in ["speed", "strength"]}, {"level": main.get_character_data()["level"]})
+TerminalHandler.init(
+    {k: main.get_character_data()[k] for k in ["health", "saturation"]},
+    {k: main.get_character_data()[k] for k in ["speed", "strength"]},
+    {"level": main.get_character_data()["level"]}
+)
 input_handler = InputHandler(main)
 main.menu()
 while True:
