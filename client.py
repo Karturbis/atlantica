@@ -32,6 +32,25 @@ class Client():
     def single_player(self):
         pass
 
+    def quit_game(self, args=None) -> None:
+        """Saves and quits the game."""
+        network_handler.send_command(network_handler.aktive_socket, "save")
+        exit("Good bye, see you next time in Atlantica!")
+
+    def print_inventory(self, args=None) -> None:
+        """Outprints the Inventory, mark
+        which item is equiped."""
+        inventory = network_handler.send_command(network_handler.aktive_socket, "get_inventory")
+        if inventory:
+            TerminalHandler.new_print("Your inventory contains:",)
+            for key, value in inventory.items():
+                if value:  # check, if item is eqiupped
+                    TerminalHandler.new_print(f"{key[5:]} - equipped")
+                else:
+                    TerminalHandler.new_print(key[5:])
+        else:
+            TerminalHandler.new_print("Your inventory is empty.")
+
     def set_name(self, name=None):
         if not name:
             print("You need to input a name")
