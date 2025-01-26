@@ -231,7 +231,7 @@ class Main:
             chunk_data = database_handler.get_chunk_data(chunk_id)
             print(chunk_data[4])
         except IndexError:
-            NetworkHandler.send_command(self.__connection, "print", ["Where you wanted to go, there is just void."])
+            network_handler.send_command(self.__connection, "print", ["Where you wanted to go, there is just void."])
             return self.__position
         self.save_chunk()  # save the state of the current chunk.
         input_handler.reset_commands()  # reset commands, so previous chunk has no effecet anymore
@@ -655,7 +655,7 @@ class PreMain():
     def main_loop(self):
             self.main.menu()
             while True:
-                command = NetworkHandler.receive_data(self.__connection)
+                command = network_handler.receive_data(self.__connection)
                 func = getattr(self.main, command.command_name)
                 if len(command.command_attributes) > 1:
                     func(command.command_attributes[1:])
@@ -665,7 +665,7 @@ class PreMain():
     
     def init_main(self):
         if self.authenticate():
-            client_character_name = NetworkHandler.send_data(self.__connection, "GET_CHARACTER_NAME")
+            client_character_name = network_handler.send_data(self.__connection, "GET_CHARACTER_NAME")
             self.main = Main(True, client_character_name, self.__connection)
             self.main_loop()
 
@@ -673,7 +673,7 @@ class PreMain():
 
     def authenticate(self):
         # initiate connection and authenticate client 
-        client_key = NetworkHandler.send_data(connection, NetworkHandler.server_key)
+        client_key = network_handler.send_data(connection, network_handler.server_key)
         if not client_key:
             return False
         # Else:
@@ -682,12 +682,13 @@ class PreMain():
 
 
 database_handler = DatabaseHandler()  # calling DB-Handler empty defaults to read-only gamedatabase
-NetworkHandler.init_server(multiplayer=True)
+network_handler = NetworkHandler()
+network_handler.init_server(multiplayer=True)
 input_handler = InputHandler()
 main = Main(False, "system")
 connection_counter = 0
 while True:
     connection_counter += 1
-    connection = NetworkHandler.listen_for_connections()
-    NetworkHandler.connections[connection_counter] = PreMain(connection)
-    start_new_thread(NetworkHandler.connections[connection_counter].init_main, ())
+    connection = network_handler.listen_for_connections()
+    network_handler.connections[connection_counter] = PreMain(connection)
+    start_new_thread(network_handler.connections[connection_counter].init_main, ())
