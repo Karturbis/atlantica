@@ -1,20 +1,30 @@
 from handler import TerminalHandler
 from handler import NetworkHandler
 from handler import InputHandler
+from handler import NetworkPacket
 
 class Client():
 
     def __init__(self):
         self.__name = "NONE"
 
-    def connect_to_server(self):
-        server_adress = input("Input the Server you want to join: ").split(":")
+    def connect_to_server(self, *args):
+        #server_adress = input("Input the Server you want to join: ").split(":")
+        server_adress = ["192.168.178.45"]
         if len(server_adress) > 1:
             server_port = int(server_adress[1])
         else:
             server_port = 27300
         server_ip = server_adress[0]
-        connection = network_handler.init_client(server_ip, server_port)
+        answer = network_handler.init_client(server_ip, server_port)
+        name_request = network_handler.send_data(answer)
+        if (name_request.packet_class == "network_command"
+        and name_request.string_data == "get_character_name"):
+            return network_handler.send_data(
+                NetworkPacket(
+                    packet_class="reply", string_data=self.__name
+                    )
+                )
 
 
 

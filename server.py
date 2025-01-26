@@ -17,6 +17,7 @@ from _thread import start_new_thread
 from handler import DatabaseHandler  # To handle insteractions with the Database
 from handler import InputHandler
 from handler import NetworkHandler
+from handler import NetworkPacket
 
 
 class Container:
@@ -196,18 +197,18 @@ class Main:
     """This class contains the methods used,
     when in the 'normal' game mode."""
 
-    def __init__(self, game_start: bool, player_name: str, connection=None) -> None:
+    def __init__(self, game_start: bool, player_name: str, connection_counter: int, connection=None,) -> None:
         if game_start:
             self.game_start()
         self.__position = Chunk(
-            "000-temple-start", *database_handler.get_chunk_data("000-temple-start")
+            "000-temple-start", *thread_data.db_handlers[connection_counter].get_chunk_data("000-temple-start")
         )
         print(self.__position.get_description())
         self.__connection = connection
         self.__inventory: dict = {}
         self.__position_save_id = None
         self.__name = player_name
-        character_data: list = database_handler.get_character_data(self.__name)
+        character_data: list = thread_data.db_handlers[connection_counter].get_character_data(self.__name)
         self.__health: int = int(character_data[0])
         self.__saturation: int = int(character_data[1])
         self.__speed: int = int(character_data[2])
@@ -228,7 +229,7 @@ class Main:
     def load_chunk(self, chunk_id: str) -> Chunk:
         """Loads the Chunk with the given id"""
         try:
-            chunk_data = database_handler.get_chunk_data(chunk_id)
+            chunk_data = thread_data.db_handlers[connection_counter].get_chunk_data(chunk_id)
             print(chunk_data[4])
         except IndexError:
             network_handler.send_command(self.__connection, "print", ["Where you wanted to go, there is just void."])
@@ -649,46 +650,60 @@ class Main:
 
 class PreMain():
     
-    def __init__(self, connection):
+    def __init__(self, connection, connection_counter: int):
         self.__connection = connection
+        self.__connection_counter = connection_counter
 
     def main_loop(self):
-            self.main.menu()
-            while True:
-                command = network_handler.receive_data(self.__connection)
-                func = getattr(self.main, command.command_name)
-                if len(command.command_attributes) > 1:
-                    func(command.command_attributes[1:])
-                else:
-                    func()
-
+        self.main.menu()
+        while True:
+            command = network_handler.receive_data(self.__connection)
+            func = getattr(self.main, command.command_name)
+            if len(command.command_attributes) > 1:
+                func(command.command_attributes[1:])
+            else:
+                func()
     
     def init_main(self):
+        thread_data.db_handlers[connection_counter] = DatabaseHandler()
         if self.authenticate():
-            client_character_name = network_handler.send_data(self.__connection, "GET_CHARACTER_NAME")
-            self.main = Main(True, client_character_name, self.__connection)
+            client_character_name = network_handler.send_data(
+                NetworkPacket(
+                    packet_class="network_command", string_data="get_character_name"
+                    ),
+                self.__connection,
+                ).string_data
+            self.main = Main(True, client_character_name, self.__connection_counter, self.__connection,)
             self.main_loop()
 
 
 
     def authenticate(self):
         # initiate connection and authenticate client 
-        client_key = network_handler.send_data(connection, network_handler.server_key)
+        client_key = network_handler.send_data(
+            NetworkPacket(packet_class="key", string_data="test"), connection
+            )
         if not client_key:
             return False
         # Else:
         return True
-        
 
+
+class ThreadData():
+
+        def __init__(self):
+            self.connections: dict = {}
+            self.db_handlers: dict = {}
 
 database_handler = DatabaseHandler()  # calling DB-Handler empty defaults to read-only gamedatabase
 network_handler = NetworkHandler()
+thread_data = ThreadData()
 network_handler.init_server(multiplayer=True)
 input_handler = InputHandler()
-main = Main(False, "system")
+#main = Main(False, "test")
 connection_counter = 0
 while True:
     connection_counter += 1
     connection = network_handler.listen_for_connections()
-    network_handler.connections[connection_counter] = PreMain(connection)
-    start_new_thread(network_handler.connections[connection_counter].init_main, ())
+    thread_data.connections[connection_counter] = PreMain(connection, connection_counter)
+    start_new_thread(thread_data.connections[connection_counter].init_main, ())
