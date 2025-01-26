@@ -10,7 +10,7 @@ class DatabaseHandler:
             self.__database: str = database
         else:
             self.__database = self.__readonly_db
-        self.__connection = sqlite3.connect(database)
+        self.__connection = sqlite3.connect(self.__database)
         self.__cursor = self.__connection.cursor()
 
     def get_data(self, table: str, items: list, data_id: str) -> list:
