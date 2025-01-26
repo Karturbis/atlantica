@@ -12,9 +12,8 @@ from os import listdir  # To list all files of a directory, used in Main.load_ga
 from os.path import exists  # Checks if given file exists. Used to prevent errors.
 from ast import literal_eval  # Used to evaluate a boolean from a string
 
-from _thread import *
+from _thread import start_new_thread
 
-from handler import TerminalHandler  # To display data at the top of the terminal
 from handler import DatabaseHandler  # To handle insteractions with the Database
 from handler import InputHandler
 from handler import NetworkHandler
@@ -197,13 +196,14 @@ class Main:
     """This class contains the methods used,
     when in the 'normal' game mode."""
 
-    def __init__(self, game_start: bool, player_name: str) -> None:
+    def __init__(self, game_start: bool, player_name: str, connection=None) -> None:
         if game_start:
             self.game_start()
         self.__position = Chunk(
             "000-temple-start", *database_handler.get_chunk_data("000-temple-start")
         )
         print(self.__position.get_description())
+        self.__connection = connection
         self.__inventory: dict = {}
         self.__position_save_id = None
         self.__name = player_name
@@ -231,7 +231,7 @@ class Main:
             chunk_data = database_handler.get_chunk_data(chunk_id)
             print(chunk_data[4])
         except IndexError:
-            TerminalHandler.new_print("Where you wanted to go, there is just void.")
+            NetworkHandler.send_command(self.__connection, "print", ["Where you wanted to go, there is just void."])
             return self.__position
         self.save_chunk()  # save the state of the current chunk.
         input_handler.reset_commands()  # reset commands, so previous chunk has no effecet anymore
@@ -656,12 +656,17 @@ class PreMain():
             self.main.menu()
             while True:
                 command = NetworkHandler.receive_data(self.__connection)
-                
+                func = getattr(self.main, command.command_name)
+                if len(command.command_attributes) > 1:
+                    func(command.command_attributes[1:])
+                else:
+                    func()
+
     
     def init_main(self):
         if self.authenticate():
             client_character_name = NetworkHandler.send_data(self.__connection, "GET_CHARACTER_NAME")
-            self.main = Main(True, client_character_name)
+            self.main = Main(True, client_character_name, self.__connection)
             self.main_loop()
 
 
@@ -678,6 +683,7 @@ class PreMain():
 
 database_handler = DatabaseHandler()  # calling DB-Handler empty defaults to read-only gamedatabase
 NetworkHandler.init_server(multiplayer=True)
+input_handler = InputHandler()
 main = Main(False, "system")
 connection_counter = 0
 while True:
@@ -685,16 +691,3 @@ while True:
     connection = NetworkHandler.listen_for_connections()
     NetworkHandler.connections[connection_counter] = PreMain(connection)
     start_new_thread(NetworkHandler.connections[connection_counter].init_main, ())
-
-
-
-
-
-
-"""
-input_handler = InputHandler(main)
-
-
-main.menu()
-input_handler.input_loop()
-"""
