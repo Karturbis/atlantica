@@ -652,5 +652,4 @@ TerminalHandler.init(
 )
 input_handler = InputHandler(main)
 main.menu()
-while True:
-    input_handler.input_loop()
+input_handler.input_loop()
