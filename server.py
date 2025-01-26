@@ -15,7 +15,6 @@ from ast import literal_eval  # Used to evaluate a boolean from a string
 from _thread import start_new_thread
 
 from handler import DatabaseHandler  # To handle insteractions with the Database
-from handler import InputHandler
 from handler import NetworkHandler
 from handler import NetworkPacket
 
@@ -235,11 +234,11 @@ class Main:
             network_handler.send_command(self.__connection, "print", ["Where you wanted to go, there is just void."])
             return self.__position
         self.save_chunk()  # save the state of the current chunk.
-        input_handler.reset_commands()  # reset commands, so previous chunk has no effecet anymore
+        network_handler.send_command(self.__connection, "reset_commands")  # reset commands, so previous chunk has no effecet anymore
         chunk = Chunk(chunk_id, *chunk_data)
         if chunk.get_rem_commands():
             if chunk.get_rem_commands() == "remove_all":
-                input_handler.remove_commands({}, True)
+                network_handler.send_command(self.__connection, "remove_commands",[({}, True)])
             else:
                 rem_commands_dict = dict(
                     [
@@ -249,7 +248,7 @@ class Main:
                         ]
                     ]
                 )
-                input_handler.remove_commands(rem_commands_dict)
+                network_handler.send_command(self.__connection, "remove_commands", [rem_commands_dict])
         if chunk.get_add_commands():
             add_commands_dict = dict(
                 [
@@ -259,7 +258,7 @@ class Main:
                     ]
                 ]
             )
-            input_handler.add_commands(add_commands_dict)
+            network_handler.send_command(self.__connection, "add_commands", [add_commands_dict])
         return chunk
 
     def print_help(self, args=None) -> None:
@@ -268,7 +267,7 @@ class Main:
             "\nAvailable commands:\n",
             self.__connection,
             )
-        for key in input_handler.get_commands_avail():
+        for key in network_handler.send_command(self.__connection, "get_commands_avail").data:
             network_handler.send_print(key, self.__connection,)
 
     def quit_game(self, args=None) -> None:
@@ -746,10 +745,10 @@ class PreMain():
         if self.authenticate():
             client_character_name = network_handler.send_data(
                 NetworkPacket(
-                    packet_class="network_command", string_data="get_character_name"
+                    packet_class="network_command", data="get_character_name"
                     ),
                 self.__connection,
-                ).string_data
+                ).data
             self.main = Main(True, client_character_name, self.__connection_counter, self.__connection,)
             self.main_loop()
 
@@ -758,7 +757,7 @@ class PreMain():
     def authenticate(self):
         # initiate connection and authenticate client 
         client_key = network_handler.send_data(
-            NetworkPacket(packet_class="key", string_data="test"), connection
+            NetworkPacket(packet_class="key", data="test"), connection
             )
         if not client_key:
             return False
@@ -776,7 +775,6 @@ database_handler = DatabaseHandler()  # calling DB-Handler empty defaults to rea
 network_handler = NetworkHandler()
 thread_data = ThreadData()
 network_handler.init_server(multiplayer=True)
-input_handler = InputHandler()
 #main = Main(False, "test")
 connection_counter = 0
 while True:
