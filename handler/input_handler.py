@@ -6,7 +6,7 @@ class InputHandler:
     calling the right functions associated
     with the input."""
 
-    def __init__(self, main_method=None, commands_avail=None) -> None:
+    def __init__(self, main_method=None, commands_avail: dict = None) -> None:
         self.main = main_method
         self.__commands_std: dict = {
             "go": ["main", "move"],

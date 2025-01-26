@@ -44,7 +44,7 @@ class NetworkHandler:
         return connection
 
     @classmethod
-    def send_data(cls, connection, data: CommandPacket):
+    def send_data(cls, connection, data):
         try:
             connection.sendall(pickle.dumps(data))
             return pickle.loads(connection.recv(2048))
