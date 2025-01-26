@@ -48,7 +48,7 @@ class NetworkHandler:
 
     def send_prompt(self, prompt, connection):
         reply = self.send_data(
-            NetworkPacket(packet_class="prompt", string_data=prompt)
+            NetworkPacket(packet_class="prompt", data=prompt)
             )
         return reply.string_data
 
@@ -64,7 +64,7 @@ class NetworkHandler:
     def receive_data(self, connection):
         # command classfor listen command is not known, NEEDS FIX!!
         return self.send_data(
-            NetworkPacket(string_data="LISTEN", packet_class="network_command"),
+            NetworkPacket(data="LISTEN", packet_class="network_command"),
             connection
             )
 
@@ -85,7 +85,7 @@ class NetworkHandler:
 
     def send_print(self, data, connection):
         self.send_data(
-            NetworkPacket(packet_class="print", string_data=data)
+            NetworkPacket(packet_class="print", data=data)
             )
 
 
@@ -93,12 +93,12 @@ class NetworkPacket():
 
     def __init__(
         self,
-        string_data:str = None,
+        data:str = None,
         command_name: str = None,
         command_attributes: list = None,
         packet_class:str = None
         ) -> None:
-        self.string_data: str = string_data
+        self.string_data: str = data
         self.command_name: str = command_name
         self.command_attributes: list = command_attributes
         self.packet_class: str = packet_class

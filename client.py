@@ -19,14 +19,12 @@ class Client():
         answer = network_handler.init_client(server_ip, server_port)
         name_request = network_handler.send_data(answer)
         if (name_request.packet_class == "network_command"
-        and name_request.string_data == "get_character_name"):
+        and name_request.data == "get_character_name"):
             return network_handler.send_data(
                 NetworkPacket(
-                    packet_class="reply", string_data=self.__name
+                    packet_class="reply", data=self.__name
                     )
                 )
-
-
 
     def start_server(self):
         pass
