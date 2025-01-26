@@ -666,7 +666,7 @@ class PreMain():
                 func()
     
     def init_main(self):
-        thread_data.db_handlers[connection_counter] = DatabaseHandler()
+        thread_data.db_handlers[self.__connection_counter] = DatabaseHandler()
         if self.authenticate():
             client_character_name = network_handler.send_data(
                 NetworkPacket(
