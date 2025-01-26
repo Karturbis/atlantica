@@ -6,7 +6,7 @@ from handler import NetworkPacket
 class Client():
 
     def __init__(self):
-        self.__name = "NONE"
+        self.__name = "test"
 
     def connect_to_server(self, *args):
         #server_adress = input("Input the Server you want to join: ").split(":")
