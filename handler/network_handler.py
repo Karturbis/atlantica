@@ -45,7 +45,17 @@ class NetworkHandler:
     @classmethod
     def send_data(cls, connection, data:str):
         try:
-            connection.send(str.encode(data))
+            connection.sendall(str.encode(data))
             return connection.recv(2048).decode()
         except socket.error as e:
             print(e)
+
+
+    @classmethod
+    def receive_data(cls, connection):
+        try:
+            return connection.recv(2048).decode()
+        except socket.error as e:
+            print(e)
+
+
