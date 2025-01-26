@@ -653,16 +653,30 @@ class PreMain():
         self.__connection = connection
 
     def main_loop(self):
-        if self.authenticate():
+            self.main.menu()
             while True:
-                print("Hello World")
+                command = NetworkHandler.receive_data(self.__connection)
+                
+    
+    def init_main(self):
+        if self.authenticate():
+            client_character_name = NetworkHandler.send_data(self.__connection, "GET_CHARACTER_NAME")
+            self.main = Main(True, client_character_name)
+            self.main_loop()
+
+
 
     def authenticate(self):
+        # initiate connection and authenticate client 
         client_key = NetworkHandler.send_data(connection, NetworkHandler.server_key)
+        if not client_key:
+            return False
+        # Else:
+        return True
         
 
 
-database_handler = DatabaseHandler()  # calling DB-Handler empty defaults to read-only gamedata
+database_handler = DatabaseHandler()  # calling DB-Handler empty defaults to read-only gamedatabase
 NetworkHandler.init_server(multiplayer=True)
 main = Main(False, "system")
 connection_counter = 0
@@ -670,7 +684,7 @@ while True:
     connection_counter += 1
     connection = NetworkHandler.listen_for_connections()
     NetworkHandler.connections[connection_counter] = PreMain(connection)
-    start_new_thread(NetworkHandler.connections[connection_counter].main_loop, ())
+    start_new_thread(NetworkHandler.connections[connection_counter].init_main, ())
 
 
 
