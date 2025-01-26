@@ -2,11 +2,12 @@ import socket
 import pickle
 
 class NetworkHandler:
-    connections: list = []
-    server_key = "SERVERKEY:qwerty"
+    
+    def __init__(self):
+        self.aktive_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.connections: list = []
 
-    @classmethod
-    def _get_ip(cls) -> str:
+    def _get_ip(self) -> str:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.settimeout(0)
         try:
@@ -19,53 +20,58 @@ class NetworkHandler:
             s.close()
         return ip_adress
 
-    @classmethod
-    def init_server(cls, multiplayer: bool = False, port: int = 27300):
-
+    
+    def init_server(self, multiplayer: bool = True, port: int = 27300):
         # set ip adresss:
         if multiplayer:
-            server = NetworkHandler._get_ip()
+            server_ip = self._get_ip()
         else:
-            server: str = "127.0.0.1"
-        # initialize socket:
-        cls.aktive_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_ip: str = "127.0.0.1"
         # bind socket:
         try:
-            cls.aktive_socket.bind((server, port))
+            self.aktive_socket.bind((server_ip, port))
         except socket.error as e:
             str(e)
-        cls.aktive_socket.listen()
-        print(f"Server started on port {port}!")
+        self.aktive_socket.listen()
+        print(f"Server started on port {port} with ip {server_ip}!")
+    
+    def init_client(self, server_ip, server_port):
+        self.aktive_socket.connect(server_ip, server_port)
+    
+    def connect_to_server(self, server_ip: int, server_port: int = None):
+        if not server_port:
+            server_port = 27300
 
-    @classmethod
-    def listen_for_connections(cls):
-        connection, address = cls.aktive_socket.accept()
+    
+    def listen_for_connections(self):
+        connection, address = self.aktive_socket.accept()
         print("Connected to:", address)
         return connection
 
-    @classmethod
-    def send_data(cls, connection, data):
+    
+    def send_data(self, connection, data):
         try:
             connection.sendall(pickle.dumps(data))
             return pickle.loads(connection.recv(2048))
         except socket.error as e:
             print(e)
 
-    @classmethod
-    def receive_data(cls, connection):
+    
+    def receive_data(self, connection):
         # command classfor listen command is not known, NEEDS FIX!!
         return NetworkHandler.send_data(connection, CommandPacket("LISTEN", []))
 
-    @classmethod
-    def send_command(cls, connection, command_name, command_attributes = None, command_class = None):
+    
+    def send_command(self, connection, command_name, command_attributes = None, command_class = None):
         if not command_attributes:
             command_attributes = []
-        command_packet = CommandPacket(command_name, command_attributes, command_class)
-        NetworkHandler.send_data(connection, command_packet)
+        command_packet = NetworkPacket(command_name=command_name, command_attributes=command_attributes, packet_class="command")
+        self.send_data(connection, command_packet)
 
-class CommandPacket():
+class NetworkPacket():
 
-    def __init__(self, command_name: str, command_attributes: list,  command_class:str = None) -> None:
-        self.command_class: str = command_class
+    def __init__(self, string_data:str = None, command_name: str = None, command_attributes: list = None,  packet_class:str = None) -> None:
+        self.string_data: str = string_data
         self.command_name: str = command_name
         self.command_attributes: list = command_attributes
+        self.packet_class: str = packet_class
