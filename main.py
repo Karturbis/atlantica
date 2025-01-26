@@ -643,7 +643,7 @@ class Main:
         )
 
 
-database_handler = DatabaseHandler("data/game_content.sqlite")
+database_handler = DatabaseHandler()  # calling DB-Handler empty defaults to read-only gamedata
 main = Main(True)
 TerminalHandler.init(
     {k: main.get_character_data()[k] for k in ["health", "saturation"]},

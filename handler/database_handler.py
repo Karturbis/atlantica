@@ -4,8 +4,12 @@ class DatabaseHandler:
     """Handles the sqlite instances,
     reads and writes to sqlite databases..."""
 
-    def __init__(self, database: str) -> None:
-        self.__database: str = database
+    def __init__(self, database: str=None) -> None:
+        self.__readonly_db: str = "data/game_content.sqlite"
+        if database:
+            self.__database: str = database
+        else:
+            self.__database = self.__readonly_db
         self.__connection = sqlite3.connect(database)
         self.__cursor = self.__connection.cursor()
 
@@ -68,7 +72,7 @@ class DatabaseHandler:
     def set_data(self, table: str, attributes: list) -> None:
         """Insert new column with given attributes
         into the given table of the self.__database"""
-        if not self.__database == "content.sqlite":
+        if self.__database != self.__readonly_db:
             command: str = f"INSERT INTO {table} VALUES ("
             for i in attributes:
                 command = f"{command} {i},"
@@ -80,7 +84,7 @@ class DatabaseHandler:
 
     def update_character(self, attributes: dict, character_name: str) -> None:
         """Update the attributes of the given character."""
-        if not self.__database == "content.sqlite":
+        if self.__database != self.__readonly_db:
             for key, attribute in attributes.items():
                 if isinstance(attribute, list):
                     command: str = f"UPDATE player SET {key} = "
@@ -96,13 +100,12 @@ class DatabaseHandler:
                 if command:
                     self.__cursor.execute(command)
             self.__connection.commit()
-
         else:
             print("No gameslot is selected, please make a new game, or load a game.")
 
     def update_items(self, items: list, chunk_id: str) -> None:
         "Update the items of a given chunk"
-        if not self.__database == "content.sqlite":
+        if self.__database != self.__readonly_db:
             command: str = 'UPDATE chunks SET items = "'
             if items:
                 for i in items:
