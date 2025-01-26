@@ -259,7 +259,7 @@ class Main:
 
     def print_help(self, args=None) -> None:
         """Outprints all available commands."""
-        TerminalHandler.new_print("\nAvailable commands:\n")
+        TerminalHandler.new_print("Available commands:\n")
         for key in input_handler.get_commands_avail():
             TerminalHandler.new_print(key)
 
