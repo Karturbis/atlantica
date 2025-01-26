@@ -1,4 +1,5 @@
 import socket
+import pickle
 
 class NetworkHandler:
     connections: list = []
@@ -43,19 +44,28 @@ class NetworkHandler:
         return connection
 
     @classmethod
-    def send_data(cls, connection, data:str):
+    def send_data(cls, connection, data: CommandPacket):
         try:
-            connection.sendall(str.encode(data))
-            return connection.recv(2048).decode()
+            connection.sendall(pickle.dumps(data))
+            return pickle.loads(connection.recv(2048))
         except socket.error as e:
             print(e)
-
 
     @classmethod
     def receive_data(cls, connection):
-        try:
-            return connection.recv(2048).decode()
-        except socket.error as e:
-            print(e)
+        # command classfor listen command is not known, NEEDS FIX!!
+        return NetworkHandler.send_data(connection, CommandPacket("LISTEN", []))
 
+    @classmethod
+    def send_command(cls, connection, command_name, command_attributes = None, command_class = None):
+        if not command_attributes:
+            command_attributes = []
+        command_packet = CommandPacket(command_name, command_attributes, command_class)
+        NetworkHandler.send_data(connection, command_packet)
 
+class CommandPacket():
+
+    def __init__(self, command_name: str, command_attributes: list,  command_class:str = None) -> None:
+        self.command_class: str = command_class
+        self.command_name: str = command_name
+        self.command_attributes: list = command_attributes
