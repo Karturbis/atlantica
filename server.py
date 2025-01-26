@@ -18,6 +18,7 @@ from handler import DatabaseHandler  # To handle insteractions with the Database
 from handler import InputHandler
 from handler import NetworkHandler
 from handler import NetworkPacket
+from handler import TerminalHandler
 
 
 class Container:
