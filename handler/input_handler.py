@@ -38,13 +38,13 @@ class InputHandler:
             try:
                 commands_input = TerminalHandler.new_input("> ").lower().split(" ")
                 if commands_input == [""]:
-                    error_thrown = True
                     continue
-                error_thrown: bool = False
+                command_found: bool = False
                 # outputs the number of parameters the inputed method takes:
                 if len(commands_input) > 1:
                     for key, func_list in self.__commands_avail.items():
                         if key.startswith(commands_input[0]):
+                            command_found = True
                             if func_list[0] == "main":
                                 func = getattr(self.main, func_list[1])
                             elif func_list[0] == "TerminalHandler":
@@ -53,17 +53,15 @@ class InputHandler:
                 elif len(commands_input) == 1:
                     for key, func_list in self.__commands_avail.items():
                         if key.startswith(commands_input[0]):
+                            command_found = True
                             if func_list[0] == "main":
                                 func = getattr(self.main, func_list[1])
                             elif func_list[0] == "TerminalHandler":
                                 func = getattr(TerminalHandler, func_list[1])
                             func()
-                        else:
-                            if not error_thrown:
-                                TerminalHandler.new_print(
-                                    "Please enter a valid command, type 'help' for help."
-                                )
-                                error_thrown = True
+                if not command_found:
+                    TerminalHandler.new_print("Please enter a valid command, type 'help' for help.")
+
             except RuntimeError:
                 break
 
