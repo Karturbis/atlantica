@@ -39,7 +39,7 @@ class Server():
                     break
                 elif data.packet_type == "command":
                     command: str = data.command_name
-                    reply = self.__callable(command)
+                    reply = self.__callable(command, data.command_attributes)
                 elif data.packet_type == "print":
                     print(data.data)
                 reply_packaged = NetworkPacket(data=reply, packet_type="reply")
@@ -53,15 +53,16 @@ class Server():
 
 class Client():
 
-    def __init__(self, server_ip = "127.0.0.1", port = 27300):
+    def __init__(self, callable_method, server_ip = "127.0.0.1", port = 27300):
         self.active_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_ip = server_ip
-        self.port = port
-        self.con_info = self.connect()
+        self.__callable = callable_method
+        self.__server_ip = server_ip
+        self.__port = port
+        self.__con_info = self.connect()
 
     def connect(self):
         try:
-            self.active_socket.connect((self.server_ip, self.port))
+            self.active_socket.connect((self.__server_ip, self.__port))
             return type(pickle.loads(self.active_socket.recv(2048)))
         except socket.error as e:
             print(f"ERROR: {e}")
@@ -74,7 +75,39 @@ class Client():
             print(f"ERROR: {e}")
     
     def main(self):
-        
+        get_user_input: bool = True
+        back_reply = None
+        while True:
+            try:
+                if get_user_input:
+                    command, args = self.__callable("user_input_get_command")
+                    reply = self._send(NetworkPacket(
+                        packet_type="command",
+                        command_name=command,
+                        command_attributes=args,
+                        )
+                        )
+                else:
+                    get_user_input = True
+                    reply = self._send(NetworkPacket(
+                        packet_type="reply",
+                        data=back_reply    
+                        )
+                        )
+                if reply.packet_type == "command":
+                    back_reply = self.__callable(
+                        reply.command_name,
+                        reply.command_attributes
+                        )
+                    get_user_input = False
+                elif reply.packet_type == "reply":
+                    print(reply.data)
+
+            except Exception as e:
+                print(f"ERROR: {e}")
+                break
+
+
 
 
 class NetworkHandler():
