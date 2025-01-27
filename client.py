@@ -1,5 +1,7 @@
-from handler import network_handler
 from os import system
+
+from handler import TerminalHandler
+from handler import network_handler
 
 class Main():
 
@@ -15,8 +17,8 @@ class Main():
         else:
             return func()
 
-    def user_input_get_command(self):
-        user_in = input("input$> ").split(" ")
+    def user_input_get_command(self, prompt="input$>"):
+        user_in = input(f"{prompt} ").split(" ")
         if len(user_in) > 1:
             return user_in[0], user_in[1:]
         # else:
@@ -28,11 +30,6 @@ class Main():
     def new_print(self, data):
         system("clear")
         print(data)
-
-
-    def fancy_func(self, data):
-        print(f"FANC>!{data}")
-        return "fanxcy"
 
 if __name__ == "__main__":
     mainle = Main()
