@@ -4,9 +4,10 @@ from _thread import start_new_thread
 
 class Server():
 
-    def __init__(self, callable_method, local: bool=True, port = 27300):
+    def __init__(self, thread_data, init_callable, local: bool=True, port = 27300):
         self.__active_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.__callable = callable_method
+        self.__thread_data = thread_data
+        self.__init_callable = init_callable
         if local:
             ip = "127.0.0.1"
         else:
@@ -23,39 +24,50 @@ class Server():
         while True:
             connection_counter += 1
             conn, addr = self.__active_socket.accept()
-            print("Connected to:", addr)
+            print(f"Connected to client {addr} as client {connection_counter}:")
+            self.__thread_data.callable_methods[connection_counter] = self.__init_callable(conn, connection_counter).main
             start_new_thread(self.threaded_client, (conn, connection_counter))
 
     def threaded_client(self, connection, connection_id):
         connection.sendall(
             pickle.dumps(NetworkPacket(packet_type="hello", data="hello"))
             )
-        self.__callable("_set_connection", [connection])
+        callable_method = self.__thread_data.callable_methods[connection_id]
         while True:
             try:
                 data = pickle.loads(connection.recv(2048))
-                reply = None
-                if not data:
-                    print("Disconnected")
-                    break
-                elif data.packet_type == "command":
-                    command: str = data.command_name
-                    reply = self.__callable(command, data.command_attributes)
-                elif data.packet_type == "print":
-                    print(data.data)
-                reply_packaged = NetworkPacket(data=reply, packet_type="reply")
+            except EOFError as e:
+                print(f"Error pickle.loads data: {e}")
+                break
+            reply = None
+            if not data:
+                print("Disconnected")
+                break
+            elif data.packet_type == "command":
+                command: str = data.command_name
+                reply = callable_method(command, data.command_attributes)
+            elif data.packet_type == "reply":
+                print(data.data)
+                continue
+            reply_packaged = NetworkPacket(data=reply, packet_type="reply")
+            try:
                 connection.sendall(pickle.dumps(reply_packaged))
-            except Exception as e:
+            except socket.error as e:
                 print(f"ERROR: {e}")
                 break
-        print("Lost connection")
+        print(f"Lost connection to client {connection_id}")
+        self.__thread_data.callable_methods.pop(connection_id)
         connection.close()
 
     def quit_connection(self, connection):
         connection.close()
 
     def send_packet(self, packet, connection):
-        return connection.sendall(pickle.dumps(packet))
+        try:
+            connection.sendall(pickle.dumps(packet))
+            return pickle.loads(connection.recv(2048))
+        except socket.error as e:
+            print(f"Error sending packet: {e}")
 
 
 class Client():
@@ -108,11 +120,22 @@ class Client():
                         )
                     get_user_input = False
                 elif reply.packet_type == "reply":
+                    if reply.data == "end_of_command":
+                        print("DEBUG: EOC")
+                        continue
+                    # else:
                     print(reply.data)
 
-            except Exception as e:
+            except socket.error as e:
                 print(f"ERROR: {e}")
                 break
+
+
+class ThreadData():
+
+    def __init__(self):
+        self.threads = {}
+        self.callable_methods = {}
 
 
 class NetworkHandler():
