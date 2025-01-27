@@ -38,7 +38,6 @@ class ServerMethods():
             else: # wrong number of arguments were given
                 return f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}."
 
-
     def fanf(self):
         packet = network_handler.NetworkPacket(
             packet_type="command",
