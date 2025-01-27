@@ -2,9 +2,7 @@ import time
 
 from inspect import signature
 
-
 from handler import network_handler
-
 
 class ServerMethods():
 
@@ -53,7 +51,7 @@ class ServerMethods():
     def ping(self):
         return f"Time:{time.time_ns()}"
 
-
-thread_data = network_handler.ThreadData()
-server = network_handler.Server(thread_data, ServerMethods)
-server.main()
+if __name__ == "__main__":
+    thread_data = network_handler.ThreadData()
+    server = network_handler.Server(thread_data, ServerMethods)
+    server.main()
