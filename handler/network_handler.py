@@ -30,6 +30,7 @@ class Server():
         connection.sendall(
             pickle.dumps(NetworkPacket(packet_type="hello", data="hello"))
             )
+        self.__callable("_set_connection", [connection])
         while True:
             try:
                 data = pickle.loads(connection.recv(2048))
@@ -44,11 +45,17 @@ class Server():
                     print(data.data)
                 reply_packaged = NetworkPacket(data=reply, packet_type="reply")
                 connection.sendall(pickle.dumps(reply_packaged))
-            except socket.error as e:
-                print(f"ERROR: network_handler.Server.threaded_client()\n{e}")
+            except Exception as e:
+                print(f"ERROR: {e}")
                 break
         print("Lost connection")
         connection.close()
+
+    def quit_connection(self, connection):
+        connection.close()
+
+    def send_packet(self, packet, connection):
+        return connection.sendall(pickle.dumps(packet))
 
 
 class Client():
@@ -91,7 +98,7 @@ class Client():
                     get_user_input = True
                     reply = self._send(NetworkPacket(
                         packet_type="reply",
-                        data=back_reply    
+                        data=back_reply,    
                         )
                         )
                 if reply.packet_type == "command":
