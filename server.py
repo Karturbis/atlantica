@@ -1,4 +1,7 @@
+from inspect import signature
+
 from handler import network_handler
+
 
 class ServerMethods():
 
@@ -13,10 +16,24 @@ class ServerMethods():
             func = getattr(self, command)
         except AttributeError:
             return f"There is no command called {command}"
-        if len(args) >= 1:
-                return func(*args)
-        else:
+        given_args_len = len(args)
+        expected_args_len = len(signature(func))-1
+        if given_args_len >= 1:
+            if expected_args_len == given_args_len:
+                # run method:
+                try:
+                    return func(*args)
+                except Exception as e:
+                    return f"ERROR in ServerMethods.main: {e}"
+            else:
+                # wrong number of arguments were given
+                return f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}."
+        else:  # no args where given:
+            try:
                 return func()
+            except Exception as e:
+                return f"ERROR in ServerMethods.main: {e}"
+
 
     def fanf(self):
         packet = network_handler.NetworkPacket(
