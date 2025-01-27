@@ -1,4 +1,7 @@
+import time
+
 from inspect import signature
+
 
 from handler import network_handler
 
@@ -47,8 +50,8 @@ class ServerMethods():
         server.send_packet(packet, self.__connection)
         return "end_of_command"
 
-    def new_print(self, data):
-        return f"nPP{data}"
+    def ping(self):
+        return f"Time:{time.time_ns()}"
 
 
 thread_data = network_handler.ThreadData()
