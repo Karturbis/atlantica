@@ -17,7 +17,7 @@ class ServerMethods():
         except AttributeError:
             return f"There is no command called {command}"
         given_args_len = len(args)
-        expected_args_len = len(signature(func))-1
+        expected_args_len = len(signature(func).parameters)
         if given_args_len >= 1:
             if expected_args_len == given_args_len:
                 # run method:
@@ -25,14 +25,17 @@ class ServerMethods():
                     return func(*args)
                 except Exception as e:
                     return f"ERROR in ServerMethods.main: {e}"
-            else:
-                # wrong number of arguments were given
+            else: # wrong number of arguments were given
                 return f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}."
         else:  # no args where given:
-            try:
-                return func()
-            except Exception as e:
-                return f"ERROR in ServerMethods.main: {e}"
+            if expected_args_len == given_args_len:
+                # run method:
+                try:
+                    return func()
+                except Exception as e:
+                    return f"ERROR in ServerMethods.main: {e}"
+            else: # wrong number of arguments were given
+                return f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}."
 
 
     def fanf(self):
