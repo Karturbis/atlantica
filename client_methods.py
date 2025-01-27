@@ -1,9 +1,8 @@
 from os import system
 
-from handler import TerminalHandler
 from handler import network_handler
 
-class Main():
+class Client_Methods():
 
     def __init__(self):
         pass
@@ -32,6 +31,6 @@ class Main():
         print(data)
 
 if __name__ == "__main__":
-    mainle = Main()
+    mainle = Client_Methods()
     client = network_handler.Client(mainle.main)
     client.main()
