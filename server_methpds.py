@@ -52,7 +52,7 @@ class ServerMethods():
 
 
 thread_data = network_handler.ThreadData()
-server = network_handler.Server(thread_data, ServerMethods)
+server = network_handler.NetworkServer(thread_data, ServerMethods)
 
 if __name__ == "__main__":
     server.main()

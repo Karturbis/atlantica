@@ -2,7 +2,7 @@ import socket
 import pickle
 from _thread import start_new_thread
 
-class Server():
+class NetworkServer():
     """Used to create the server side of
     the client-server model in atlantica."""
 
@@ -90,7 +90,7 @@ class Server():
             print(f"Error sending packet: {e}")
 
 
-class Client():
+class NetworkClient():
     """Used to create the client side of
     the client-server model in atlantica."""
 
