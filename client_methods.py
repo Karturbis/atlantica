@@ -1,7 +1,5 @@
 from os import system
 
-from handler import network_handler
-
 class Client_Methods():
 
     def __init__(self):
@@ -30,7 +28,3 @@ class Client_Methods():
         system("clear")
         print(data)
 
-if __name__ == "__main__":
-    mainle = Client_Methods()
-    client = network_handler.Client(mainle.main)
-    client.main()
