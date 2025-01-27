@@ -44,8 +44,8 @@ class Server():
                     print(data.data)
                 reply_packaged = NetworkPacket(data=reply, packet_type="reply")
                 connection.sendall(pickle.dumps(reply_packaged))
-            except Exception as e:
-                print(f"ERROR: {e}")
+            except socket.error as e:
+                print(f"ERROR: network_handler.Server.threaded_client()\n{e}")
                 break
         print("Lost connection")
         connection.close()
@@ -73,7 +73,7 @@ class Client():
             return pickle.loads(self.active_socket.recv(2048))
         except socket.error as e:
             print(f"ERROR: {e}")
-    
+
     def main(self):
         get_user_input: bool = True
         back_reply = None
@@ -106,8 +106,6 @@ class Client():
             except Exception as e:
                 print(f"ERROR: {e}")
                 break
-
-
 
 
 class NetworkHandler():
