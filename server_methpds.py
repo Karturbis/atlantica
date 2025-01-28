@@ -10,7 +10,7 @@ class ServerMethods():
         self.__connection = connection
         self.__connection_id = connection_id
 
-    def main(self, command, args):
+    def execute_cmd(self, command, args):
         if not args:
             args = []
         try:
@@ -25,7 +25,7 @@ class ServerMethods():
                 try:
                     return func(*args)
                 except Exception as e:
-                    return f"ERROR in ServerMethods.main: {e}"
+                    return f"ERROR in ServerMethods.excute_cmd: {e}"
             else: # wrong number of arguments were given
                 return f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}."
         else:  # no args where given:
@@ -34,7 +34,7 @@ class ServerMethods():
                 try:
                     return func()
                 except Exception as e:
-                    return f"ERROR in ServerMethods.main: {e}"
+                    return f"ERROR in ServerMethods.excute_cmd: {e}"
             else: # wrong number of arguments were given
                 return f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}."
 
