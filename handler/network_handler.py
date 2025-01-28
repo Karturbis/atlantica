@@ -34,7 +34,7 @@ class NetworkServer():
             conn, addr = self.__active_socket.accept()  # accept connection
             print(f"Connected to client {addr} as client {connection_counter}:")
             # start new client thread for the just established connection:
-            self.__thread_data.callable_methods[connection_counter] = self.__init_callable(conn, connection_counter).main
+            self.__thread_data.callable_methods[connection_counter] = self.__init_callable(conn, connection_counter).execute_cmd
             start_new_thread(self.threaded_client, (conn, connection_counter))
 
     def threaded_client(self, connection, connection_id):
