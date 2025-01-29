@@ -73,13 +73,14 @@ class Client_Methods():
 
     def new_game(self, args=None) -> None:
         """Creates a new game save slot"""
+        prompt = "new_game$>"
         game_name = TerminalHandler.new_input(
-            "Please input the name of the gameslot\n> "
+            f"Please input the name of the gameslot\n{prompt} "
         )
         game_file_path = f"saves/gameslot_{game_name}.sqlite"
         if exists(game_file_path):
             overwrite = TerminalHandler.new_input(
-                "This gameslot is already occupied, do you want to overwrite? [y/N]\n> "
+                f"This gameslot is already occupied, do you want to overwrite? [y/N]\n{prompt} "
             ).lower()
             if not overwrite == "y" or overwrite == "yes":
                 return None

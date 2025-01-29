@@ -35,6 +35,8 @@ class Client():
             user_input = self.__client_methods.user_input_get_command(prompt)
             if user_input[0] in self.__local_methods[mode]:
                 self.__client_methods.execute_cmd(user_input[0], user_input[1:])
+            else:
+                TerminalHandler.new_print(f"There is no command '{user_input[0]}'")
 
     def menu(self):
         self.input_loop("menu")
