@@ -20,5 +20,4 @@ help (print all available commands),
 eat (removes item from inventory and adds
 nutrition value of item to saturation value of the player).
 
-Currently the main part of contributes goes to language_handler_de
-and terminal_handler.
+Currently the main part of contributions go to the network fork of the project. Goal of the network fork is to implement a stable client server model and implement multiplayer.
