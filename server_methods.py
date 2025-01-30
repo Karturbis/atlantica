@@ -6,9 +6,11 @@ from handler import network_handler
 
 class ServerMethods():
 
-    def __init__(self, connection, connection_id):
+    def __init__(self, connection, connection_id, network_handler, network_server):
         self.__connection = connection
         self.__connection_id = connection_id
+        self.__network_handler = network_handler
+        self.__network_server = network_server
 
     def execute_cmd(self, command, args):
         if not args:
@@ -39,20 +41,13 @@ class ServerMethods():
                 return f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}."
 
     def fanf(self):
-        packet = network_handler.NetworkPacket(
+        packet = self.__network_handler.NetworkPacket(
             packet_type="command",
             command_name="new_print",
             command_attributes=["DATA"]
         )
-        server.send_packet(packet, self.__connection)
+        self.__network_server.send_packet(packet, self.__connection)
         return "end_of_command"
 
     def ping(self):
         return f"Time:{time.time_ns()}"
-
-
-thread_data = network_handler.ThreadData()
-server = network_handler.NetworkServer(thread_data, ServerMethods)
-
-if __name__ == "__main__":
-    server.main()
