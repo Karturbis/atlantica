@@ -4,6 +4,7 @@ from os import listdir  # To list all files of a directory, used in Main.load_ga
 from os import remove  # To remove files
 import shutil  # Used copy the content.sqlite file into a new gameslot
 
+
 from inspect import signature
 
 from handler import TerminalHandler
@@ -55,13 +56,6 @@ class Client_Methods():
             return user_in[0], user_in[1:]
         # else:
         return user_in[0], []
-
-    def func1(self):
-        print("func!1")
-
-    def new_print(self, data):
-        system("clear")
-        print(data)
 
     def clear(self):
         TerminalHandler.clear()
