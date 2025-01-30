@@ -9,6 +9,7 @@ from inspect import signature
 
 from handler import TerminalHandler
 from handler import DatabaseHandler
+from handler import network_handler
 
 class Client_Methods():
 
@@ -19,6 +20,9 @@ class Client_Methods():
         }
         self.__database_handler = DatabaseHandler()
 
+    def join_server(self, server_ip: str, server_port:int=27300):
+        client = network_handler.NetworkClient(self.execute_cmd, server_ip, server_port)
+        client.main()
 
     def execute_cmd(self, command, args = None):
         if not args:
