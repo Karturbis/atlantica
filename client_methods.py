@@ -62,7 +62,6 @@ class Client_Methods():
     
     def quit_game(self, args=None) -> None:
         """Saves and quits the game."""
-        self.save_game()
         exit("Good bye, see you next time in Atlantica!")
 
     def new_game(self, args=None) -> None:
