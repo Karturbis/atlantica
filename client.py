@@ -18,6 +18,7 @@ class Client():
             "menu": ["clear", "new_game", "load_game", "delete_game", "quit_game", "join_server"],
             "ingame": ["clear"],
         }
+        self.__server_methods: dict = {}
         self.__database_handler = DatabaseHandler()
         self.__network_client = None
 
@@ -25,8 +26,10 @@ class Client():
         server_ip="127.0.0.1"
         server_port = 27300
         self.__network_client = network_handler.NetworkClient(server_ip, server_port)
+        self.__server_methods = self.__network_client.connect().data
+        self.input_loop("ingame")
 
-    def execute_cmd(self, command, args = None):
+    def execute_cmd_client(self, command, args = None):
         if not args:
             args = []
         try:
@@ -47,7 +50,7 @@ class Client():
                 try:
                     return func(*args)
                 except Exception as e:
-                    print(f"ERROR in Clienmethods.execute_cmd: {e}")
+                    print(f"ERROR in Client.execute_cmd_client: {e}")
             elif expected_args_len == 0 and given_args_len != 0:
                 return func()
             else: # wrong number of arguments were given
@@ -58,7 +61,7 @@ class Client():
                 try:
                     return func()
                 except Exception as e:
-                    print(f"ERROR in Clienmethods.excute_cmd: {e}")
+                    print(f"ERROR in Client.execute_cmd_client: {e}")
             else: # wrong number of arguments were given
                 print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
 
@@ -135,16 +138,21 @@ class Client():
         else:
             TerminalHandler.new_print("There are no gameslots.")
 
-    def _input_loop(self, mode: str, prompt:str = None):
+    def input_loop(self, mode: str, prompt:str = None):
         if not prompt:
             prompt = f"{mode}$>"
         while True:
             user_input = self.user_input_get_command(prompt)
             if user_input[0] in self.__local_methods[mode]:
                 if user_input[1]:
-                    self.execute_cmd(user_input[0], user_input[1:])
+                    self.execute_cmd_client(user_input[0], user_input[1:])
                 else:
-                    self.execute_cmd(user_input[0])
+                    self.execute_cmd_client(user_input[0])
+            elif user_input[0] in self.__server_methods:
+                if user_input[1]:
+                    self.execute_cmd_server(user_input[0], user_input[1:])
+                else:
+                    self.execute_cmd_server(user_input[0])
             else:
                 TerminalHandler.new_print(f"There is no command '{user_input[0]}'")
 
@@ -152,25 +160,25 @@ class Client():
 ######################  MODES:  ##############################
 ##############################################################
 
-    def ingame(self):
-        """main loop of
-        the client side"""
-        get_user_input: bool = True
+    def execute_cmd_server(self, command, args=None):
+        if not args:
+            args = []
         back_reply = None
-        while True:
+        try:
+            # send command and set reply to the answer from the server:
+            reply = self.__network_client.send(network_handler.NetworkPacket(
+                packet_type="command",
+                command_name=command,
+                command_attributes=args,
+                )
+                )
+        except Exception as e:
+            print(f"ERROR: {e}")
+            return None
+        run: bool = True
+        while run:
             try:
-                if get_user_input:
-                    # get userinput from standart console via self.__callable method:
-                    command, args = self.user_input_get_command()
-                    # send command and set reply to the answer from the server:
-                    reply = self.__network_client.send(network_handler.NetworkPacket(
-                        packet_type="command",
-                        command_name=command,
-                        command_attributes=args,
-                        )
-                        )
-                else:  # only send backreply:
-                    get_user_input = True  # reset to normal
+                if back_reply:  # send backreply:
                     reply = self.__network_client.send(network_handler.NetworkPacket(
                         packet_type="reply",
                         data=back_reply,
@@ -178,24 +186,21 @@ class Client():
                         )
                 if reply.packet_type == "command":
                     # set backreply to the return of the command the server send
-                    back_reply = self.execute_cmd(
+                    back_reply = self.execute_cmd_client(
                         reply.command_name,
                         reply.command_attributes
                         )
-                    get_user_input = False  # so next iteration of the loop, just the backreply is send
                 elif reply.packet_type == "reply":
-                    # if "end_of_command" packet, just go to start of while loop:
+                    # if "end_of_command" packet, end the conservation with server:
                     if reply.data == "end_of_command":
-                        continue
+                        return None
                     # else:
                     print(reply.data)
-
+                    return None
             except Exception as e:
                 print(f"ERROR: {e}")
-                break
+                return None
 
-    def menu(self):
-        self._input_loop("menu")
 
 if __name__ == "__main__":
 
@@ -206,4 +211,4 @@ if __name__ == "__main__":
     )
 
     client = Client()
-    client.menu()
+    client.input_loop("menu")

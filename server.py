@@ -9,6 +9,10 @@ class ServerMethods():
     def __init__(self, connection, connection_id):
         self.__connection = connection
         self.__connection_id = connection_id
+        self.__server_methods = ["ping", "fanf"]
+
+    def get_server_methods(self):
+        return self.__server_methods
 
     def execute_cmd(self, command, args):
         if not args:

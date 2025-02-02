@@ -40,12 +40,14 @@ class NetworkServer():
     def threaded_client(self, connection, connection_id):
         """Main loop for the threads. Each thread handles one
         connection."""
-        # send initial hello:
-        connection.sendall(
-            pickle.dumps(NetworkPacket(packet_type="hello", data="hello"))
-            )
         # set the callable_method, to be able to execute commands on the server:
         callable_method = self.__thread_data.callable_methods[connection_id]
+        # send initial hello:
+        datas = callable_method("get_server_methods", [])
+        npacket = NetworkPacket(packet_type="hello", data=datas)
+        connection.sendall(
+            pickle.dumps(npacket)
+            )
         while True:  # main loop
             try:
                 data = pickle.loads(connection.recv(2048))  # receive data
@@ -100,14 +102,12 @@ class NetworkClient():
         # server information:
         self.__server_ip = server_ip
         self.__port = port
-        # connect to server:
-        self.connect()
 
     def connect(self):
         """connect to server"""
         try:
             self.active_socket.connect((self.__server_ip, self.__port))  # conect to server
-            return type(pickle.loads(self.active_socket.recv(2048)))  # return the server hello
+            return pickle.loads(self.active_socket.recv(2048))  # return the server hello
         except socket.error as e:
             print(f"ERROR: {e}")
 
@@ -119,6 +119,7 @@ class NetworkClient():
             return pickle.loads(self.active_socket.recv(2048))  # return the server reply
         except socket.error as e:
             print(f"ERROR: {e}")
+
 
 class ThreadData():
     """Dataclass used to store data,
@@ -158,12 +159,12 @@ class NetworkPacket():
 
     def __init__(
         self,
-        data:str = None,
+        data = None,
         command_name: str = None,
         command_attributes: list = None,
         packet_type:str = None
         ) -> None:
-        self.data: str = data
+        self.data = data
         self.command_name: str = command_name
         self.command_attributes: list = command_attributes
         self.packet_type: str = packet_type
