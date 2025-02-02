@@ -19,11 +19,12 @@ class Client():
             "ingame": ["clear"],
         }
         self.__database_handler = DatabaseHandler()
+        self.__network_client = None
 
     def join_server(self, server_ip: str="127.0.0.1", server_port:int=27300):
         server_ip="127.0.0.1"
         server_port = 27300
-        network_client = network_handler.NetworkClient(server_ip, server_port)
+        self.__network_client = network_handler.NetworkClient(server_ip, server_port)
 
     def execute_cmd(self, command, args = None):
         if not args:
@@ -160,9 +161,9 @@ class Client():
             try:
                 if get_user_input:
                     # get userinput from standart console via self.__callable method:
-                    command, args = self.__callable("user_input_get_command")
+                    command, args = self.user_input_get_command()
                     # send command and set reply to the answer from the server:
-                    reply = self._send(NetworkPacket(
+                    reply = self.__network_client.send(network_handler.NetworkPacket(
                         packet_type="command",
                         command_name=command,
                         command_attributes=args,
@@ -170,14 +171,14 @@ class Client():
                         )
                 else:  # only send backreply:
                     get_user_input = True  # reset to normal
-                    reply = self._send(NetworkPacket(
+                    reply = self.__network_client.send(network_handler.NetworkPacket(
                         packet_type="reply",
-                        data=back_reply,    
+                        data=back_reply,
                         )
                         )
                 if reply.packet_type == "command":
                     # set backreply to the return of the command the server send
-                    back_reply = self.__callable(
+                    back_reply = self.execute_cmd(
                         reply.command_name,
                         reply.command_attributes
                         )
@@ -189,7 +190,7 @@ class Client():
                     # else:
                     print(reply.data)
 
-            except socket.error as e:
+            except Exception as e:
                 print(f"ERROR: {e}")
                 break
 
