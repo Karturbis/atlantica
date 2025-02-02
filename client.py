@@ -4,6 +4,7 @@ from os.path import exists  # Checks if given file exists. Used to prevent error
 from os import listdir  # To list all files of a directory, used in Main.load_game()
 from os import remove  # To remove files
 import shutil  # Used copy the content.sqlite file into a newfrom os import system gameslot
+from sys import exit
 
 # handler imports:
 from handler import DatabaseHandler
@@ -16,7 +17,7 @@ class Client():
     def __init__(self):
         self.__local_methods: dict = {
             "menu": ["clear", "new_game", "load_game", "delete_game", "quit_game", "join_server"],
-            "ingame": ["clear"],
+            "ingame": ["clear", "quit_game"],
         }
         self.__server_methods: dict = {}
         self.__database_handler = DatabaseHandler()
