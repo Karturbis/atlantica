@@ -50,12 +50,6 @@ class ServerMethods():
     def ping(self):
         return f"Time:{time.time_ns()}"
 
-
-
-
-class Server():
-    pass
-
 thread_data = network_handler.ThreadData()
 network_server = network_handler.NetworkServer(thread_data, ServerMethods)
 
