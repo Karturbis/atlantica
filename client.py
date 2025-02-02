@@ -11,20 +11,19 @@ from handler import network_handler
 from handler import TerminalHandler
 
 
-class Client_Methods():
+class Client():
 
     def __init__(self):
         self.__local_methods: dict = {
-            "menu": ["clear", "new_game", "load_game", "delete_game", "quit"],
+            "menu": ["clear", "new_game", "load_game", "delete_game", "quit_game", "join_server"],
             "ingame": ["clear"],
         }
         self.__database_handler = DatabaseHandler()
 
-    def join_server(self):#server_ip: str="127.0.0.1", server_port:int=27300):
+    def join_server(self, server_ip: str="127.0.0.1", server_port:int=27300):
         server_ip="127.0.0.1"
         server_port = 27300
-        client = network_handler.NetworkClient(self.execute_cmd, server_ip, server_port)
-        client.main()
+        network_client = network_handler.NetworkClient(server_ip, server_port)
 
     def execute_cmd(self, command, args = None):
         if not args:
@@ -135,31 +134,67 @@ class Client_Methods():
         else:
             TerminalHandler.new_print("There are no gameslots.")
 
-class Client():
-
-    def __init__(self):
-        self.__client_methods = Client_Methods()
-        self.__local_methods: dict = {
-            "menu": ["clear", "new_game", "load_game", "delete_game", "quit_game", "join_server"],
-            "ingame": ["clear"],
-        }
-        self.__database_handler = DatabaseHandler()
-
-    def input_loop(self, mode: str, prompt:str = None):
+    def _input_loop(self, mode: str, prompt:str = None):
         if not prompt:
             prompt = f"{mode}$>"
         while True:
-            user_input = self.__client_methods.user_input_get_command(prompt)
+            user_input = self.user_input_get_command(prompt)
             if user_input[0] in self.__local_methods[mode]:
                 if user_input[1]:
-                    self.__client_methods.execute_cmd(user_input[0], user_input[1:])
+                    self.execute_cmd(user_input[0], user_input[1:])
                 else:
-                    self.__client_methods.execute_cmd(user_input[0])
+                    self.execute_cmd(user_input[0])
             else:
                 TerminalHandler.new_print(f"There is no command '{user_input[0]}'")
 
+##############################################################
+######################  MODES:  ##############################
+##############################################################
+
+    def ingame(self):
+        """main loop of
+        the client side"""
+        get_user_input: bool = True
+        back_reply = None
+        while True:
+            try:
+                if get_user_input:
+                    # get userinput from standart console via self.__callable method:
+                    command, args = self.__callable("user_input_get_command")
+                    # send command and set reply to the answer from the server:
+                    reply = self._send(NetworkPacket(
+                        packet_type="command",
+                        command_name=command,
+                        command_attributes=args,
+                        )
+                        )
+                else:  # only send backreply:
+                    get_user_input = True  # reset to normal
+                    reply = self._send(NetworkPacket(
+                        packet_type="reply",
+                        data=back_reply,    
+                        )
+                        )
+                if reply.packet_type == "command":
+                    # set backreply to the return of the command the server send
+                    back_reply = self.__callable(
+                        reply.command_name,
+                        reply.command_attributes
+                        )
+                    get_user_input = False  # so next iteration of the loop, just the backreply is send
+                elif reply.packet_type == "reply":
+                    # if "end_of_command" packet, just go to start of while loop:
+                    if reply.data == "end_of_command":
+                        continue
+                    # else:
+                    print(reply.data)
+
+            except socket.error as e:
+                print(f"ERROR: {e}")
+                break
+
     def menu(self):
-        self.input_loop("menu")
+        self._input_loop("menu")
 
 if __name__ == "__main__":
 
@@ -169,5 +204,5 @@ if __name__ == "__main__":
         {"": ""}
     )
 
-    cliennt = Client()
-    cliennt.menu()
+    client = Client()
+    client.menu()

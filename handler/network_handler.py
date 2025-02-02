@@ -94,10 +94,9 @@ class NetworkClient():
     """Used to create the client side of
     the client-server model in atlantica."""
 
-    def __init__(self, callable_method, server_ip = "127.0.0.1", port = 27300):
+    def __init__(self, server_ip:str="127.0.0.1", port:int=27300):
         # initialize socket:
         self.active_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.__callable = callable_method
         # server information:
         self.__server_ip = server_ip
         self.__port = port
@@ -120,49 +119,6 @@ class NetworkClient():
             return pickle.loads(self.active_socket.recv(2048))  # return the server reply
         except socket.error as e:
             print(f"ERROR: {e}")
-
-    def main(self):
-        """main loop of
-        the client side"""
-        get_user_input: bool = True
-        back_reply = None
-        while True:
-            try:
-                if get_user_input:
-                    # get userinput from standart console via self.__callable method:
-                    command, args = self.__callable("user_input_get_command")
-                    # send command and set reply to the answer from the server:
-                    reply = self._send(NetworkPacket(
-                        packet_type="command",
-                        command_name=command,
-                        command_attributes=args,
-                        )
-                        )
-                else:  # only send backreply:
-                    get_user_input = True  # reset to normal
-                    reply = self._send(NetworkPacket(
-                        packet_type="reply",
-                        data=back_reply,    
-                        )
-                        )
-                if reply.packet_type == "command":
-                    # set backreply to the return of the command the server send
-                    back_reply = self.__callable(
-                        reply.command_name,
-                        reply.command_attributes
-                        )
-                    get_user_input = False  # so next iteration of the loop, just the backreply is send
-                elif reply.packet_type == "reply":
-                    # if "end_of_command" packet, just go to start of while loop:
-                    if reply.data == "end_of_command":
-                        continue
-                    # else:
-                    print(reply.data)
-
-            except socket.error as e:
-                print(f"ERROR: {e}")
-                break
-
 
 class ThreadData():
     """Dataclass used to store data,
