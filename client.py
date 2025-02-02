@@ -23,10 +23,8 @@ class Client_Methods():
     def join_server(self):#server_ip: str="127.0.0.1", server_port:int=27300):
         server_ip="127.0.0.1"
         server_port = 27300
-        print("not even sta")
         client = network_handler.NetworkClient(self.execute_cmd, server_ip, server_port)
         client.main()
-        print("client.main ended")
 
     def execute_cmd(self, command, args = None):
         if not args:
@@ -73,7 +71,7 @@ class Client_Methods():
 
     def clear(self):
         TerminalHandler.clear()
-    
+
     def quit_game(self, args=None) -> None:
         """Saves and quits the game."""
         exit("Good bye, see you next time in Atlantica!")
