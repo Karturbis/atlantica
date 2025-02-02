@@ -111,7 +111,7 @@ class NetworkClient():
         except socket.error as e:
             print(f"ERROR: {e}")
 
-    def _send(self, data):
+    def send(self, data):
         """send data to the
         server"""
         try:
