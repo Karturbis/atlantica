@@ -286,7 +286,6 @@ class ServerMethods():
                 return item_avail
         return False
 
-#### SAVE METHODS: ####
 
     def save_player(self):
         """Saves the player data to
