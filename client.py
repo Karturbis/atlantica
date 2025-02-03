@@ -3,6 +3,7 @@ from ast import literal_eval  # Used to evaluate a boolean from a string
 from os.path import exists  # Checks if given file exists. Used to prevent errors.
 from os import listdir  # To list all files of a directory, used in Main.load_game()
 from os import remove  # To remove files
+from os import system
 import shutil  # Used copy the content.sqlite file into a newfrom os import system gameslot
 from sys import exit
 
@@ -18,7 +19,7 @@ class Client():
         self.__local_methods: dict = {
             "menu": [
                 "clear", "new_game", "load_game", "delete_game",
-                "quit_game", "join_server", "set_name"
+                "quit_game", "join_server", "set_name", "start_server"
                 ],
             "ingame": ["clear", "quit_game"],
         }
@@ -107,10 +108,29 @@ class Client():
         self.__database_handler.set_database(game_file_path)
         return None
 
-    def load_game(self, args=None) -> None:
-        # can be partially copied from main.py,
-        # needs massive rewrite thoug.
-        pass
+    def start_server(self, server_port = 27300) -> None:
+        saved_game_files = listdir("saves/")
+        if saved_game_files:
+            TerminalHandler.new_print("Pick your option:")
+            for index, file_name in enumerate(saved_game_files):
+                TerminalHandler.new_print(
+                    f"Option {index +1} is {file_name[9:-7]}"
+                )  # prints the name of the gamestate, without printing the whole file name
+            try:
+                option = int(
+                    TerminalHandler.new_input("Input the number of your option.\n> ")
+                )
+            except ValueError:
+                TerminalHandler.new_print(
+                    "You have to put in the NUMBER of your gameslot."
+                )
+                return None
+            game_file_path = f"saves/{saved_game_files[option-1]}"
+            # start server:
+            # NEED TO FIND MEHTOD TO START SERVER, WITHOUT SOTTPING CLIENT!
+            system(f"python3 server.py {game_file_path} {server_port} &")
+        else:
+            TerminalHandler.new_print("There are no gameslots available, create one with 'new'.")
 
     def set_name(self, name:str=None):
         if name:
