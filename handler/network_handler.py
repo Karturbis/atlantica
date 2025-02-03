@@ -6,7 +6,8 @@ class NetworkServer():
     """Used to create the server side of
     the client-server model in atlantica."""
 
-    def __init__(self, thread_data, init_callable, local: bool=True, port = 27300):
+    def __init__(self, thread_data, init_callable, game_file_path: str, local: bool=True, port = 27300):
+        self.__game_file_path = game_file_path
         # for thread handling:
         self.__thread_data = thread_data
         self.__init_callable = init_callable
@@ -52,7 +53,7 @@ class NetworkServer():
             )
         self.__thread_data.client_names[connection_id] = pickle.loads(connection.recv(2048)).data
         print(f"Client name is: {self.__thread_data.client_names[connection_id]}")
-        callable_method("init_character_data")
+        callable_method("init_character_data", [self.__game_file_path])
         connection.sendall(pickle.dumps(npacket))
         while True:  # main loop
             try:
