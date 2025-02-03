@@ -1,5 +1,4 @@
 # standart imports:
-from ast import literal_eval  # Used to evaluate a boolean from a string
 from os.path import exists  # Checks if given file exists. Used to prevent errors.
 from os import listdir  # To list all files of a directory, used in Main.load_game()
 from os import remove  # To remove files
