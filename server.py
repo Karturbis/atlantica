@@ -297,6 +297,46 @@ class ServerMethods():
             items = position.get_items()
         self.db_handler.update_items(items, chunk_id)
 
+    def load_chunk(self, chunk_id: str) -> Chunk:
+        """Loads the Chunk with the given id"""
+        try:
+            chunk_data = self.db_handler.get_chunk_data(chunk_id)
+            network_server.send_print_packet(str(chunk_data[4]), self.__connection)
+        except IndexError:
+            network_server.send_print_packet("Where you wanted to go, there is just void.", self.__connection)
+            return self.__position
+        self.save_chunk()  # save the state of the current chunk.
+        self.reset_commands()  # reset commands, so previous chunk has no effecet anymore
+        chunk = Chunk(chunk_id, *chunk_data)
+        if chunk.get_rem_commands():
+            if chunk.get_rem_commands() == "remove_all":
+                self.remove_commands({}, True)
+            else:
+                rem_commands_dict = dict(
+                    [
+                        [i[0], i[1].split(".")]
+                        for i in [
+                            i.split(": ") for i in chunk.get_rem_commands().split("; ")
+                        ]
+                    ]
+                )
+                self.remove_commands(rem_commands_dict)
+        if chunk.get_add_commands():
+            add_commands_dict = dict(
+                [
+                    [i[0], i[1].split(".")]
+                    for i in [
+                        i.split(": ") for i in chunk.get_add_commands().split("; ")
+                    ]
+                ]
+            )
+            self.add_commands(add_commands_dict)
+        return chunk
+
+################################
+## Player executable methods: ##
+################################
+
     def move(self, direction: list = None) -> None:
         """Move the character
         in a given direction."""
@@ -343,42 +383,6 @@ class ServerMethods():
                 "You did not walk, because you don't know which direction.",
                 self.__connection
             )
-
-    def load_chunk(self, chunk_id: str) -> Chunk:
-        """Loads the Chunk with the given id"""
-        try:
-            chunk_data = self.db_handler.get_chunk_data(chunk_id)
-            network_server.send_print_packet(str(chunk_data[4]), self.__connection)
-        except IndexError:
-            network_server.send_print_packet("Where you wanted to go, there is just void.", self.__connection)
-            return self.__position
-        self.save_chunk()  # save the state of the current chunk.
-        self.reset_commands()  # reset commands, so previous chunk has no effecet anymore
-        chunk = Chunk(chunk_id, *chunk_data)
-        if chunk.get_rem_commands():
-            if chunk.get_rem_commands() == "remove_all":
-                self.remove_commands({}, True)
-            else:
-                rem_commands_dict = dict(
-                    [
-                        [i[0], i[1].split(".")]
-                        for i in [
-                            i.split(": ") for i in chunk.get_rem_commands().split("; ")
-                        ]
-                    ]
-                )
-                self.remove_commands(rem_commands_dict)
-        if chunk.get_add_commands():
-            add_commands_dict = dict(
-                [
-                    [i[0], i[1].split(".")]
-                    for i in [
-                        i.split(": ") for i in chunk.get_add_commands().split("; ")
-                    ]
-                ]
-            )
-            self.add_commands(add_commands_dict)
-        return chunk
 
     def fanf(self):
         packet = network_handler.NetworkPacket(
