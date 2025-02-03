@@ -1,4 +1,5 @@
 import time
+import sys
 from inspect import signature
 
 from handler import network_handler
@@ -199,8 +200,8 @@ class ServerMethods():
         self.__strength = {}
         self.__level = {}
 
-    def init_character_data(self):
-        self.db_handler = DatabaseHandler()
+    def init_character_data(self, game_file_path):
+        self.db_handler = DatabaseHandler(game_file_path)
         self.__position = Chunk(
             "000-temple-start", *self.db_handler.get_chunk_data("000-temple-start")
         )
@@ -594,9 +595,19 @@ class ServerMethods():
     def ping(self):
         return f"Time:{time.time_ns()}"
 
+cmd_line_args = sys.argv
+try:
+    game_file_path = cmd_line_args[1]
+except IndexError:
+    game_file_path = ""
+
+try:
+    server_port = cmd_line_args[2]
+except IndexError:
+    server_port = 27300
 
 thread_data = network_handler.ThreadData()
-network_server = network_handler.NetworkServer(thread_data, ServerMethods)
+network_server = network_handler.NetworkServer(thread_data, ServerMethods, game_file_path, server_port)
 
 if __name__ == "__main__":
     network_server.main()
