@@ -184,7 +184,11 @@ class ServerMethods():
         self.__connection = connection
         self.__connection_id = connection_id
         self.__thread_data = thread_data
-        self.__standart_server_methods = ["ping", "fanf", "move"]
+        self.__standart_server_methods = [
+            "ping", "fanf", "move", "rest",
+            "take", "drop", "print_inventory",
+            "unequip", "eat", "inspect", "equip"
+            ]
         self.__server_methods_minimum = ["ping"]
         self.__server_methods = self.__standart_server_methods
         self.__inventory = {}
@@ -263,6 +267,24 @@ class ServerMethods():
     def add_commands(self, commands: dict):
         for key, _ in commands.items():
             self.__server_methods.add(key)
+
+    def item_in_inventory(self, item: str) -> str:
+        """Checks, if the given item, or start
+        of items name is in the inventory.
+        Returns either the item or False."""
+        for item_avail in self.__inventory:
+            if item_avail[5:].startswith(item) and not item == "":
+                return item_avail
+        return False
+
+    def item_in_position(self, item: str) -> str:
+        """Checks, if the given item, or start
+        of items name is in the current Chunk.
+        Returns either the item or False."""
+        for item_avail in self.__position.get_items():
+            if item_avail[5:].startswith(item) and not item == "":
+                return item_avail
+        return False
 
 #### SAVE METHODS: ####
 
@@ -383,6 +405,183 @@ class ServerMethods():
                 "You did not walk, because you don't know which direction.",
                 self.__connection
             )
+
+    def rest(self, args=None) -> None:
+        """Rest, no other actions
+        take place. The Player
+        gets healed."""
+        return "You had a nice rest!"
+
+    def take(self, item: list = None) -> None:
+        """Take a given Item from
+        the current chunk."""
+        if not item is None:
+            for i in item:
+                found = False
+                item_selected = self.item_in_position(i)
+                if item_selected:
+                    self.__inventory[item_selected] = (
+                        False  # Setting equipped parameter to False
+                    )
+                    self.__position.remove_item(item_selected)
+                    network_server.send_print_packet(
+                        f"You took {item_selected[5:]}.",
+                        self.__connection
+                    )
+                    found = True
+
+                if not found:
+                    return f"There is no {i} at your current location."
+                else:
+                    return "end_of_command"
+
+    def drop(self, items: list = None) -> None:
+        """Drop a given Item from the
+        Inventory to the current chunk."""
+        if items is None:
+            return "You dropped ... nothing."
+        else:
+            for i in items:
+                dropped = False
+                item_selected = self.item_in_inventory(i)
+                if item_selected:
+                    self.__inventory.pop(item_selected)
+                    self.__position.add_item(item_selected)
+                    network_server.send_print_packet(
+                        f"You dropped {item_selected[5:]}.",
+                        self.__connection)
+                    dropped = True
+                if not dropped:
+                    if not i == "":
+                        network_server.send_print_packet(
+                            f"You tried to drop {i}, but it was not even in your inventory!",
+                            self.__connection
+                        )
+                    else:
+                        network_server.send_print_packet(
+                            "You dropped ... nothing.",
+                            self.__connection
+                        )
+            return "end_of_command"
+
+    def print_inventory(self, args=None) -> None:
+        """ "Outprints the Inventory, mark
+        which item is equiped."""
+        if self.__inventory:
+            network_server.send_print_packet(
+                "Your inventory contains:",
+                self.__connection
+            )
+            for key, value in self.__inventory.items():
+                if value:  # check, if item is eqiupped
+                    network_server.send_print_packet(
+                        f"{key[5:]} - equipped",
+                        self.__connection
+                    )
+                else:
+                    network_server.send_print_packet(
+                        key[5:], self.__connection
+                    )
+            return "end_of_command"
+        else:
+            return "Your inventory is empty."
+
+    def equip(self, item: list = None) -> None:
+        """Equip a given Item, that either
+        is in the Inventory, or in the
+        curren chunk."""
+        item_selected_inv = self.item_in_inventory(item[0])
+        item_selected_pos = self.item_in_position(item[0])
+        if item_selected_inv:
+            item_selected = item_selected_inv
+        elif item_selected_pos:
+            self.__position.remove_item(item_selected_pos)
+            item_selected = item_selected_pos
+        else:
+            return f"There is no {item[0]}, you could equip right now."
+        self.unequip()
+        self.__inventory[item_selected] = True  # set the eqiupped parameter to true
+        if item[0] == "":
+            return "You wanted to equip. But what?"
+        # else:
+        return f"You equipped {item_selected[5:]}."
+
+    def unequip(self, item: list = None, first_iter: bool = True) -> None:
+        """Unequip the Item, which
+        is currently equipped."""
+        if item is None or not first_iter:
+            for inventory_item, equipped in self.__inventory.items():
+                if equipped:
+                    self.__inventory[inventory_item] = (
+                        False  # set the equipped parameter to false
+                    )
+                    network_server.send_print_packet(
+                        f"You unequipped {inventory_item}.",
+                        self.__connection
+                    )
+            return "end_of_command"
+        else:
+            found = False
+            for inventory_item, equipped in self.__inventory.items():
+                if inventory_item.startswith(item[0]):
+                    found = True
+                    self.unequip(None, False)
+            if not found:
+                return f"{item[0]} was no equipped."
+
+    def eat(self, item: list = None):
+        """Removes the eaten item
+        from the inventory and adds
+        the saturation to the hunger
+        value of the Player."""
+        if item:
+            for i in item:
+                item_selected = self.item_in_inventory(i)
+                if item_selected:
+                    nutrition = int(self.db_handler.get_item_data(item_selected)[0])
+                    self.__inventory.pop(item_selected)
+                    #check if item is safely eatable:
+                    if nutrition > 1:
+                        self.__saturation = int(self.__saturation) + nutrition
+                        network_server.send_print_packet(
+                        f"You ate {item_selected[5:]}, it was {nutrition} nutritious.",
+                        self.__connection
+                        )
+                        # update player info:
+                        network_server.send_packet(network_handler.NetworkPacket(
+                            packet_type="command",
+                            command_name="set_information_left",
+                            command_attributes=["saturation", self.__saturation]
+                        ),
+                        self.__connection
+                        )
+                    else:
+                        self.__health = int(self.__health) +  nutrition
+                        network_server.send_print_packet(
+                        f"You ate {item_selected[5:]}, it hurt you {abs(nutrition)} health.",
+                        self.__connection
+                        )
+                        # update player info:
+                        network_server.send_packet(network_handler.NetworkPacket(
+                            packet_type="command",
+                            command_name="set_information_left",
+                            command_attributes=["health", self.__health]
+                        ),
+                        self.__connection
+                        )
+                    return "end_of_command"
+                else:
+                    network_server.send_print_packet(
+                        f"You tried to eat {i}, but you had none left",
+                        self.__connection
+                    )
+        else:
+            return "You did not eat."
+
+    def inspect(self):
+        """Outprints the items,
+        which are in the current Chunk."""
+        return f"There are: {self.__position.get_items()}"
 
     def fanf(self):
         packet = network_handler.NetworkPacket(
