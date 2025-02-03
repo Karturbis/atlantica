@@ -180,8 +180,6 @@ class TerminalHandler:
             cls.__terminal_content.pop(0)
             cls.update_terminal()
 
-print("HANDLER IMPORTED FROM HEREREERE")
-
 # Tests:
 if __name__ == "__main__":
     TerminalHandler.new_print("Hello Woreld")
