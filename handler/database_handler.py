@@ -6,7 +6,7 @@ class DatabaseHandler:
 
     def __init__(self, database: str=None) -> None:
         self.__readonly_db: str = "data/game_content.sqlite"
-        if database:
+        if database and not database == "":
             self.__database: str = database
         else:
             self.__database = self.__readonly_db
