@@ -34,7 +34,9 @@ class NetworkServer():
             conn, addr = self.__active_socket.accept()  # accept connection
             print(f"Connected to client {addr} as client {connection_counter}:")
             # start new client thread for the just established connection:
-            self.__thread_data.callable_methods[connection_counter] = self.__init_callable(conn, connection_counter).execute_cmd
+            self.__thread_data.callable_methods[connection_counter] = self.__init_callable(
+                conn, connection_counter, self.__thread_data
+                ).execute_cmd
             start_new_thread(self.threaded_client, (conn, connection_counter))
 
     def threaded_client(self, connection, connection_id):
@@ -48,6 +50,10 @@ class NetworkServer():
         connection.sendall(
             pickle.dumps(npacket)
             )
+        self.__thread_data.client_names[connection_id] = pickle.loads(connection.recv(2048)).data
+        print(f"Client name is: {self.__thread_data.client_names[connection_id]}")
+        callable_method("init_character_data")
+        connection.sendall(pickle.dumps(npacket))
         while True:  # main loop
             try:
                 data = pickle.loads(connection.recv(2048))  # receive data
@@ -91,6 +97,10 @@ class NetworkServer():
         except socket.error as e:
             print(f"Error sending packet: {e}")
 
+    def send_print_packet(self, data:str, connection):
+        packet = NetworkPacket(packet_type="command", command_name="client_print", command_attributes=str(data))
+        self.send_packet(packet, connection)
+
 
 class NetworkClient():
     """Used to create the client side of
@@ -130,6 +140,7 @@ class ThreadData():
     def __init__(self):
         self.threads = {}
         self.callable_methods = {}
+        self.client_names = {}
 
 
 class NetworkHandler():
