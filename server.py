@@ -602,12 +602,20 @@ except IndexError:
     game_file_path = ""
 
 try:
-    server_port = cmd_line_args[2]
+    local = cmd_line_args[2]
+    if local.lower() == "false":
+        local = False
+    else:
+        local = True
+except IndexError:
+    local = True
+try:
+    server_port = cmd_line_args[3]
 except IndexError:
     server_port = 27300
 
 thread_data = network_handler.ThreadData()
-network_server = network_handler.NetworkServer(thread_data, ServerMethods, game_file_path, server_port)
+network_server = network_handler.NetworkServer(thread_data, ServerMethods, game_file_path, local=local, port=server_port)
 
 if __name__ == "__main__":
     network_server.main()

@@ -19,7 +19,8 @@ class Client():
         self.__local_methods: dict = {
             "menu": [
                 "clear", "new_game", "load_game", "delete_game",
-                "quit_game", "join_server", "set_name", "start_server"
+                "quit_game", "join_server", "set_name", "start_server",
+                "load_game"
                 ],
             "ingame": ["clear", "quit_game"],
         }
@@ -108,7 +109,7 @@ class Client():
         self.__database_handler.set_database(game_file_path)
         return None
 
-    def start_server(self, server_port = 27300) -> None:
+    def start_server(self, server_port = 27300, local:bool=False) -> None:
         saved_game_files = listdir("saves/")
         if saved_game_files:
             TerminalHandler.new_print("Pick your option:")
@@ -128,9 +129,12 @@ class Client():
             game_file_path = f"saves/{saved_game_files[option-1]}"
             # start server:
             # NEED TO FIND MEHTOD TO START SERVER, WITHOUT SOTTPING CLIENT!
-            system(f"python3 server.py {game_file_path} {server_port} &")
+            system(f"python3 server.py {game_file_path} {local} {server_port} &")
         else:
             TerminalHandler.new_print("There are no gameslots available, create one with 'new'.")
+
+    def load_game(self):
+        self.start_server(local=True)
 
     def set_name(self, name:str=None):
         if name:
