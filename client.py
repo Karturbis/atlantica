@@ -16,18 +16,25 @@ class Client():
 
     def __init__(self):
         self.__local_methods: dict = {
-            "menu": ["clear", "new_game", "load_game", "delete_game", "quit_game", "join_server"],
+            "menu": [
+                "clear", "new_game", "load_game", "delete_game",
+                "quit_game", "join_server", "set_name"
+                ],
             "ingame": ["clear", "quit_game"],
         }
         self.__server_methods: dict = {}
         self.__database_handler = DatabaseHandler()
         self.__network_client = None
+        self.__name = "test"
 
     def join_server(self, server_ip: str="127.0.0.1", server_port:int=27300):
         server_ip="127.0.0.1"
         server_port = 27300
         self.__network_client = network_handler.NetworkClient(server_ip, server_port)
         self.__server_methods = self.__network_client.connect().data
+        x = self.__network_client.send(network_handler.NetworkPacket(
+            packet_type="hello", data=self.__name
+        ))
         self.input_loop("ingame")
 
     def execute_cmd_client(self, command, args = None):
@@ -105,6 +112,12 @@ class Client():
         # needs massive rewrite thoug.
         pass
 
+    def set_name(self, name:str=None):
+        if name:
+            self.__name = name
+        else:
+            self.__name = TerminalHandler.new_input("set_name$> ")
+
     def delete_game(self, args=None) -> None:
         """Delete the given Gameslot."""
         saved_game_files = listdir("saves/")
@@ -157,10 +170,6 @@ class Client():
             else:
                 TerminalHandler.new_print(f"There is no command '{user_input[0]}'")
 
-##############################################################
-######################  MODES:  ##############################
-##############################################################
-
     def execute_cmd_server(self, command, args=None):
         if not args:
             args = []
@@ -189,7 +198,7 @@ class Client():
                     # set backreply to the return of the command the server send
                     back_reply = self.execute_cmd_client(
                         reply.command_name,
-                        reply.command_attributes
+                        [reply.command_attributes]
                         )
                 elif reply.packet_type == "reply":
                     # if "end_of_command" packet, end the conservation with server:
@@ -202,6 +211,9 @@ class Client():
                 print(f"ERROR: {e}")
                 return None
 
+    def client_print(self, data:str):
+        TerminalHandler.new_print(data)
+        return "end_of_command"
 
 if __name__ == "__main__":
 
@@ -210,6 +222,5 @@ if __name__ == "__main__":
         {"": ""},
         {"": ""}
     )
-
     client = Client()
     client.input_loop("menu")
