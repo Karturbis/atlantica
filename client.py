@@ -211,9 +211,31 @@ class Client():
                 print(f"ERROR: {e}")
                 return None
 
+############################
+## Terminal handler shit: ##
+############################
+
     def client_print(self, data:str):
         TerminalHandler.new_print(data)
         return "end_of_command"
+
+    def set_information_left(self, key, value):
+        TerminalHandler.set_information_left(key, value)
+
+    def set_information_center(self, key, value):
+        TerminalHandler.set_information_center(key, value)
+
+    def set_information_right(self, key, value):
+        TerminalHandler.set_information_right(key, value)
+
+    def reset_terminal_handler(
+        self, information_content_left,
+        information_content_center,
+        information_content_right
+    ):
+        TerminalHandler.init(information_content_left,
+        information_content_center,
+        information_content_right)
 
 if __name__ == "__main__":
 
