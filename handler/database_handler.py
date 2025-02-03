@@ -35,7 +35,6 @@ class DatabaseHandler:
     def get_chunk_data(self, chunk_id: str) -> list:
         """Calls the get_data method with
         predesigned parameters."""
-        print(chunk_id)
         return self.get_data(
             "chunks",
             [
@@ -80,7 +79,7 @@ class DatabaseHandler:
             self.__cursor.execute(command)
             self.__connection.commit()
         else:
-            print("No gameslot is selected, please make a new game, or load a game.")
+            return "No gameslot is selected, please make a new game, or load a game."
 
     def update_character(self, attributes: dict, character_name: str) -> None:
         """Update the attributes of the given character."""
@@ -101,7 +100,7 @@ class DatabaseHandler:
                     self.__cursor.execute(command)
             self.__connection.commit()
         else:
-            print("No gameslot is selected, please make a new game, or load a game.")
+            return "No gameslot is selected, please make a new game, or load a game."
 
     def update_items(self, items: list, chunk_id: str) -> None:
         "Update the items of a given chunk"
@@ -116,7 +115,7 @@ class DatabaseHandler:
             self.__cursor.execute(command)
             self.__connection.commit()
         else:
-            print("No gameslot is selected, please make a new game, or load a game.")
+            return "No gameslot is selected, please make a new game, or load a game."
 
     def set_chunk_data(self, chunk_id: str, attributes: list) -> None:
         pass
@@ -126,4 +125,4 @@ class DatabaseHandler:
         self.__database: str = database
         self.__connection = sqlite3.connect(self.__database)
         self.__cursor = self.__connection.cursor()
-        print(f"Database was set to {self.__database}")
+        return f"Database was set to {self.__database}"
