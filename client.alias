@@ -1,4 +1,10 @@
-# first write alias, then command name
+#        WARNING:
+# If manually editing, make sure that
+# there is exactly one blankline at the
+# end of the file!
+#
+# first write alias, then command name,
+# seperated by a space
 cls clear
 new new_game
 quit quit_game
@@ -12,3 +18,5 @@ inventory print_inventory
 ins inspect
 eq equip
 uneq unequip
+new_alias add_alias
+exit quit_game

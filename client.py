@@ -19,19 +19,13 @@ class Client():
             "menu": [
                 "clear", "new_game", "load_game", "delete_game",
                 "quit_game", "join_server", "set_name", "start_server",
-                "load_game"
+                "load_game", "add_alias"
                 ],
             "ingame": ["clear", "quit_game"],
         }
         self.__server_methods: dict = {}
-        with open("client.alias", "r", encoding="utf-8") as reader:
-            lines = reader.readlines()
-            aliases = {}
-            for line in lines:
-                if not line.startswith("#"):  # make comments with '#' in aliases.als
-                    line = line.strip("\n").split(" ")
-                    aliases[line[0]] = line[1]
-        self.__aliases = aliases
+        self.__alias_file = "client.alias"
+        self.__aliases = self.load_aliases()
         print(self.__aliases)
         self.__database_handler = DatabaseHandler()
         self.__network_client = None
@@ -86,7 +80,7 @@ class Client():
     def user_input_get_command(self, prompt="input$>"):
         user_in = input(f"{prompt} ").split(" ")
         if len(user_in) > 1:
-            return user_in[0], user_in[1:]
+            return user_in[0], list(user_in[1:])
         # else:
         return user_in[0], []
 
@@ -190,15 +184,15 @@ class Client():
         while True:
             user_input = self.user_input_get_command(prompt)
             if user_input[0] in self.__aliases:
-                user_input = (self.__aliases[user_input[0]], user_input[1:])
+                user_input = (self.__aliases[user_input[0]], user_input[1:][0])
             if user_input[0] in self.__local_methods[mode]:
                 if user_input[1]:
-                    self.execute_cmd_client(user_input[0], user_input[1:])
+                    self.execute_cmd_client(user_input[0], user_input[1:][0])
                 else:
                     self.execute_cmd_client(user_input[0])
             elif user_input[0] in self.__server_methods:
                 if user_input[1]:
-                    self.execute_cmd_server(user_input[0], user_input[1:])
+                    self.execute_cmd_server(user_input[0], user_input[1:][0])
                 else:
                     self.execute_cmd_server(user_input[0])
             else:
@@ -244,6 +238,24 @@ class Client():
             except Exception as e:
                 print(f"ERROR: {e}")
                 return None
+
+    def load_aliases(self):
+        with open(self.__alias_file, "r", encoding="utf-8") as reader:
+            lines = reader.readlines()
+            aliases = {}
+            for line in lines:
+                if not line.startswith("#"):  # make comments with '#' in aliases.als
+                    line = line.strip("\n").split(" ")
+                    aliases[line[0]] = line[1]
+        return aliases
+
+
+    def add_alias(self, alias:str, command:str):
+        with open(self.__alias_file, "a", encoding="utf-8") as writer:
+            writer.write(f"{alias.strip(" ")} {command.strip(" ")}\n")
+        self.__aliases = self.load_aliases()
+
+
 
 ############################
 ## Terminal handler shit: ##
