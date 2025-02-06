@@ -600,7 +600,6 @@ try:
     game_file_path = cmd_line_args[1]
 except IndexError:
     game_file_path = ""
-
 try:
     local = cmd_line_args[2]
     if local.lower() == "false":
@@ -613,6 +612,10 @@ try:
     server_port = cmd_line_args[3]
 except IndexError:
     server_port = 27300
+
+#  for custom gameslot uncomment following 2 lines
+GAMESLOT = "qwed"
+game_file_path = f"saves/gameslot_{GAMESLOT}.sqlite"
 
 thread_data = network_handler.ThreadData()
 network_server = network_handler.NetworkServer(thread_data, ServerMethods, game_file_path, local=local, port=server_port)

@@ -249,12 +249,10 @@ class Client():
                     aliases[line[0]] = line[1]
         return aliases
 
-
     def add_alias(self, alias:str, command:str):
         with open(self.__alias_file, "a", encoding="utf-8") as writer:
             writer.write(f"{alias.strip(" ")} {command.strip(" ")}\n")
         self.__aliases = self.load_aliases()
-
 
 
 ############################
