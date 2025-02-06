@@ -618,7 +618,10 @@ GAMESLOT = "qwed"
 game_file_path = f"saves/gameslot_{GAMESLOT}.sqlite"
 
 thread_data = network_handler.ThreadData()
-network_server = network_handler.NetworkServer(thread_data, ServerMethods, game_file_path, local=local, port=server_port)
+network_server = network_handler.NetworkServer(
+    thread_data, ServerMethods, game_file_path,
+    local=local, port=server_port
+    )
 
 if __name__ == "__main__":
     network_server.main()
