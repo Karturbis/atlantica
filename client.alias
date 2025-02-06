@@ -1,3 +1,14 @@
 # first write alias, then command name
 cls clear
 new new_game
+quit quit_game
+join join_server
+setname set_name
+del delete_game
+load load_game
+go move
+inv print_inventory
+inventory print_inventory
+ins inspect
+eq equip
+uneq unequip
