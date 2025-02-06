@@ -24,6 +24,15 @@ class Client():
             "ingame": ["clear", "quit_game"],
         }
         self.__server_methods: dict = {}
+        with open("client.alias", "r", encoding="utf-8") as reader:
+            lines = reader.readlines()
+            aliases = {}
+            for line in lines:
+                if not line.startswith("#"):  # make comments with '#' in aliases.als
+                    line = line.strip("\n").split(" ")
+                    aliases[line[0]] = line[1]
+        self.__aliases = aliases
+        print(self.__aliases)
         self.__database_handler = DatabaseHandler()
         self.__network_client = None
         self.__name = "test"
@@ -180,6 +189,8 @@ class Client():
             prompt = f"{mode}$>"
         while True:
             user_input = self.user_input_get_command(prompt)
+            if user_input[0] in self.__aliases:
+                user_input = (self.__aliases[user_input[0]], user_input[1:])
             if user_input[0] in self.__local_methods[mode]:
                 if user_input[1]:
                     self.execute_cmd_client(user_input[0], user_input[1:])
