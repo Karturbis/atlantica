@@ -36,7 +36,7 @@ class Client():
         x = self.__network_client.send(network_handler.NetworkPacket(
             packet_type="hello", data=self.__name
         ))
-        self.input_loop("ingame")
+        self.input_loop("ingame", prompt=f"{self.__name}@{server_ip}>")
 
     def execute_cmd_client(self, command, args = None):
         if not args:
