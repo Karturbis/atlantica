@@ -68,13 +68,17 @@ class DatabaseHandler:
             character_name,
         )
 
+    def new_character(self, name: str, inventory:str="''", position="'000-temple-start'", health=42, saturation=42, speed=42, strength=42, level=1):
+        name = f"'{name}'"
+        self.set_data("player", [name, health, saturation, speed, strength, level, inventory, position])
+
     def set_data(self, table: str, attributes: list) -> None:
         """Insert new column with given attributes
         into the given table of the self.__database"""
         if self.__database != self.__readonly_db:
             command: str = f"INSERT INTO {table} VALUES ("
             for i in attributes:
-                command = f"{command} {i},"
+                command = f"{command}{i}, "
             command = f"{command[:-2]})"
             self.__cursor.execute(command)
             self.__connection.commit()

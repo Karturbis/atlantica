@@ -201,11 +201,15 @@ class ServerMethods():
         self.__level = {}
 
     def init_character_data(self, game_file_path):
+        self.__name = thread_data.client_names[self.__connection_id]
         self.db_handler = DatabaseHandler(game_file_path)
+        try:
+            self.db_handler.get_character_data(self.__name)
+        except IndexError:  # no character data for this name was found
+            self.db_handler.new_character(self.__name)
         self.__position = Chunk(
             "000-temple-start", *self.db_handler.get_chunk_data("000-temple-start")
         )
-        self.__name = thread_data.client_names[self.__connection_id]
         character_data = self.db_handler.get_character_data(self.__name)
         self.__health: int = int(character_data[0])
         self.__saturation: int = int(character_data[1])
