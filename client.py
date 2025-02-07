@@ -26,7 +26,6 @@ class Client():
         self.__server_methods: dict = {}
         self.__alias_file = "client.alias"
         self.__aliases = self.load_aliases()
-        print(self.__aliases)
         self.__database_handler = DatabaseHandler()
         self.__network_client = None
         self.__name = "test"
