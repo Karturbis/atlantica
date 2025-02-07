@@ -1,6 +1,7 @@
 import time
 import sys
 from inspect import signature
+from ast import literal_eval  # Used to evaluate a boolean from a string
 
 from handler import network_handler
 from handler import DatabaseHandler
@@ -188,7 +189,8 @@ class ServerMethods():
         self.__standart_server_methods = [
             "ping", "fanf", "move", "rest",
             "take", "drop", "print_inventory",
-            "unequip", "eat", "inspect", "equip"
+            "unequip", "eat", "inspect", "equip",
+            "save_player", "shutdown"
             ]
         self.__server_methods_minimum = ["ping"]
         self.__server_methods = self.__standart_server_methods
@@ -216,13 +218,26 @@ class ServerMethods():
             )
         except Exception as e:
             print(f"ERROR {e}")
-        print(self.__position)
         character_data = self.db_handler.get_character_data(self.__name)
         self.__health: int = int(character_data[0])
         self.__saturation: int = int(character_data[1])
         self.__speed: int = int(character_data[2])
         self.__strength: int = int(character_data[3])
         self.__level: int = int(character_data[4])
+        self.__position_save_id = character_data[6]
+        inventory_data_raw: str = character_data[5]
+        if inventory_data_raw:
+            inventory_list: list = [
+                i.split(":") for i in inventory_data_raw.split(", ")
+            ]
+        else:
+            inventory_list: list = []
+        if len(inventory_list) > 1:
+            self.__inventory = dict(inventory_list)
+        else:
+            self.__inventory = {}
+        for i in self.__inventory:
+            self.__inventory[i] = literal_eval(self.__inventory[i])
 
     def get_character_data(self) -> dict:
         """Returns the character data
@@ -298,7 +313,7 @@ class ServerMethods():
                 return item_avail
         return False
 
-    def save_player(self):
+    def save_player(self, args=None):
         """Saves the player data to
         the current gameslot."""
         inventory: str = ""
@@ -368,6 +383,11 @@ class ServerMethods():
 ################################
 ## Player executable methods: ##
 ################################
+
+    def shutdown(self):
+        self.save_player()
+        self.save_chunk()
+        exit("Shutting down...")
 
     def move(self, direction: list = None) -> None:
         """Move the character

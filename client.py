@@ -88,6 +88,7 @@ class Client():
 
     def quit_game(self, args=None) -> None:
         """Saves and quits the game."""
+        self.execute_cmd_server("save_player")
         exit("Good bye, see you next time in Atlantica!")
 
     def new_game(self, args=None) -> None:
