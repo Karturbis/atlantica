@@ -599,7 +599,7 @@ class Main:
                     nutrition = int(database_handler.get_item_data(item_selected)[0])
                     self.__inventory.pop(item_selected)
                     #check if item is safely eatable:
-                    if nutrition > 1:
+                    if nutrition >= 0:
                         self.__saturation = int(self.__saturation) + nutrition
                         TerminalHandler.new_print(
                         f"You ate {item_selected[5:]}, it was {nutrition} nutritious."
