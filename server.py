@@ -199,17 +199,24 @@ class ServerMethods():
         self.__speed = {}
         self.__strength = {}
         self.__level = {}
+        self.__position = None
+        self.__name = None
+        self.db_handler = None
 
     def init_character_data(self, game_file_path):
         self.__name = thread_data.client_names[self.__connection_id]
-        self.db_handler = DatabaseHandler(game_file_path)
+        self.db_handler = DatabaseHandler(game_file_path[0])
         try:
             self.db_handler.get_character_data(self.__name)
         except IndexError:  # no character data for this name was found
             self.db_handler.new_character(self.__name)
-        self.__position = Chunk(
-            "000-temple-start", *self.db_handler.get_chunk_data("000-temple-start")
-        )
+        try:
+            self.__position = Chunk(
+                "000-temple-start", *self.db_handler.get_chunk_data("000-temple-start")
+            )
+        except Exception as e:
+            print(f"ERROR {e}")
+        print(self.__position)
         character_data = self.db_handler.get_character_data(self.__name)
         self.__health: int = int(character_data[0])
         self.__saturation: int = int(character_data[1])
@@ -244,9 +251,9 @@ class ServerMethods():
             if expected_args_len == given_args_len:
                 # run method:
                 try:
-                    return func(*args)
+                    return func(args)
                 except Exception as e:
-                    return f"ERROR in ServerMethods.excute_cmd: {e}"
+                    return f"ERROR in (1) ServerMethods.excute_cmd: {e}"
             else: # wrong number of arguments were given
                 return f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}."
         else:  # no args where given:
@@ -255,7 +262,7 @@ class ServerMethods():
                 try:
                     return func()
                 except Exception as e:
-                    return f"ERROR in ServerMethods.excute_cmd: {e}"
+                    return f"ERROR in (2) ServerMethods.excute_cmd: {e}"
             else: # wrong number of arguments were given
                 return f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}."
 
@@ -290,7 +297,6 @@ class ServerMethods():
             if item_avail[5:].startswith(item) and not item == "":
                 return item_avail
         return False
-
 
     def save_player(self):
         """Saves the player data to
@@ -410,7 +416,7 @@ class ServerMethods():
                 self.__connection
             )
 
-    def rest(self, args=None) -> None:
+    def rest(self) -> None:
         """Rest, no other actions
         take place. The Player
         gets healed."""
@@ -468,7 +474,7 @@ class ServerMethods():
                         )
             return "end_of_command"
 
-    def print_inventory(self, args=None) -> None:
+    def print_inventory(self) -> None:
         """ "Outprints the Inventory, mark
         which item is equiped."""
         if self.__inventory:
