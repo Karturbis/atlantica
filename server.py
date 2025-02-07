@@ -313,7 +313,7 @@ class ServerMethods():
                 return item_avail
         return False
 
-    def save_player(self, args=None):
+    def save_player(self):
         """Saves the player data to
         the current gameslot."""
         inventory: str = ""
