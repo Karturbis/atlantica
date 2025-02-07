@@ -232,7 +232,7 @@ class ServerMethods():
             ]
         else:
             inventory_list: list = []
-        if len(inventory_list) > 1:
+        if len(inventory_list) >= 1:
             self.__inventory = dict(inventory_list)
         else:
             self.__inventory = {}
