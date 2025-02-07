@@ -1,6 +1,6 @@
 import socket
 import pickle
-from _thread import start_new_thread
+from threading import Thread
 
 class NetworkServer():
     """Used to create the server side of
@@ -41,7 +41,9 @@ class NetworkServer():
             self.__thread_data.callable_methods[connection_counter] = self.__init_callable(
                 conn, connection_counter, self.__thread_data
                 ).execute_cmd
-            start_new_thread(self.threaded_client, (conn, connection_counter))
+            t = Thread(target=self.threaded_client, args=(conn, connection_counter))
+            t.daemon = True  # daemonize thread, so it ends, when main thread ends
+            t.start()
 
     def threaded_client(self, connection, connection_id):
         """Main loop for the threads. Each thread handles one
