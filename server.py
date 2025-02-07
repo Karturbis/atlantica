@@ -446,6 +446,7 @@ class ServerMethods():
         """Take a given Item from
         the current chunk."""
         if not item is None:
+            self.__position = self.load_chunk(self.__position.get_chunk_id())
             for i in item:
                 found = False
                 item_selected = self.item_in_position(i)
@@ -458,8 +459,8 @@ class ServerMethods():
                         f"You took {item_selected[5:]}.",
                         self.__connection
                     )
+                    self.save_chunk()
                     found = True
-
                 if not found:
                     return f"There is no {i} at your current location."
                 else:
@@ -480,6 +481,7 @@ class ServerMethods():
                     network_server.send_print_packet(
                         f"You dropped {item_selected[5:]}.",
                         self.__connection)
+                    self.save_chunk()
                     dropped = True
                 if not dropped:
                     if not i == "":
@@ -526,6 +528,7 @@ class ServerMethods():
             item_selected = item_selected_inv
         elif item_selected_pos:
             self.__position.remove_item(item_selected_pos)
+            self.save_chunk()
             item_selected = item_selected_pos
         else:
             return f"There is no {item[0]}, you could equip right now."
@@ -611,6 +614,7 @@ class ServerMethods():
     def inspect(self):
         """Outprints the items,
         which are in the current Chunk."""
+        self.__position = self.load_chunk(self.__position.get_chunk_id())
         return f"There are: {self.__position.get_items()}"
 
     def fanf(self):
