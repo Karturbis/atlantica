@@ -5,6 +5,7 @@ from os import remove  # To remove files
 from os import system
 import shutil  # Used copy the content.sqlite file into a newfrom os import system gameslot
 from sys import exit
+from _thread import start_new_thread
 
 # handler imports:
 from handler import DatabaseHandler
