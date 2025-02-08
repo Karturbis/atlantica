@@ -6,6 +6,7 @@ only for developing purposes and will change."""
 
 import random
 import shutil  # Used copy the content.sqlite file into a new gameslot
+import platform
 
 from os import remove  # To remove files
 from os import listdir  # To list all files of a directory, used in Main.load_game()
@@ -194,6 +195,10 @@ class Main:
     when in the 'normal' game mode."""
 
     def __init__(self, game_start: bool) -> None:
+        if platform.system().lower == "windows":
+            self.__path_sep = "\\"
+        else:
+            self.__path_sep = "/"
         if game_start:
             self.game_start()
         self.__position = Chunk(
@@ -273,14 +278,14 @@ class Main:
         game_name = TerminalHandler.new_input(
             "Please input the name of the gameslot\n> "
         )
-        game_file_path = f"saves/gameslot_{game_name}.sqlite"
+        game_file_path = f"saves{self.__path_sep}gameslot_{game_name}.sqlite"
         if exists(game_file_path):
             overwrite = TerminalHandler.new_input(
                 "This gameslot is already occupied, do you want to overwrite? [y/N]\n> "
             ).lower()
             if not overwrite == "y" or overwrite == "yes":
                 return None
-        shutil.copyfile("data/game_content.sqlite", game_file_path)
+        shutil.copyfile(f"data{self.__path_sep}game_content.sqlite", game_file_path)
         TerminalHandler.new_print(
             f"The gameslot: {game_name} was sucessfully created."
         )
@@ -291,7 +296,7 @@ class Main:
     def load_game(self, args=None) -> None:
         """Loads the gamestate from
         a given slot."""
-        saved_game_files = listdir("saves/")
+        saved_game_files = listdir(f"saves{self.__path_sep}")
         if saved_game_files:
             TerminalHandler.new_print("Pick your option:")
             for index, file_name in enumerate(saved_game_files):
@@ -308,7 +313,7 @@ class Main:
                 )
                 return None
             try:
-                database_handler.set_database(f"saves/{saved_game_files[option-1]}")
+                database_handler.set_database(f"saves{self.__path_sep}{saved_game_files[option-1]}")
             except IndexError:
                 TerminalHandler.new_print("This option is not available.")
                 return None
@@ -348,7 +353,7 @@ class Main:
 
     def delete_game(self, args=None) -> None:
         """Delete the given Gameslot."""
-        saved_game_files = listdir("saves/")
+        saved_game_files = listdir(f"saves{self.__path_sep}")
         if saved_game_files:
             TerminalHandler.new_print("Pick your option:")
             for index, file_name in enumerate(saved_game_files):
@@ -372,7 +377,7 @@ class Main:
                 f"Bist du dir sicher, dass du Gameslot {gameslot[9:-7]} löschen möchtest? [y/N]\n> "
             ).lower()
             if consent == "y":
-                remove(f"saves/{gameslot}")
+                remove(f"saves{self.__path_sep}{gameslot}")
                 TerminalHandler.new_print(f"Gameslot {gameslot[9:-7]} wurde gelöscht.")
             else:
                 TerminalHandler.new_print("Nichts wurde gelöscht.")
