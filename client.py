@@ -32,7 +32,7 @@ class Client():
         self.__name = "test"
 
     def join_server(self, server_ip: str="127.0.0.1", server_port:int=27300):
-        server_ip="127.0.0.1"
+        """Connect to the given server."""
         server_port = 27300
         self.__network_client = network_handler.NetworkClient(server_ip, server_port)
         self.__server_methods = self.__network_client.connect().data
@@ -41,7 +41,9 @@ class Client():
         ))
         self.input_loop("ingame", prompt=f"{self.__name}@{server_ip}>")
 
-    def execute_cmd_client(self, command, args = None):
+    def execute_cmd_client(self, command: str, args = None):
+        """Takes a command, and arguments. Executes the command
+        with the given arguments, if possible."""
         if not args:
             args = []
         try:
@@ -78,6 +80,8 @@ class Client():
                 print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
 
     def user_input_get_command(self, prompt="input$>"):
+        """Returns a command and the arguments for this
+        command, the user typed in."""
         user_in = input(f"{prompt} ").split(" ")
         if len(user_in) > 1:
             return user_in[0], list(user_in[1:])
@@ -113,6 +117,7 @@ class Client():
         return None
 
     def start_server(self, server_port = 27300, local:bool=False) -> None:
+        """Starts a server for the client to connect to."""
         saved_game_files = listdir("saves/")
         if saved_game_files:
             TerminalHandler.new_print("Pick your option:")
@@ -180,6 +185,8 @@ class Client():
             TerminalHandler.new_print("There are no gameslots.")
 
     def input_loop(self, mode: str, prompt:str = None):
+        """takes input from user and executes the
+        corresponding commands"""
         if not prompt:
             prompt = f"{mode}$>"
         while True:
@@ -200,6 +207,8 @@ class Client():
                 TerminalHandler.new_print(f"There is no command '{user_input[0]}'")
 
     def execute_cmd_server(self, command, args=None):
+        """Execute the given command with the given
+        arguments on the connected server."""
         if not args:
             args = []
         back_reply = None
@@ -241,6 +250,7 @@ class Client():
                 return None
 
     def load_aliases(self):
+        """Load aliases from File"""
         with open(self.__alias_file, "r", encoding="utf-8") as reader:
             lines = reader.readlines()
             aliases = {}
@@ -251,6 +261,7 @@ class Client():
         return aliases
 
     def add_alias(self, alias:str, command:str):
+        """add alias to the aliases File"""
         if alias.startswith("#"):
             TerminalHandler.new_print("Aliases are not allowed to start with '#'")
         else:
