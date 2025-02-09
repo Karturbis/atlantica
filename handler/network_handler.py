@@ -51,11 +51,9 @@ class NetworkServer():
         # set the callable_method, to be able to execute commands on the server:
         callable_method = self.__thread_data.callable_methods[connection_id]
         # send initial hello:
-        datas = callable_method("get_server_methods", [])
-        npacket = NetworkPacket(packet_type="hello", data=datas)
-        connection.sendall(
-            pickle.dumps(npacket)
-            )
+        server_methods = callable_method("get_server_methods", [])
+        npacket = NetworkPacket(packet_type="hello", data=server_methods)
+        connection.sendall(pickle.dumps(npacket))
         self.__thread_data.client_names[connection_id] = pickle.loads(
             connection.recv(2048)
             ).data
@@ -63,14 +61,23 @@ class NetworkServer():
             f"Client name is: {self.__thread_data.client_names[connection_id]}"
             )
         callable_method("init_character_data", [self.__game_file_path])
-        connection.sendall(pickle.dumps(npacket))
+        # initialize client side TerminalHandler:
+        character_data = callable_method("get_character_data")
+        connection.sendall(pickle.dumps(NetworkPacket(
+            command_name="reset_terminal_handler",
+            command_attributes=[
+                {k: character_data[k] for k in ["health", "saturation"]},
+                {k: character_data[k] for k in ["speed", "strength"]},
+                {"level": character_data["level"]}
+                ]
+            )))
         while True:  # main loop
+            reply = None
             try:
                 data = pickle.loads(connection.recv(2048))  # receive data
             except EOFError as e:
                 print(f"Error pickle.loads data: {e}")
                 break
-            reply = None
             if not data:  # client has disconnected
                 print("Disconnected")
                 break
@@ -90,7 +97,7 @@ class NetworkServer():
                 break
         print(f"Lost connection to client {connection_id}")
         connection.close()
-        # cleanup data of the thread, which does not automatically dies with the thread:
+        # cleanup data of the thread which does not automatically dies with the thread:
         self.__thread_data.callable_methods.pop(connection_id)
         # thread dies
 
@@ -142,7 +149,7 @@ class NetworkClient():
         except socket.error as e:
             print(f"ERROR: {e}")
 
-    def listen(self) -> NetworkPacket:
+    def listen(self):
         try:
             data = (self.active_socket.recv(2048))
             return pickle.loads(data)

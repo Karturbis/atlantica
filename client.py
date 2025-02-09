@@ -11,6 +11,7 @@ from threading import Thread
 from handler import DatabaseHandler
 from handler import network_handler
 from handler import TerminalHandler
+from handler import StoppableThread
 
 
 class Client():
@@ -30,6 +31,10 @@ class Client():
         self.__database_handler = DatabaseHandler()
         self.__network_client = None
         self.__name = "test"
+        self.__menu_thread = StoppableThread(target=self.user_input_loop, args=["menu"])
+        self.__run_thread = {"menu": True}
+        self.__menu_thread.start()
+
 
     def join_server(self, server_ip: str="127.0.0.1", server_port:int=27300):
         """Connect to the given server."""
@@ -43,8 +48,9 @@ class Client():
             target=self.user_input_loop, args=["ingame", f"{self.__name}@{server_ip}>"]
             )
         server_loop = Thread(target=self.server_listen_loop)
-        input_loop.daemon = True
-        server_loop.daemon = True
+        self.__run_thread["menu"] = False
+        self.__menu_thread.join()
+        self.__run_thread["ingame"] = True
         input_loop.start()
         server_loop.start()
 
@@ -196,7 +202,7 @@ class Client():
         corresponding commands"""
         if not prompt:
             prompt = f"{mode}$>"
-        while True:
+        while self.__run_thread[mode]:
             user_input = self.user_input_get_command(prompt)
             if user_input[0] in self.__aliases:
                 user_input = (self.__aliases[user_input[0]], user_input[1:][0])
@@ -309,4 +315,3 @@ if __name__ == "__main__":
         {"": ""}
     )
     client = Client()
-    client.user_input_loop("menu")
