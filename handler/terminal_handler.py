@@ -21,6 +21,7 @@ class TerminalHandler:
         cls.__information_content_center: dict = information_content_center
         cls.__information_content_right: dict = information_content_right
         cls.__terminal_content: list = []
+        system("cls" if name == "nt" else "clear")
         print(cls.gen_information_content_printable())
 
     @classmethod
