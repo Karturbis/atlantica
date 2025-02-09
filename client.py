@@ -11,7 +11,7 @@ from threading import Thread
 from handler import DatabaseHandler
 from handler import network_handler
 from handler import TerminalHandler
-from handler import StoppableThread
+
 
 
 class Client():
@@ -30,10 +30,8 @@ class Client():
         self.__aliases = self.load_aliases()
         self.__database_handler = DatabaseHandler()
         self.__network_client = None
-        self.__name = "test"
-        self.__menu_thread = StoppableThread(target=self.user_input_loop, args=["menu"])
-        self.__run_thread = {"menu": True}
-        self.__menu_thread.start()
+        self.name = "test"
+        self.run_thread = {"menu": True}
 
 
     def join_server(self, server_ip: str="127.0.0.1", server_port:int=27300):
@@ -42,17 +40,9 @@ class Client():
         self.__network_client = network_handler.NetworkClient(server_ip, server_port)
         self.__server_methods = self.__network_client.connect().data
         self.__network_client.send(network_handler.NetworkPacket(
-            packet_type="hello", data=self.__name
+            packet_type="hello", data=self.name
         ))
-        input_loop = Thread(
-            target=self.user_input_loop, args=["ingame", f"{self.__name}@{server_ip}>"]
-            )
-        server_loop = Thread(target=self.server_listen_loop)
-        self.__run_thread["menu"] = False
-        self.__menu_thread.join()
-        self.__run_thread["ingame"] = True
-        input_loop.start()
-        server_loop.start()
+        self.run_thread["menu"] = False
 
     def execute_cmd_client(self, command: str, args = None):
         """Takes a command, and arguments. Executes the command
@@ -159,9 +149,9 @@ class Client():
 
     def set_name(self, name:str=None):
         if name:
-            self.__name = name
+            self.name = name
         else:
-            self.__name = TerminalHandler.new_input("set_name$> ")
+            self.name = TerminalHandler.new_input("set_name$> ")
 
     def delete_game(self, args=None) -> None:
         """Delete the given Gameslot."""
@@ -202,7 +192,7 @@ class Client():
         corresponding commands"""
         if not prompt:
             prompt = f"{mode}$>"
-        while self.__run_thread[mode]:
+        while self.run_thread[mode]:
             user_input = self.user_input_get_command(prompt)
             if user_input[0] in self.__aliases:
                 user_input = (self.__aliases[user_input[0]], user_input[1:][0])
@@ -314,4 +304,13 @@ if __name__ == "__main__":
         {"": ""},
         {"": ""}
     )
-    client = Client()
+    client = Client()  # init client
+    client.user_input_loop("menu")  # start menu thread
+    # menu was closed:
+    input_loop = Thread(  # init ingame user input loop
+    target=client.user_input_loop, args=["ingame", f"{client.name}@Karsten>"]
+    )
+    server_loop = Thread(target=client.server_listen_loop)
+    client.run_thread["ingame"] = True
+    input_loop.start()
+    server_loop.start()
