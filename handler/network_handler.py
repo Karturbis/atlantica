@@ -42,7 +42,7 @@ class NetworkServer():
                 conn, connection_counter, self.__thread_data
                 ).execute_cmd
             t = Thread(target=self.threaded_client, args=(conn, connection_counter))
-            t.daemon = True  # daemonize thread, so it ends, when main thread ends
+            t.daemon = True  # daemonize thread so it ends, when main thread ends
             t.start()
 
     def threaded_client(self, connection, connection_id):
@@ -139,10 +139,15 @@ class NetworkClient():
         server"""
         try:
             self.active_socket.send(pickle.dumps(data))  # send data
-            return pickle.loads(self.active_socket.recv(2048))  # return the server reply
         except socket.error as e:
             print(f"ERROR: {e}")
 
+    def listen(self) -> NetworkPacket:
+        try:
+            data = (self.active_socket.recv(2048))
+            return pickle.loads(data)
+        except socket.error as e:
+            print(f"Socket ERROR: {e}")
 
 class ThreadData():
     """Dataclass used to store data,

@@ -5,7 +5,7 @@ from os import remove  # To remove files
 from os import system
 import shutil  # Used copy the content.sqlite file into a newfrom os import system gameslot
 from sys import exit
-from _thread import start_new_thread
+from threading import Thread
 
 # handler imports:
 from handler import DatabaseHandler
@@ -36,10 +36,17 @@ class Client():
         server_port = 27300
         self.__network_client = network_handler.NetworkClient(server_ip, server_port)
         self.__server_methods = self.__network_client.connect().data
-        x = self.__network_client.send(network_handler.NetworkPacket(
+        self.__network_client.send(network_handler.NetworkPacket(
             packet_type="hello", data=self.__name
         ))
-        self.input_loop("ingame", prompt=f"{self.__name}@{server_ip}>")
+        input_loop = Thread(
+            target=self.user_input_loop, args=["ingame", f"{self.__name}@{server_ip}>"]
+            )
+        server_loop = Thread(target=self.server_listen_loop)
+        input_loop.daemon = True
+        server_loop.daemon = True
+        input_loop.start()
+        server_loop.start()
 
     def execute_cmd_client(self, command: str, args = None):
         """Takes a command, and arguments. Executes the command
@@ -184,7 +191,7 @@ class Client():
         else:
             TerminalHandler.new_print("There are no gameslots.")
 
-    def input_loop(self, mode: str, prompt:str = None):
+    def user_input_loop(self, mode: str, prompt:str = None):
         """takes input from user and executes the
         corresponding commands"""
         if not prompt:
@@ -206,15 +213,25 @@ class Client():
             else:
                 TerminalHandler.new_print(f"There is no command '{user_input[0]}'")
 
+    def server_listen_loop(self):
+        while True:
+            data = self.__network_client.listen()
+            if data.packet_type == "command":
+                self.execute_cmd_client(
+                    data.command_name,
+                    [data.command_attributes]
+                    )
+            elif data.packet_type == "reply":
+                if not data.data == "end_of_command":
+                    print(data.data)
+
     def execute_cmd_server(self, command, args=None):
-        """Execute the given command with the given
-        arguments on the connected server."""
         if not args:
             args = []
         back_reply = None
         try:
             # send command and set reply to the answer from the server:
-            reply = self.__network_client.send(network_handler.NetworkPacket(
+            self.__network_client.send(network_handler.NetworkPacket(
                 packet_type="command",
                 command_name=command,
                 command_attributes=args,
@@ -227,24 +244,12 @@ class Client():
         while run:
             try:
                 if back_reply:  # send backreply:
-                    reply = self.__network_client.send(network_handler.NetworkPacket(
+                   self.__network_client.send(network_handler.NetworkPacket(
                         packet_type="reply",
                         data=back_reply,
                         )
                         )
-                if reply.packet_type == "command":
-                    # set backreply to the return of the command the server send
-                    back_reply = self.execute_cmd_client(
-                        reply.command_name,
-                        [reply.command_attributes]
-                        )
-                elif reply.packet_type == "reply":
-                    # if "end_of_command" packet, end the conservation with server:
-                    if reply.data == "end_of_command":
-                        return None
-                    # else:
-                    print(reply.data)
-                    return None
+                
             except Exception as e:
                 print(f"ERROR: {e}")
                 return None
@@ -304,4 +309,4 @@ if __name__ == "__main__":
         {"": ""}
     )
     client = Client()
-    client.input_loop("menu")
+    client.user_input_loop("menu")
