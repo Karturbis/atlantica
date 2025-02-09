@@ -225,6 +225,7 @@ class ServerMethods():
         self.__strength: int = int(character_data[3])
         self.__level: int = int(character_data[4])
         self.__position_save_id = character_data[6]
+        # load inventory from database:
         inventory_data_raw: str = character_data[5]
         if inventory_data_raw:
             inventory_list: list = [
