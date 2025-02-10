@@ -10,7 +10,7 @@ from threading import Thread
 # handler imports:
 from handler import DatabaseHandler
 from handler import network_handler
-from handler import TerminalHandler
+from handler import TerminalHandlerOld
 
 
 
@@ -92,7 +92,7 @@ class Client():
         return user_in[0], []
 
     def clear(self):
-        TerminalHandler.clear()
+        TerminalHandlerOld.clear()
 
     def quit_game(self, args=None) -> None:
         """Saves and quits the game."""
@@ -102,18 +102,18 @@ class Client():
     def new_game(self, args=None) -> None:
         """Creates a new game save slot"""
         prompt = "new_game$>"
-        game_name = TerminalHandler.new_input(
+        game_name = TerminalHandlerOld.new_input(
             f"Please input the name of the gameslot\n{prompt} "
         )
         game_file_path = f"saves/gameslot_{game_name}.sqlite"
         if exists(game_file_path):
-            overwrite = TerminalHandler.new_input(
+            overwrite = TerminalHandlerOld.new_input(
                 f"This gameslot is already occupied, do you want to overwrite? [y/N]\n{prompt} "
             ).lower()
             if not overwrite == "y" or overwrite == "yes":
                 return None
         shutil.copyfile("data/game_content.sqlite", game_file_path)
-        TerminalHandler.new_print(
+        TerminalHandlerOld.new_print(
             f"The gameslot: {game_name} was sucessfully created."
         )
         self.__database_handler.set_database(game_file_path)
@@ -123,17 +123,17 @@ class Client():
         """Starts a server for the client to connect to."""
         saved_game_files = listdir("saves/")
         if saved_game_files:
-            TerminalHandler.new_print("Pick your option:")
+            TerminalHandlerOld.new_print("Pick your option:")
             for index, file_name in enumerate(saved_game_files):
-                TerminalHandler.new_print(
+                TerminalHandlerOld.new_print(
                     f"Option {index +1} is {file_name[9:-7]}"
                 )  # prints the name of the gamestate, without printing the whole file name
             try:
                 option = int(
-                    TerminalHandler.new_input("Input the number of your option.\n> ")
+                    TerminalHandlerOld.new_input("Input the number of your option.\n> ")
                 )
             except ValueError:
-                TerminalHandler.new_print(
+                TerminalHandlerOld.new_print(
                     "You have to put in the NUMBER of your gameslot."
                 )
                 return None
@@ -142,7 +142,7 @@ class Client():
             # NEED TO FIND MEHTOD TO START SERVER, WITHOUT SOTTPING CLIENT!
             system(f"python3 server.py {game_file_path} {local} {server_port} &")
         else:
-            TerminalHandler.new_print("There are no gameslots available, create one with 'new'.")
+            TerminalHandlerOld.new_print("There are no gameslots available, create one with 'new'.")
 
     def load_game(self):
         self.start_server(local=True)
@@ -151,18 +151,18 @@ class Client():
         if name:
             self.name = name
         else:
-            self.name = TerminalHandler.new_input("set_name$> ")
+            self.name = TerminalHandlerOld.new_input("set_name$> ")
 
     def delete_game(self, args=None) -> None:
         """Delete the given Gameslot."""
         saved_game_files = listdir("saves/")
         if saved_game_files:
-            TerminalHandler.new_print("Pick your option:")
+            TerminalHandlerOld.new_print("Pick your option:")
             for index, file_name in enumerate(saved_game_files):
-                TerminalHandler.new_print(
+                TerminalHandlerOld.new_print(
                     f"Option {index +1} is {file_name[9:-7]}"
                 )  # prints the name of the gamestate, without printing the whole file name
-            option: str = TerminalHandler.new_input(
+            option: str = TerminalHandlerOld.new_input(
                 "Input the number of your option.\ndel$> "
             )
             try:
@@ -171,21 +171,21 @@ class Client():
             except ValueError:
                 gameslot = f"gameslot_{option}.sqlite"
                 if not gameslot in saved_game_files:
-                    TerminalHandler.new_print(
+                    TerminalHandlerOld.new_print(
                         f"Der Gameslot {gameslot[9:-7]} exisiert nicht."
                     )
                     return None
-            consent = TerminalHandler.new_input(
+            consent = TerminalHandlerOld.new_input(
                 f"Bist du dir sicher, dass du Gameslot {gameslot[9:-7]} löschen möchtest? [y/N]\ndel$> "
             ).lower()
             if consent == "y":
                 remove(f"saves/{gameslot}")
-                TerminalHandler.new_print(f"Gameslot {gameslot[9:-7]} wurde gelöscht.")
+                TerminalHandlerOld.new_print(f"Gameslot {gameslot[9:-7]} wurde gelöscht.")
             else:
-                TerminalHandler.new_print("Nichts wurde gelöscht.")
+                TerminalHandlerOld.new_print("Nichts wurde gelöscht.")
 
         else:
-            TerminalHandler.new_print("There are no gameslots.")
+            TerminalHandlerOld.new_print("There are no gameslots.")
 
     def user_input_loop(self, mode: str, prompt:str = None):
         """takes input from user and executes the
@@ -207,7 +207,7 @@ class Client():
                 else:
                     self.execute_cmd_server(user_input[0])
             else:
-                TerminalHandler.new_print(f"There is no command '{user_input[0]}'")
+                TerminalHandlerOld.new_print(f"There is no command '{user_input[0]}'")
 
     def server_listen_loop(self):
         while True:
@@ -264,7 +264,7 @@ class Client():
     def add_alias(self, alias:str, command:str):
         """add alias to the aliases File"""
         if alias.startswith("#"):
-            TerminalHandler.new_print("Aliases are not allowed to start with '#'")
+            TerminalHandlerOld.new_print("Aliases are not allowed to start with '#'")
         else:
             with open(self.__alias_file, "a", encoding="utf-8") as writer:
                 writer.write(f"{alias.strip(" ")} {command.strip(" ")}\n")
@@ -276,30 +276,30 @@ class Client():
 ############################
 
     def client_print(self, data:str):
-        TerminalHandler.new_print(data)
+        TerminalHandlerOld.new_print(data)
         return "end_of_command"
 
     def set_information_left(self, key, value):
-        TerminalHandler.set_information_left(key, value)
+        TerminalHandlerOld.set_information_left(key, value)
 
     def set_information_center(self, key, value):
-        TerminalHandler.set_information_center(key, value)
+        TerminalHandlerOld.set_information_center(key, value)
 
     def set_information_right(self, key, value):
-        TerminalHandler.set_information_right(key, value)
+        TerminalHandlerOld.set_information_right(key, value)
 
     def reset_terminal_handler(
         self, information_content_left,
         information_content_center,
         information_content_right
     ):
-        TerminalHandler.init(information_content_left,
+        TerminalHandlerOld.init(information_content_left,
         information_content_center,
         information_content_right)
 
 if __name__ == "__main__":
 
-    TerminalHandler.init(
+    TerminalHandlerOld.init(
         {"": ""},
         {"": ""},
         {"": ""}

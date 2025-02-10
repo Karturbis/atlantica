@@ -1,4 +1,4 @@
-from .terminal_handler import TerminalHandler
+from .terminal_handler import TerminalHandlerOld
 from .database_handler import DatabaseHandler
 from .input_handler import InputHandler
 from .network_handler import *

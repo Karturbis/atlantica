@@ -5,7 +5,7 @@ from os import name
 from shutil import get_terminal_size
 
 
-class TerminalHandler:
+class TerminalHandlerOld:
     """Contains all methods needed
     to display stats at the top of the
     terminal window."""
@@ -183,4 +183,4 @@ class TerminalHandler:
 
 # Tests:
 if __name__ == "__main__":
-    TerminalHandler.new_print("Hello Woreld")
+    TerminalHandlerOld.new_print("Hello Woreld")
