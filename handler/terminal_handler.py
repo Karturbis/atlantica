@@ -12,21 +12,111 @@ class TerminalHandler:
     to display stats at the top of the
     terminal window."""
 
-    __information_content_left: dict = {}
-    __information_content_center: dict = {}
-    __information_content_right: dict = {}
-    __terminal_content: list = []
+    information_content_left: dict = {}
+    information_content_center: dict = {}
+    information_content_right: dict = {}
+    border_symbol_light = "~"
+    border_symbol_bold = "="
+    __terminal_content: list = [""]
 
     @classmethod
-    def init(cls,information_content_left: dict = None,information_content_center: dict = None,information_content_right: dict = None,):
-        # init the information for the user:
-        cls.__information_content_left: dict = information_content_left
-        cls.__information_content_center: dict = information_content_center
-        cls.__information_content_right: dict = information_content_right
-        
-        cls.__terminal_content: list = []
+    def start(
+        cls,information_content_left: dict = None,
+        information_content_center: dict = None,
+        information_content_right: dict = None,
+        border_symbol = "-",
+        ):
+        cls.information_content_left = information_content_left
+        cls.information_content_center = information_content_center
+        cls.information_content_right = information_content_right
+        cls.border_symbol_light = border_symbol
+        # wrapper function from curses.wrapper, without color init:
+        try:
+            # Initialize curses
+            stdscr = curses.initscr()
+
+            # Turn off echoing of keys, and enter cbreak mode,
+            # where no buffering is performed on keyboard input
+            curses.noecho()
+            curses.cbreak()
+
+            stdscr.clear()
+            row_num, col_num = stdscr.getmaxyx()
+            screens:dict = {
+                # initialize the windows for the information content:
+                # use col_num//3, so every informationscreem uses 1/3 of the screen
+                "information_left": curses.newwin(2, col_num//3, row_num -3, 0),
+                "information_center": curses.newwin(2, col_num//3, row_num -3, col_num//3),
+                "information_right": curses.newwin(2, col_num//3, row_num -3, 2*col_num//3),
+                # initialize the output window:
+                # num_rows-7, cause the other windows use 7 vertical space
+                "output_window": curses.newwin(row_num-7, col_num, 1, 0),
+                # initialize the user input mask:
+                "input_field": curses.newwin(1, col_num, row_num-5, 0),
+
+                # initialize borders:
+                # all borders have height 1 and width col_num, because
+                # they are reetitions of one symbol over the whole terminal width
+                # Border at the top of the terminal:
+                "border_top": curses.newwin(1, col_num, 0, 0),
+
+                # border on top of the input field, 6 higher than ground:
+                "input_field_border_top": curses.newwin(1, col_num, row_num -6, 0),
+
+                # border dividing input_field and information field, 4 higher than ground:
+                "input_field_border_bottom": curses.newwin(1, col_num, row_num-4, 0),
+
+                # border at the bottom of the screen:
+                "information_border_bottom": curses.newwin(1, col_num, row_num-1, 0),
+            }
+            # clear all screens:
+            for _, screen in screens.items():
+                screen.clear()
+            # add information to the information screeens:
+            for key, value in information_content_left.items():
+                screens["information_left"].addstr(f"{key}: {value}")
+            for key, value in information_content_center.items():
+                screens["information_center"].addstr(f"{key}: {value}")
+            for key, value in information_content_right.items():
+                screens["information_right"].addstr(f"{key}: {value}")
+
+            # put data into the borders:
+            screens["border_top"].addstr(cls.border_symbol_light * (col_num -1))
+            screens["input_field_border_top"].addstr(cls.border_symbol_light * (col_num -1))
+            screens["input_field_border_botom"].addstr(cls.border_symbol_bold * (col_num -1))
+            screens["information_border_bottom"].addstr(cls.border_symbol_bold * (col_num -1))
+
+            # print data to screen:
+            cls.refresh_screens(stdscr, screens)
+            # In keypad mode, escape sequences for special keys
+            # (like the cursor keys) will be interpreted and
+            # a special value like curses.KEY_LEFT will be returned
+            screens["input_field"].keypad(1)
+
+            cls.main_loop(stdscr, screens) # execute main loop
+        finally:
+            # Set everything back to normal
+            try:
+                screens["input_field"].keypad(1)
+            finally:
+                if 'stdscr' in locals():
+                    stdscr.keypad(0)
+                    curses.echo()
+                    curses.nocbreak()
+                    curses.endwin()
+
+    @classmethod
+    def main_loop(cls, stdscr, screens):
+        input_str = ""
 
 
+    
+
+    @classmethod
+    def refresh_screens(cls, stdscr, screens):
+        stdscr.refresh()
+        for _, screen in screens.items():
+            screen.refresh()
 
 
 class TerminalHandlerOld:
