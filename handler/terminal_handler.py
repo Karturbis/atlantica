@@ -17,7 +17,9 @@ class TerminalHandler:
     information_content_right: dict = {}
     border_symbol_light = "~"
     border_symbol_bold = "="
-    __terminal_content: list = [""]
+    prompt = "input>"
+    __terminal_content: list = []
+    __terminal_history: list = [""]
 
     @classmethod
     def start(
@@ -107,10 +109,48 @@ class TerminalHandler:
 
     @classmethod
     def main_loop(cls, stdscr, screens):
+        row_num, col_num = stdscr.getmaxyx()
         input_str = ""
+        history_index = 1
+        in_field = screens["input_field"]
+        out_window = screens["output_window"]
+        while True:
+            key = in_field.getch()
 
-
-    
+            if key == 263:  # backspace
+                in_field.clear()
+                input_str = input_str[:-1] # delete last symbol
+                in_field.addsrt(f"{cls.prompt} {input_str}")
+            elif key == 259:  # arrow up
+                in_field.clear()
+                try:
+                    input_str = cls.__terminal_history[-history_index]
+                    history_index += 1
+                except IndexError:
+                    history_index = 1
+                in_field.addstr(f"{cls.prompt} {input_str}")
+            elif key == 10:  # return key
+                in_field.clear()
+                in_field.addstr(f"{cls.prompt} ")
+                cls.__terminal_content.append(input_str)
+                cls.__terminal_history.append(input_str)
+                input_str = ""
+                out_window.clear()
+                # 8 accounts for lines occupied by borders, infromation and such
+                out_window_free_space = row_num - (8 + len(cls.__terminal_content))
+                # if terminal overflows, delete the old print statements
+                while out_window_free_space <= 0:
+                    cls.__terminal_content.pop(0)
+                    out_window_free_space = row_num - (8 + len(cls.__terminal_content))
+                out_window.addstr("\n" * out_window_free_space)
+                # print terminal content
+                for i in cls.__terminal_content:
+                    out_window.addstr(f"\n{i}")
+                out_window.refresh()
+            else:
+                in_field.addstr(chr(key))
+                input_str += chr(key)
+            in_field.refresh()
 
     @classmethod
     def refresh_screens(cls, stdscr, screens):
