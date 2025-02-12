@@ -20,6 +20,8 @@ class TerminalHandler:
     prompt = "input>"
     __terminal_content: list = []
     __terminal_history: list = [""]
+    __stdscr = None
+    __screens: dict = {}
 
     @classmethod
     def start(
@@ -44,7 +46,7 @@ class TerminalHandler:
 
             stdscr.clear()
             row_num, col_num = stdscr.getmaxyx()
-            screens:dict = {
+            cls.__screens:dict = {
                 # initialize the windows for the information content:
                 # use col_num//3, so every informationscreem uses 1/3 of the screen
                 "information_left": curses.newwin(2, col_num//3, row_num -3, 0),
@@ -72,35 +74,35 @@ class TerminalHandler:
                 "information_border_bottom": curses.newwin(1, col_num, row_num-1, 0),
             }
             # clear all screens:
-            for _, screen in screens.items():
+            for _, screen in cls.__screens.items():
                 screen.clear()
             # add information to the information screeens:
             for key, value in information_content_left.items():
-                screens["information_left"].addstr(f"{key}: {value}")
+                cls.__screens["information_left"].addstr(f"{key}: {value}")
             for key, value in information_content_center.items():
-                screens["information_center"].addstr(f"{key}: {value}")
+                cls.__screens["information_center"].addstr(f"{key}: {value}")
             for key, value in information_content_right.items():
-                screens["information_right"].addstr(f"{key}: {value}")
+                cls.__screens["information_right"].addstr(f"{key}: {value}")
 
             # put data into the borders:
-            screens["border_top"].addstr(cls.border_symbol_light * (col_num -1))
-            screens["input_field_border_top"].addstr(cls.border_symbol_light * (col_num -1))
-            screens["input_field_border_bottom"].addstr(cls.border_symbol_bold * (col_num -1))
-            screens["information_border_bottom"].addstr(cls.border_symbol_bold * (col_num -1))
+            cls.__screens["border_top"].addstr(cls.border_symbol_light * (col_num -1))
+            cls.__screens["input_field_border_top"].addstr(cls.border_symbol_light * (col_num -1))
+            cls.__screens["input_field_border_bottom"].addstr(cls.border_symbol_bold * (col_num -1))
+            cls.__screens["information_border_bottom"].addstr(cls.border_symbol_bold * (col_num -1))
 
             # print data to screen:
-            cls.refresh_screens(stdscr, screens)
+            cls.refresh_screens()
             # In keypad mode, escape sequences for special keys
             # (like the cursor keys) will be interpreted and
             # a special value like curses.KEY_LEFT will be returned
-            screens["input_field"].keypad(1)
-            screens["input_field"].addstr(f"{cls.prompt} ")
+            cls.__screens["input_field"].keypad(1)
+            cls.__screens["input_field"].addstr(f"{cls.prompt} ")
 
-            cls.main_loop(stdscr, screens) # execute main loop
+            cls.main_loop() # execute main loop
         finally:
             # Set everything back to normal
             try:
-                screens["input_field"].keypad(1)
+                cls.__screens["input_field"].keypad(1)
             finally:
                 if 'stdscr' in locals():
                     stdscr.keypad(0)
@@ -109,12 +111,12 @@ class TerminalHandler:
                     curses.endwin()
 
     @classmethod
-    def main_loop(cls, stdscr, screens):
-        row_num, col_num = stdscr.getmaxyx()
+    def main_loop(cls):
+        row_num, col_num = cls.__stdscr.getmaxyx()
         input_str = ""
         history_index = 1
-        in_field = screens["input_field"]
-        out_window = screens["output_window"]
+        in_field = cls.__screens["input_field"]
+        out_window = cls.__screens["output_window"]
         while True:
             key = in_field.getch()
 
@@ -157,10 +159,17 @@ class TerminalHandler:
                 input_str += chr(key)
             in_field.refresh()
 
+
     @classmethod
-    def refresh_screens(cls, stdscr, screens):
-        stdscr.refresh()
-        for _, screen in screens.items():
+    def clear_output_window(cls):
+        cls.__screens["output_window"].clear()
+        cls.__stdscr.refresh()
+        cls.__screens["output_window"].refresh()
+
+    @classmethod
+    def refresh_screens(cls):
+        cls.__stdscr.refresh()
+        for _, screen in cls.__screens.items():
             screen.refresh()
 
 
