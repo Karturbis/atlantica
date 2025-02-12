@@ -85,7 +85,7 @@ class TerminalHandler:
             # put data into the borders:
             screens["border_top"].addstr(cls.border_symbol_light * (col_num -1))
             screens["input_field_border_top"].addstr(cls.border_symbol_light * (col_num -1))
-            screens["input_field_border_botom"].addstr(cls.border_symbol_bold * (col_num -1))
+            screens["input_field_border_bottom"].addstr(cls.border_symbol_bold * (col_num -1))
             screens["information_border_bottom"].addstr(cls.border_symbol_bold * (col_num -1))
 
             # print data to screen:
@@ -94,6 +94,7 @@ class TerminalHandler:
             # (like the cursor keys) will be interpreted and
             # a special value like curses.KEY_LEFT will be returned
             screens["input_field"].keypad(1)
+            screens["input_field"].addstr(f"{cls.prompt} ")
 
             cls.main_loop(stdscr, screens) # execute main loop
         finally:
@@ -120,7 +121,7 @@ class TerminalHandler:
             if key == 263:  # backspace
                 in_field.clear()
                 input_str = input_str[:-1] # delete last symbol
-                in_field.addsrt(f"{cls.prompt} {input_str}")
+                in_field.addstr(f"{cls.prompt} {input_str}")
             elif key == 259:  # arrow up
                 in_field.clear()
                 try:
@@ -136,16 +137,20 @@ class TerminalHandler:
                 cls.__terminal_history.append(input_str)
                 input_str = ""
                 out_window.clear()
+                history_index = 1
                 # 8 accounts for lines occupied by borders, infromation and such
-                out_window_free_space = row_num - (8 + len(cls.__terminal_content))
+                out_window_free_space = row_num - (7 + len(cls.__terminal_content))
                 # if terminal overflows, delete the old print statements
-                while out_window_free_space <= 0:
+                while out_window_free_space < 0:
                     cls.__terminal_content.pop(0)
-                    out_window_free_space = row_num - (8 + len(cls.__terminal_content))
+                    out_window_free_space = row_num - (7 + len(cls.__terminal_content))
                 out_window.addstr("\n" * out_window_free_space)
                 # print terminal content
                 for i in cls.__terminal_content:
-                    out_window.addstr(f"\n{i}")
+                    if i == cls.__terminal_content[0]:
+                        out_window.addstr(i)
+                    else:
+                        out_window.addstr(f"\n{i}")
                 out_window.refresh()
             else:
                 in_field.addstr(chr(key))
@@ -337,4 +342,4 @@ class TerminalHandlerOld:
 
 # Tests:
 if __name__ == "__main__":
-    TerminalHandlerOld.new_print("Hello Woreld")
+    TerminalHandler.start({"a": 3}, {"a": 3}, {"a": 3})
