@@ -22,6 +22,8 @@ class TerminalHandler:
     __terminal_history: list = [""]
     __stdscr = None
     __screens: dict = {}
+    __row_num: int = 0
+    __col_num: int = 0
 
     @classmethod
     def start(
@@ -37,15 +39,15 @@ class TerminalHandler:
         # wrapper function from curses.wrapper, without color init:
         try:
             # Initialize curses
-            stdscr = curses.initscr()
+            cls.__stdscr = curses.initscr()
 
             # Turn off echoing of keys, and enter cbreak mode,
             # where no buffering is performed on keyboard input
             curses.noecho()
             curses.cbreak()
 
-            stdscr.clear()
-            row_num, col_num = stdscr.getmaxyx()
+            cls.__stdscr.clear()
+            row_num, col_num = cls.__stdscr.getmaxyx()
             cls.__screens:dict = {
                 # initialize the windows for the information content:
                 # use col_num//3, so every informationscreem uses 1/3 of the screen
@@ -105,21 +107,20 @@ class TerminalHandler:
                 cls.__screens["input_field"].keypad(1)
             finally:
                 if 'stdscr' in locals():
-                    stdscr.keypad(0)
+                    cls.__stdscr.keypad(0)
                     curses.echo()
                     curses.nocbreak()
                     curses.endwin()
 
     @classmethod
     def main_loop(cls):
-        row_num, col_num = cls.__stdscr.getmaxyx()
+        cls.__row_num, cls.__col_num = cls.__stdscr.getmaxyx()
         input_str = ""
         history_index = 1
         in_field = cls.__screens["input_field"]
         out_window = cls.__screens["output_window"]
         while True:
             key = in_field.getch()
-
             if key == 263:  # backspace
                 in_field.clear()
                 input_str = input_str[:-1] # delete last symbol
@@ -135,30 +136,34 @@ class TerminalHandler:
             elif key == 10:  # return key
                 in_field.clear()
                 in_field.addstr(f"{cls.prompt} ")
-                cls.__terminal_content.append(input_str)
-                cls.__terminal_history.append(input_str)
-                input_str = ""
-                out_window.clear()
                 history_index = 1
-                # 8 accounts for lines occupied by borders, infromation and such
-                out_window_free_space = row_num - (7 + len(cls.__terminal_content))
-                # if terminal overflows, delete the old print statements
-                while out_window_free_space < 0:
-                    cls.__terminal_content.pop(0)
-                    out_window_free_space = row_num - (7 + len(cls.__terminal_content))
-                out_window.addstr("\n" * out_window_free_space)
-                # print terminal content
-                for i in cls.__terminal_content:
-                    if i == cls.__terminal_content[0]:
-                        out_window.addstr(i)
-                    else:
-                        out_window.addstr(f"\n{i}")
-                out_window.refresh()
+                cls.new_print(input_str)
+                input_str = ""
             else:
                 in_field.addstr(chr(key))
                 input_str += chr(key)
             in_field.refresh()
 
+    @classmethod
+    def new_print(cls, content:str):
+        cls.__terminal_content.append(content)
+        cls.__terminal_history.append(content)
+        out_window = cls.__screens["output_window"]
+        out_window.clear()
+        # 8 accounts for lines occupied by borders, infromation and such
+        out_window_free_space = cls.__row_num - (7 + len(cls.__terminal_content))
+        # if terminal overflows, delete the old print statements
+        while out_window_free_space < 0:
+            cls.__terminal_content.pop(0)
+            out_window_free_space = cls.__row_num - (7 + len(cls.__terminal_content))
+        out_window.addstr("\n" * out_window_free_space)
+        # print terminal content
+        for i in cls.__terminal_content:
+            if i == cls.__terminal_content[0]:
+                out_window.addstr(i)
+            else:
+                out_window.addstr(f"\n{i}")
+        out_window.refresh()
 
     @classmethod
     def clear_output_window(cls):
