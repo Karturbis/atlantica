@@ -6,40 +6,88 @@ from os import name
 from shutil import get_terminal_size
 
 
-
 class TerminalHandler:
     """Contains all methods needed
     to display stats at the top of the
     terminal window."""
 
-    information_content_left: dict = {}
-    information_content_center: dict = {}
-    information_content_right: dict = {}
-    border_symbol_light = "~"
-    border_symbol_bold = "="
-    prompt = "input>"
-    __terminal_content: list = []
-    __terminal_history: list = [""]
-    __stdscr = None
-    __screens: dict = {}
-    __row_num: int = 0
-    __col_num: int = 0
-
-    @classmethod
-    def start(
-        cls,information_content_left: dict = None,
+    def __init__(
+        self, information_content_left: dict = None,
         information_content_center: dict = None,
         information_content_right: dict = None,
         border_symbol = "-",
         ):
-        cls.information_content_left = information_content_left
-        cls.information_content_center = information_content_center
-        cls.information_content_right = information_content_right
-        cls.border_symbol_light = border_symbol
+        self.__information_content_left: dict = information_content_left
+        self.__information_content_center: dict = information_content_center
+        self.__information_content_right: dict = information_content_right
+        self.__border_symbol_light = border_symbol
+        self.__border_symbol_bold = "="
+        self.__prompt = "input>"
+        self.__terminal_content: list = []
+        self.__command_history: list = [""]
+        # init the curses screens and windows
+        self.__stdscr = curses.initscr()
+        row_num, col_num = self.__stdscr.getmaxyx()
+        self.__row_num = row_num
+        self.__col_num = col_num
+        self.__screens:dict = {
+                # initialize the windows for the information content:
+                # use col_num//3, so every informationscreem uses 1/3 of the screen
+                "information_left": curses.newwin(2, col_num//3, row_num -3, 0),
+                "information_center": curses.newwin(2, col_num//3, row_num -3, col_num//3),
+                "information_right": curses.newwin(2, col_num//3, row_num -3, 2*col_num//3),
+                # initialize the output window:
+                # num_rows-7, cause the other windows use 7 vertical space
+                "output_window": curses.newwin(row_num-7, col_num, 1, 0),
+                # initialize the user input mask:
+                "input_field": curses.newwin(1, col_num, row_num-5, 0),
+
+                # initialize borders:
+                # all borders have height 1 and width col_num, because
+                # they are reetitions of one symbol over the whole terminal width
+                # Border at the top of the terminal:
+                "border_top": curses.newwin(1, col_num, 0, 0),
+
+                # border on top of the input field, 6 higher than ground:
+                "input_field_border_top": curses.newwin(1, col_num, row_num -6, 0),
+
+                # border dividing input_field and information field, 4 higher than ground:
+                "input_field_border_bottom": curses.newwin(1, col_num, row_num-4, 0),
+
+                # border at the bottom of the screen:
+                "information_border_bottom": curses.newwin(1, col_num, row_num-1, 0),
+        }
+        # clear all screens:
+        for _, screen in self.__screens.items():
+            screen.clear()
+        # add information to the information screeens:
+        for key, value in information_content_left.items():
+            self.__screens["information_left"].addstr(f"{key}: {value}")
+        for key, value in information_content_center.items():
+            self.__screens["information_center"].addstr(f"{key}: {value}")
+        for key, value in information_content_right.items():
+            self.__screens["information_right"].addstr(f"{key}: {value}")
+        # put data into the borders:
+        self.__screens["border_top"].addstr(self.__border_symbol_light * (col_num -1))
+        self.__screens["input_field_border_top"].addstr(self.__border_symbol_light * (col_num -1))
+        self.__screens["input_field_border_bottom"].addstr(self.__border_symbol_bold * (col_num -1))
+        self.__screens["information_border_bottom"].addstr(self.__border_symbol_bold * (col_num -1))
+        self.refresh_screens()  # print data to the terminal 
+
+
+
+    def curses_wrapper(self, func):
+        try:
+            curses.noecho()
+            curses.cbreak()
+            self.__screens["input_field"].key(True)
+        finally:
+            pass
+
+    def start(self):
         # wrapper function from curses.wrapper, without color init:
         try:
             # Initialize curses
-            cls.__stdscr = curses.initscr()
 
             # Turn off echoing of keys, and enter cbreak mode,
             # where no buffering is performed on keyboard input
@@ -96,7 +144,7 @@ class TerminalHandler:
             cls.refresh_screens()
             # In keypad mode, escape sequences for special keys
             # (like the cursor keys) will be interpreted and
-            # a special value like curses.KEY_LEFT will be returned
+            # a special value lclsike curses.KEY_LEFT will be returned
             cls.__screens["input_field"].keypad(1)
             cls.__screens["input_field"].addstr(f"{cls.prompt} ")
 
@@ -118,17 +166,16 @@ class TerminalHandler:
         input_str = ""
         history_index = 1
         in_field = cls.__screens["input_field"]
-        out_window = cls.__screens["output_window"]
         while True:
             key = in_field.getch()
             if key == 263:  # backspace
                 in_field.clear()
                 input_str = input_str[:-1] # delete last symbol
                 in_field.addstr(f"{cls.prompt} {input_str}")
-            elif key == 259:  # arrow up
+            elif key == curses.KEY_UP:  # arrow up
                 in_field.clear()
                 try:
-                    input_str = cls.__terminal_history[-history_index]
+                    input_str = cls.__command_history[-history_index]
                     history_index += 1
                 except IndexError:
                     history_index = 1
@@ -139,6 +186,7 @@ class TerminalHandler:
                 history_index = 1
                 cls.new_print(input_str)
                 input_str = ""
+                return None
             else:
                 in_field.addstr(chr(key))
                 input_str += chr(key)
@@ -147,7 +195,6 @@ class TerminalHandler:
     @classmethod
     def new_print(cls, content:str):
         cls.__terminal_content.append(content)
-        cls.__terminal_history.append(content)
         out_window = cls.__screens["output_window"]
         out_window.clear()
         # 8 accounts for lines occupied by borders, infromation and such
@@ -164,6 +211,13 @@ class TerminalHandler:
             else:
                 out_window.addstr(f"\n{i}")
         out_window.refresh()
+
+    @classmethod
+    def new_input(cls, prompt: str):
+        reference_input = copy.deepcopy(cls.__command_history)
+        while reference_input == cls.__command_history:
+            pass
+        return cls.__command_history[-1]
 
     @classmethod
     def clear_output_window(cls):
@@ -357,3 +411,4 @@ class TerminalHandlerOld:
 # Tests:
 if __name__ == "__main__":
     TerminalHandler.start({"a": 3}, {"a": 3}, {"a": 3})
+    TerminalHandler.main_loop()
