@@ -13,7 +13,6 @@ from handler import network_handler
 from handler import TerminalHandlerOld
 
 
-
 class Client():
 
     def __init__(self):
@@ -33,7 +32,6 @@ class Client():
         self.name = "test"
         self.run_thread = {"menu": True}
 
-
     def join_server(self, server_ip: str="127.0.0.1", server_port:int=27300):
         """Connect to the given server."""
         server_port = 27300
@@ -43,6 +41,78 @@ class Client():
             packet_type="hello", data=self.name
         ))
         self.run_thread["menu"] = False
+
+    def user_input_get_command(self, prompt="input$>"):
+        """Returns a command and the arguments for this
+        command, the user typed in."""
+        user_in = input(f"{prompt} ").split(" ")
+        if len(user_in) > 1:
+            return user_in[0], list(user_in[1:])
+        # else:
+        return user_in[0], []
+
+    def user_input_loop(self, mode: str, prompt:str = None):
+        """takes input from user and executes the
+        corresponding commands"""
+        if not prompt:
+            prompt = f"{mode}$>"
+        while self.run_thread[mode]:
+            user_input = self.user_input_get_command(prompt)
+            if user_input[0] in self.__aliases:
+                user_input = (self.__aliases[user_input[0]], user_input[1:][0])
+            if user_input[0] in self.__local_methods[mode]:
+                if user_input[1]:
+                    self.execute_cmd_client(user_input[0], user_input[1:][0])
+                else:
+                    self.execute_cmd_client(user_input[0])
+            elif user_input[0] in self.__server_methods:
+                if user_input[1]:
+                    self.execute_cmd_server(user_input[0], user_input[1:][0])
+                else:
+                    self.execute_cmd_server(user_input[0])
+            else:
+                TerminalHandlerOld.new_print(f"There is no command '{user_input[0]}'")
+
+    def server_listen_loop(self):
+        while True:
+            data = self.__network_client.listen()
+            if data.packet_type == "command":
+                self.execute_cmd_client(
+                    data.command_name,
+                    [data.command_attributes]
+                    )
+            elif data.packet_type == "reply":
+                if not data.data == "end_of_command":
+                    print(data.data)
+
+    def execute_cmd_server(self, command, args=None):
+        if not args:
+            args = []
+        back_reply = None
+        try:
+            # send command and set reply to the answer from the server:
+            self.__network_client.send(network_handler.NetworkPacket(
+                packet_type="command",
+                command_name=command,
+                command_attributes=args,
+                )
+                )
+        except Exception as e:
+            print(f"ERROR: {e}")
+            return None
+        run: bool = True
+        while run:
+            try:
+                if back_reply:  # send backreply:
+                   self.__network_client.send(network_handler.NetworkPacket(
+                        packet_type="reply",
+                        data=back_reply,
+                        )
+                        )
+                
+            except Exception as e:
+                print(f"ERROR: {e}")
+                return None
 
     def execute_cmd_client(self, command: str, args = None):
         """Takes a command, and arguments. Executes the command
@@ -82,14 +152,20 @@ class Client():
             else: # wrong number of arguments were given
                 print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
 
-    def user_input_get_command(self, prompt="input$>"):
-        """Returns a command and the arguments for this
-        command, the user typed in."""
-        user_in = input(f"{prompt} ").split(" ")
-        if len(user_in) > 1:
-            return user_in[0], list(user_in[1:])
-        # else:
-        return user_in[0], []
+    def load_aliases(self):
+        """Load aliases from File"""
+        with open(self.__alias_file, "r", encoding="utf-8") as reader:
+            lines = reader.readlines()
+            aliases = {}
+            for line in lines:
+                if not line.startswith("#"):  # make comments with '#' in aliases.als
+                    line = line.strip("\n").split(" ")
+                    aliases[line[0]] = line[1]
+        return aliases
+
+##############################
+## user executable commands ##
+##############################
 
     def clear(self):
         TerminalHandlerOld.clear()
@@ -187,80 +263,6 @@ class Client():
         else:
             TerminalHandlerOld.new_print("There are no gameslots.")
 
-    def user_input_loop(self, mode: str, prompt:str = None):
-        """takes input from user and executes the
-        corresponding commands"""
-        if not prompt:
-            prompt = f"{mode}$>"
-        while self.run_thread[mode]:
-            user_input = self.user_input_get_command(prompt)
-            if user_input[0] in self.__aliases:
-                user_input = (self.__aliases[user_input[0]], user_input[1:][0])
-            if user_input[0] in self.__local_methods[mode]:
-                if user_input[1]:
-                    self.execute_cmd_client(user_input[0], user_input[1:][0])
-                else:
-                    self.execute_cmd_client(user_input[0])
-            elif user_input[0] in self.__server_methods:
-                if user_input[1]:
-                    self.execute_cmd_server(user_input[0], user_input[1:][0])
-                else:
-                    self.execute_cmd_server(user_input[0])
-            else:
-                TerminalHandlerOld.new_print(f"There is no command '{user_input[0]}'")
-
-    def server_listen_loop(self):
-        while True:
-            data = self.__network_client.listen()
-            if data.packet_type == "command":
-                self.execute_cmd_client(
-                    data.command_name,
-                    [data.command_attributes]
-                    )
-            elif data.packet_type == "reply":
-                if not data.data == "end_of_command":
-                    print(data.data)
-
-    def execute_cmd_server(self, command, args=None):
-        if not args:
-            args = []
-        back_reply = None
-        try:
-            # send command and set reply to the answer from the server:
-            self.__network_client.send(network_handler.NetworkPacket(
-                packet_type="command",
-                command_name=command,
-                command_attributes=args,
-                )
-                )
-        except Exception as e:
-            print(f"ERROR: {e}")
-            return None
-        run: bool = True
-        while run:
-            try:
-                if back_reply:  # send backreply:
-                   self.__network_client.send(network_handler.NetworkPacket(
-                        packet_type="reply",
-                        data=back_reply,
-                        )
-                        )
-                
-            except Exception as e:
-                print(f"ERROR: {e}")
-                return None
-
-    def load_aliases(self):
-        """Load aliases from File"""
-        with open(self.__alias_file, "r", encoding="utf-8") as reader:
-            lines = reader.readlines()
-            aliases = {}
-            for line in lines:
-                if not line.startswith("#"):  # make comments with '#' in aliases.als
-                    line = line.strip("\n").split(" ")
-                    aliases[line[0]] = line[1]
-        return aliases
-
     def add_alias(self, alias:str, command:str):
         """add alias to the aliases File"""
         if alias.startswith("#"):
@@ -271,9 +273,9 @@ class Client():
             self.__aliases = self.load_aliases()
 
 
-############################
-## Terminal handler shit: ##
-############################
+#############################
+## Terminal handler stuff: ##
+#############################
 
     def client_print(self, data:str):
         TerminalHandlerOld.new_print(data)
