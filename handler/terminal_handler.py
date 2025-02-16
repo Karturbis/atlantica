@@ -7,9 +7,8 @@ from shutil import get_terminal_size
 
 
 class TerminalHandler:
-    """Contains all methods needed
-    to display stats at the top of the
-    terminal window."""
+    """Handles user input and output to the
+    screen."""
 
     def __init__(
         self, information_content_left: dict = None,
@@ -25,8 +24,11 @@ class TerminalHandler:
         self.__prompt = "input>"
         self.__terminal_content: list = []
         self.__command_history: list = [""]
+        self.__history_index = 1
+        self.__input_str = ""
         # init the curses screens and windows
         self.__stdscr = curses.initscr()
+        self.__stdscr.clear()
         row_num, col_num = self.__stdscr.getmaxyx()
         self.__row_num = row_num
         self.__col_num = col_num
@@ -60,7 +62,7 @@ class TerminalHandler:
         # clear all screens:
         for _, screen in self.__screens.items():
             screen.clear()
-        # add information to the information screeens:
+        # add information to the information screens:
         for key, value in information_content_left.items():
             self.__screens["information_left"].addstr(f"{key}: {value}")
         for key, value in information_content_center.items():
@@ -74,161 +76,85 @@ class TerminalHandler:
         self.__screens["information_border_bottom"].addstr(self.__border_symbol_bold * (col_num -1))
         self.refresh_screens()  # print data to the terminal 
 
-
-
-    def curses_wrapper(self, func):
+    def curses_wrapper(self, func, /, *args, **kwargs):
         try:
             curses.noecho()
             curses.cbreak()
-            self.__screens["input_field"].key(True)
+            self.__screens["input_field"].keypad(True)
+            result = func(*args, **kwargs)
         finally:
-            pass
-
-    def start(self):
-        # wrapper function from curses.wrapper, without color init:
-        try:
-            # Initialize curses
-
-            # Turn off echoing of keys, and enter cbreak mode,
-            # where no buffering is performed on keyboard input
-            curses.noecho()
-            curses.cbreak()
-
-            cls.__stdscr.clear()
-            row_num, col_num = cls.__stdscr.getmaxyx()
-            cls.__screens:dict = {
-                # initialize the windows for the information content:
-                # use col_num//3, so every informationscreem uses 1/3 of the screen
-                "information_left": curses.newwin(2, col_num//3, row_num -3, 0),
-                "information_center": curses.newwin(2, col_num//3, row_num -3, col_num//3),
-                "information_right": curses.newwin(2, col_num//3, row_num -3, 2*col_num//3),
-                # initialize the output window:
-                # num_rows-7, cause the other windows use 7 vertical space
-                "output_window": curses.newwin(row_num-7, col_num, 1, 0),
-                # initialize the user input mask:
-                "input_field": curses.newwin(1, col_num, row_num-5, 0),
-
-                # initialize borders:
-                # all borders have height 1 and width col_num, because
-                # they are reetitions of one symbol over the whole terminal width
-                # Border at the top of the terminal:
-                "border_top": curses.newwin(1, col_num, 0, 0),
-
-                # border on top of the input field, 6 higher than ground:
-                "input_field_border_top": curses.newwin(1, col_num, row_num -6, 0),
-
-                # border dividing input_field and information field, 4 higher than ground:
-                "input_field_border_bottom": curses.newwin(1, col_num, row_num-4, 0),
-
-                # border at the bottom of the screen:
-                "information_border_bottom": curses.newwin(1, col_num, row_num-1, 0),
-            }
-            # clear all screens:
-            for _, screen in cls.__screens.items():
-                screen.clear()
-            # add information to the information screeens:
-            for key, value in information_content_left.items():
-                cls.__screens["information_left"].addstr(f"{key}: {value}")
-            for key, value in information_content_center.items():
-                cls.__screens["information_center"].addstr(f"{key}: {value}")
-            for key, value in information_content_right.items():
-                cls.__screens["information_right"].addstr(f"{key}: {value}")
-
-            # put data into the borders:
-            cls.__screens["border_top"].addstr(cls.border_symbol_light * (col_num -1))
-            cls.__screens["input_field_border_top"].addstr(cls.border_symbol_light * (col_num -1))
-            cls.__screens["input_field_border_bottom"].addstr(cls.border_symbol_bold * (col_num -1))
-            cls.__screens["information_border_bottom"].addstr(cls.border_symbol_bold * (col_num -1))
-
-            # print data to screen:
-            cls.refresh_screens()
-            # In keypad mode, escape sequences for special keys
-            # (like the cursor keys) will be interpreted and
-            # a special value lclsike curses.KEY_LEFT will be returned
-            cls.__screens["input_field"].keypad(1)
-            cls.__screens["input_field"].addstr(f"{cls.prompt} ")
-
-            cls.main_loop() # execute main loop
-        finally:
-            # Set everything back to normal
-            try:
-                cls.__screens["input_field"].keypad(1)
-            finally:
-                if 'stdscr' in locals():
-                    cls.__stdscr.keypad(0)
+            if 'stdscr' in locals():
+                    self.__stdscr.keypad(0)
+                    self.__screens["input_field"].keypad(False)
                     curses.echo()
                     curses.nocbreak()
                     curses.endwin()
+        return result
 
-    @classmethod
-    def main_loop(cls):
-        cls.__row_num, cls.__col_num = cls.__stdscr.getmaxyx()
-        input_str = ""
-        history_index = 1
-        in_field = cls.__screens["input_field"]
-        while True:
-            key = in_field.getch()
-            if key == 263:  # backspace
-                in_field.clear()
-                input_str = input_str[:-1] # delete last symbol
-                in_field.addstr(f"{cls.prompt} {input_str}")
-            elif key == curses.KEY_UP:  # arrow up
-                in_field.clear()
-                try:
-                    input_str = cls.__command_history[-history_index]
-                    history_index += 1
-                except IndexError:
-                    history_index = 1
-                in_field.addstr(f"{cls.prompt} {input_str}")
-            elif key == 10:  # return key
-                in_field.clear()
-                in_field.addstr(f"{cls.prompt} ")
-                history_index = 1
-                cls.new_print(input_str)
-                input_str = ""
-                return None
-            else:
-                in_field.addstr(chr(key))
-                input_str += chr(key)
-            in_field.refresh()
-
-    @classmethod
-    def new_print(cls, content:str):
-        cls.__terminal_content.append(content)
-        out_window = cls.__screens["output_window"]
+    def new_print(self, content:str):
+        self.__terminal_content.append(content)
+        out_window = self.__screens["output_window"]
         out_window.clear()
         # 8 accounts for lines occupied by borders, infromation and such
-        out_window_free_space = cls.__row_num - (7 + len(cls.__terminal_content))
+        out_window_free_space = self.__row_num - (7 + len(self.__terminal_content))
         # if terminal overflows, delete the old print statements
         while out_window_free_space < 0:
-            cls.__terminal_content.pop(0)
-            out_window_free_space = cls.__row_num - (7 + len(cls.__terminal_content))
+            self.__terminal_content.pop(0)
+            out_window_free_space = self.__row_num - (7 + len(self.__terminal_content))
         out_window.addstr("\n" * out_window_free_space)
         # print terminal content
-        for i in cls.__terminal_content:
-            if i == cls.__terminal_content[0]:
+        for i in self.__terminal_content:
+            if i == self.__terminal_content[0]:
                 out_window.addstr(i)
             else:
                 out_window.addstr(f"\n{i}")
         out_window.refresh()
 
-    @classmethod
-    def new_input(cls, prompt: str):
-        reference_input = copy.deepcopy(cls.__command_history)
-        while reference_input == cls.__command_history:
-            pass
-        return cls.__command_history[-1]
+    def new_input(self, prompt: str):
+        """new input has to be ran from a loop,
+        it returns None as long, as the user has not
+        pressed enter, if the user has pressed enter,
+        it returns the string from the user."""
+        self.__history_index = 1
+        in_field = self.__screens["input_field"]
+        in_field.clear()
+        in_field.addstr(f"{prompt} {self.__input_str}")
+        key = in_field.getch()  # get keyboard input
+        # work with keyboard input:
+        if key == curses.KEY_BACKSPACE:
+            in_field.clear()
+            self.__input_str = self.__input_str[:-1] # delete last symbol
+            in_field.addstr(f"{prompt} {self.__input_str}")
+        elif key == curses.KEY_UP:
+            in_field.clear()
+            try:
+                self.__input_str = self.__command_history[-self.__history_index]
+                self.__history_index +=1
+            except IndexError:
+                self.__history_index = 1
+            in_field.addstr(f"{prompt} {self.__input_str}")
+        elif key == 10:  # return key
+            in_field.clear()
+            in_field.addstr(f"{prompt} ")
+            self.__history_index = 1
+            out_str = self.__input_str
+            self.__input_str = ""
+            return out_str
+        else:
+            in_field.addstr(chr(key))
+            self.__input_str += chr(key)
+        in_field.refresh()
+        # return None, if enter was not pressed
+        return None
 
-    @classmethod
-    def clear_output_window(cls):
-        cls.__screens["output_window"].clear()
-        cls.__stdscr.refresh()
-        cls.__screens["output_window"].refresh()
+    def clear_output_window(self):
+        self.__screens["output_window"].clear()
+        self.__stdscr.refresh()
+        self.__screens["output_window"].refresh()
 
-    @classmethod
-    def refresh_screens(cls):
-        cls.__stdscr.refresh()
-        for _, screen in cls.__screens.items():
+    def refresh_screens(self):
+        self.__stdscr.refresh()
+        for _, screen in self.__screens.items():
             screen.refresh()
 
 
@@ -410,5 +336,15 @@ class TerminalHandlerOld:
 
 # Tests:
 if __name__ == "__main__":
-    TerminalHandler.start({"a": 3}, {"a": 3}, {"a": 3})
-    TerminalHandler.main_loop()
+    th = TerminalHandler(
+        information_content_left={"a": 3},
+        information_content_center={"b": 123},
+        information_content_right={"c": 42}
+        )
+    while True:
+        inp = th.curses_wrapper(th.new_input, "test> ")
+        if inp:
+            if inp == "quit":
+                break
+            else:
+                th.new_print(f">>> {inp}")
