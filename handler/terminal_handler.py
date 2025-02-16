@@ -83,7 +83,7 @@ class TerminalHandler:
             self.__screens["input_field"].keypad(True)
             result = func(*args, **kwargs)
         finally:
-            self.__stdscr.keypad(0)
+            self.__stdscr.keypad(False)
             self.__screens["input_field"].keypad(False)
             curses.echo()
             curses.nocbreak()
