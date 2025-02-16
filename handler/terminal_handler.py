@@ -84,11 +84,11 @@ class TerminalHandler:
             result = func(*args, **kwargs)
         finally:
             if 'stdscr' in locals():
-                    self.__stdscr.keypad(0)
-                    self.__screens["input_field"].keypad(False)
-                    curses.echo()
-                    curses.nocbreak()
-                    curses.endwin()
+                self.__stdscr.keypad(0)
+                self.__screens["input_field"].keypad(False)
+                curses.echo()
+                curses.nocbreak()
+                curses.endwin()
         return result
 
     def new_print(self, content:str):
@@ -103,11 +103,11 @@ class TerminalHandler:
             out_window_free_space = self.__row_num - (7 + len(self.__terminal_content))
         out_window.addstr("\n" * out_window_free_space)
         # print terminal content
-        for i in self.__terminal_content:
-            if i == self.__terminal_content[0]:
-                out_window.addstr(i)
+        for index, output in enumerate(self.__terminal_content):
+            if index == 0:
+                out_window.addstr(output)
             else:
-                out_window.addstr(f"\n{i}")
+                out_window.addstr(f"\n{output}")
         out_window.refresh()
 
     def new_input(self, prompt: str):
