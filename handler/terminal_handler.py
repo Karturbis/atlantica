@@ -83,15 +83,28 @@ class TerminalHandler:
             self.__screens["input_field"].keypad(True)
             result = func(*args, **kwargs)
         finally:
-            if 'stdscr' in locals():
-                self.__stdscr.keypad(0)
-                self.__screens["input_field"].keypad(False)
-                curses.echo()
-                curses.nocbreak()
-                curses.endwin()
+            self.__stdscr.keypad(0)
+            self.__screens["input_field"].keypad(False)
+            curses.echo()
+            curses.nocbreak()
+            curses.endwin()
         return result
 
-    def new_print(self, content:str):
+######################
+## wrapper methods: ##
+######################
+
+    def new_print(self, content: str):
+        return self.curses_wrapper(self._new_print, content)
+
+    def new_input(self, prompt: str):
+        return self.curses_wrapper(self._new_input, prompt)
+
+######################
+## wrapped methods: ##
+######################
+
+    def _new_print(self, content:str):
         self.__terminal_content.append(content)
         out_window = self.__screens["output_window"]
         out_window.clear()
@@ -110,7 +123,7 @@ class TerminalHandler:
                 out_window.addstr(f"\n{output}")
         out_window.refresh()
 
-    def new_input(self, prompt: str):
+    def _new_input(self, prompt: str):
         """new input has to be ran from a loop,
         it returns None as long, as the user has not
         pressed enter, if the user has pressed enter,
@@ -342,7 +355,7 @@ if __name__ == "__main__":
         information_content_right={"c": 42}
         )
     while True:
-        inp = th.curses_wrapper(th.new_input, "test>")
+        inp = th.new_input("test>")
         if inp:
             if inp == "quit":
                 break
