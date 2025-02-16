@@ -115,7 +115,6 @@ class TerminalHandler:
         it returns None as long, as the user has not
         pressed enter, if the user has pressed enter,
         it returns the string from the user."""
-        self.__history_index = 1
         in_field = self.__screens["input_field"]
         in_field.clear()
         in_field.addstr(f"{prompt} {self.__input_str}")
@@ -137,6 +136,7 @@ class TerminalHandler:
             in_field.clear()
             in_field.addstr(f"{prompt} ")
             self.__history_index = 1
+            self.__command_history.append(self.__input_str)
             out_str = self.__input_str
             self.__input_str = ""
             return out_str
@@ -342,7 +342,7 @@ if __name__ == "__main__":
         information_content_right={"c": 42}
         )
     while True:
-        inp = th.curses_wrapper(th.new_input, "test> ")
+        inp = th.curses_wrapper(th.new_input, "test>")
         if inp:
             if inp == "quit":
                 break
