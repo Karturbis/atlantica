@@ -152,34 +152,33 @@ class TerminalHandler:
         in_field = self.__screens["input_field"]
         in_field.clear()
         in_field.addstr(f"{prompt} {self.__input_str}")
-        key = in_field.getch()  # get keyboard input
-        # work with keyboard input:
-        if key == curses.KEY_BACKSPACE:
-            in_field.clear()
-            self.__input_str = self.__input_str[:-1] # delete last symbol
-            in_field.addstr(f"{prompt} {self.__input_str}")
-        elif key == curses.KEY_UP:
-            in_field.clear()
-            try:
-                self.__input_str = self.__command_history[-self.__history_index]
-                self.__history_index +=1
-            except IndexError:
+        while True:
+            key = in_field.getch()  # get keyboard input
+            # work with keyboard input:
+            if key == curses.KEY_BACKSPACE:
+                in_field.clear()
+                self.__input_str = self.__input_str[:-1] # delete last symbol
+                in_field.addstr(f"{prompt} {self.__input_str}")
+            elif key == curses.KEY_UP:
+                in_field.clear()
+                try:
+                    self.__input_str = self.__command_history[-self.__history_index]
+                    self.__history_index +=1
+                except IndexError:
+                    self.__history_index = 1
+                in_field.addstr(f"{prompt} {self.__input_str}")
+            elif key == 10:  # return key
+                in_field.clear()
+                in_field.addstr(f"{prompt} ")
                 self.__history_index = 1
-            in_field.addstr(f"{prompt} {self.__input_str}")
-        elif key == 10:  # return key
-            in_field.clear()
-            in_field.addstr(f"{prompt} ")
-            self.__history_index = 1
-            self.__command_history.append(self.__input_str)
-            out_str = self.__input_str
-            self.__input_str = ""
-            return out_str
-        else:
-            in_field.addstr(chr(key))
-            self.__input_str += chr(key)
-        in_field.refresh()
-        # return None, if enter was not pressed
-        return None
+                self.__command_history.append(self.__input_str)
+                out_str = self.__input_str
+                self.__input_str = ""
+                return out_str
+            else:
+                in_field.addstr(chr(key))
+                self.__input_str += chr(key)
+            in_field.refresh()
 
     def clear_output_window(self):
         self.__screens["output_window"].clear()
