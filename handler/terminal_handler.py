@@ -63,12 +63,7 @@ class TerminalHandler:
         for _, screen in self.__screens.items():
             screen.clear()
         # add information to the information screens:
-        for key, value in information_content_left.items():
-            self.__screens["information_left"].addstr(f"{key}: {value}")
-        for key, value in information_content_center.items():
-            self.__screens["information_center"].addstr(f"{key}: {value}")
-        for key, value in information_content_right.items():
-            self.__screens["information_right"].addstr(f"{key}: {value}")
+        self.update_static_information()
         # put data into the borders:
         self.__screens["border_top"].addstr(self.__border_symbol_light * (col_num -1))
         self.__screens["input_field_border_top"].addstr(self.__border_symbol_light * (col_num -1))
@@ -89,6 +84,26 @@ class TerminalHandler:
             curses.nocbreak()
             curses.endwin()
         return result
+
+    def set_information_left(self, key: str, value:int):
+        self.__information_content_left[key] = value
+        self.update_static_information()
+
+    def set_information_center(self, key: str, value:int):
+        self.__information_content_center[key] = value
+        self.update_static_information()
+
+    def set_information_right(self, key: str, value:int):
+        self.__information_content_right[key] = value
+        self.update_static_information()
+
+    def update_static_information(self):
+        for key, value in self.__information_content_left.items():
+            self.__screens["information_left"].addstr(f"{key}: {value}")
+        for key, value in self.__information_content_center.items():
+            self.__screens["information_center"].addstr(f"{key}: {value}")
+        for key, value in self.__information_content_right.items():
+            self.__screens["information_right"].addstr(f"{key}: {value}")
 
 ######################
 ## wrapper methods: ##
@@ -169,7 +184,6 @@ class TerminalHandler:
         self.__stdscr.refresh()
         for _, screen in self.__screens.items():
             screen.refresh()
-
 
 class TerminalHandlerOld:
     """Contains all methods needed
