@@ -85,6 +85,12 @@ class TerminalHandler:
             curses.endwin()
         return result
 
+    def reset_information(self):
+        self.__information_content_left = {}
+        self.__information_content_center = {}
+        self.__information_content_right = {}
+        self.update_static_information()
+
     def set_information_left(self, key: str, value:int):
         self.__information_content_left[key] = value
         self.update_static_information()
