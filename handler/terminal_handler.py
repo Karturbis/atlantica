@@ -71,6 +71,9 @@ class TerminalHandler:
         self.__screens["information_border_bottom"].addstr(self.__border_symbol_bold * (col_num -1))
         self.refresh_screens()  # print data to the terminal 
 
+    def end_terminal_handler(self):
+        curses.endwin()
+
     def curses_wrapper(self, func, /, *args, **kwargs):
         try:
             curses.noecho()
@@ -82,7 +85,6 @@ class TerminalHandler:
             self.__screens["input_field"].keypad(False)
             curses.echo()
             curses.nocbreak()
-            curses.endwin()
         return result
 
     def reset_information(self):
@@ -152,33 +154,33 @@ class TerminalHandler:
         in_field = self.__screens["input_field"]
         in_field.clear()
         in_field.addstr(f"{prompt} {self.__input_str}")
-        while True:
-            key = in_field.getch()  # get keyboard input
-            # work with keyboard input:
-            if key == curses.KEY_BACKSPACE:
-                in_field.clear()
-                self.__input_str = self.__input_str[:-1] # delete last symbol
-                in_field.addstr(f"{prompt} {self.__input_str}")
-            elif key == curses.KEY_UP:
-                in_field.clear()
-                try:
-                    self.__input_str = self.__command_history[-self.__history_index]
-                    self.__history_index +=1
-                except IndexError:
-                    self.__history_index = 1
-                in_field.addstr(f"{prompt} {self.__input_str}")
-            elif key == 10:  # return key
-                in_field.clear()
-                in_field.addstr(f"{prompt} ")
+        key = in_field.getch()  # get keyboard input
+        # work with keyboard input:
+        if key == curses.KEY_BACKSPACE:
+            in_field.clear()
+            self.__input_str = self.__input_str[:-1] # delete last symbol
+            in_field.addstr(f"{prompt} {self.__input_str}")
+        elif key == curses.KEY_UP:
+            in_field.clear()
+            try:
+                self.__input_str = self.__command_history[-self.__history_index]
+                self.__history_index +=1
+            except IndexError:
                 self.__history_index = 1
-                self.__command_history.append(self.__input_str)
-                out_str = self.__input_str
-                self.__input_str = ""
-                return out_str
-            else:
-                in_field.addstr(chr(key))
-                self.__input_str += chr(key)
+            in_field.addstr(f"{prompt} {self.__input_str}")
+        elif key == 10:  # return key
+            in_field.clear()
+            in_field.addstr(f"{prompt} ")
+            self.__history_index = 1
+            self.__command_history.append(self.__input_str)
+            out_str = self.__input_str
+            self.__input_str = ""
             in_field.refresh()
+            return out_str
+        else:
+            in_field.addstr(chr(key))
+            self.__input_str += chr(key)
+        in_field.refresh()
 
     def clear_output_window(self):
         self.__screens["output_window"].clear()
@@ -380,3 +382,4 @@ if __name__ == "__main__":
                 break
             else:
                 th.new_print(f">>> {inp}")
+    th.end_terminal_handler()
