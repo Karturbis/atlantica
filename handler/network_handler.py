@@ -151,7 +151,7 @@ class NetworkClient():
 
     def listen(self):
         try:
-            data = (self.active_socket.recv(2048))
+            data = self.active_socket.recv(2048)
             return pickle.loads(data)
         except socket.error as e:
             print(f"Socket ERROR: {e}")
