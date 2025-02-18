@@ -1,6 +1,7 @@
 """Module, to have stats at the top of the terminal window."""
 
 import curses
+import queue
 from os import system
 from os import name
 from shutil import get_terminal_size
@@ -11,11 +12,14 @@ class TerminalHandler:
     screen."""
 
     def __init__(
-        self, information_content_left: dict = None,
+        self, print_queue, input_queue,
+        information_content_left: dict = None,
         information_content_center: dict = None,
         information_content_right: dict = None,
         border_symbol = "-",
         ):
+        self.__print_queue = print_queue
+        self.__input_queue = input_queue
         self.__information_content_left: dict = information_content_left
         self.__information_content_center: dict = information_content_center
         self.__information_content_right: dict = information_content_right
@@ -71,8 +75,36 @@ class TerminalHandler:
         self.__screens["information_border_bottom"].addstr(self.__border_symbol_bold * (col_num -1))
         self.refresh_screens()  # print data to the terminal 
 
-    def end_terminal_handler(self):
-        curses.endwin()
+    def threaded_worker(self):
+        while True:
+            try:
+                input_command = self.__input_queue.get_nowait()
+                self.input_loop(*input_command)
+            except queue.Empty:
+                pass
+            try:
+                prints = self.__print_queue.get_nowait()
+                if not type(prints) == list:
+                    prints = [prints]
+                for i in prints:
+                    self.new_print(i)
+            except queue.Empty:
+                pass
+
+    def input_loop(self, prompt, func, args: list=None):
+        while True:
+            input_str = self.new_input(prompt)
+            if input_str:
+                func(input_str, *args)
+                break
+            try:
+                prints = self.__print_queue.get_nowait()
+                if not type(prints) == list:
+                    prints = [prints]
+                for i in prints:
+                    self.new_print(i)
+            except queue.Empty:
+                pass
 
     def curses_wrapper(self, func, /, *args, **kwargs):
         try:
@@ -112,6 +144,9 @@ class TerminalHandler:
             self.__screens["information_center"].addstr(f"{key}: {value}")
         for key, value in self.__information_content_right.items():
             self.__screens["information_right"].addstr(f"{key}: {value}")
+
+    def end_terminal_handler(self):
+        curses.endwin()
 
 ######################
 ## wrapper methods: ##

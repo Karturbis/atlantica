@@ -33,54 +33,41 @@ class Client():
         self.name = "test"
         self.run_user_input_loop = True
 
-    def worker(self):
-        while True:
-            func, args = q.get()
-            func(*args)
-            q.task_done()
-            if q.empty():
-                self.threaded_user_input_loop("Test")
-
-    def _threaded_user_input_loop(self, mode: str, prompt:str):
-        user_input = self.user_input_get_command(prompt)
-        if user_input:
-            if user_input[0] in self.__aliases:
-                user_input = (self.__aliases[user_input[0]], user_input[1:][0])
-            if user_input[0] in self.__local_methods[mode]:
-                if user_input[1]:
-                    self.execute_cmd_client(user_input[0], user_input[1:][0])
-                else:
-                    self.execute_cmd_client(user_input[0])
-            elif user_input[0] in self.__server_methods:
-                if user_input[1]:
-                    self.execute_cmd_server(user_input[0], user_input[1:][0])
-                else:
-                    self.execute_cmd_client(user_input[0])
+    def _user_input(self, user_input:str, mode: str):
+        if not type(user_input) == list:
+            user_input = [user_input]
+        if user_input[0] in self.__aliases:
+            user_input = (self.__aliases[user_input[0]], user_input[1:][0])
+        if user_input[0] in self.__local_methods[mode]:
+            if user_input[1]:
+                self.execute_cmd_client(user_input[0], user_input[1:][0])
             else:
-                terminal_handler.new_print(f"There is no command '{user_input[0]}'")
+                self.execute_cmd_client(user_input[0])
+        elif user_input[0] in self.__server_methods:
+            if user_input[1]:
+                self.execute_cmd_server(user_input[0], user_input[1:][0])
+            else:
+                self.execute_cmd_client(user_input[0])
+        else:
+            printq.put(f"There is no command '{user_input[0]}'")
 
-    def threaded_user_input_loop(self, mode: str, prompt:str = None):
+    def user_input_loop(self, mode: str, prompt:str = None):
         """takes input from user and executes the
         corresponding commands"""
         if not prompt:
             prompt = f"{mode}$>"
         if self.run_user_input_loop:
-            q.put((self._threaded_user_input_loop, [mode, prompt]))
-
+            inputq.put((prompt, self._user_input, [mode]))
 
     def threaded_server_listen_loop(self):
-        terminal_handler.new_print("Started threaded server listen loop")
+        printq.put("Started threaded server listen loop")
         while True:
             data = self.__network_client.listen()
             if data.packet_type == "command":
-                q.put((self.execute_cmd_client,
-                    [data.command_name,
-                    [data.command_attributes]
-                    ]
-                    ))
+                self.execute_cmd_client(data.command_name, data.command_attributes)
             elif data.packet_type == "reply":
                 if not data.data == "end_of_command":
-                    q.put((terminal_handler.new_print, [data.data]))
+                    printq.put(data.data)
 
     def execute_cmd_server(self, command, args=None):
         if not args:
@@ -95,7 +82,7 @@ class Client():
                 )
                 )
         except Exception as e:
-            q.put(terminal_handler.new_print, [f"ERROR: {e}"])
+            printq.put(f"ERROR: {e}")
             return None
         run: bool = True
         while run:
@@ -108,7 +95,7 @@ class Client():
                         )
 
             except Exception as e:
-                q.put(terminal_handler.new_print, [f"ERROR: {e}"])
+                printq.put(f"ERROR: {e}")
                 return None
 
     def execute_cmd_client(self, command: str, args = None):
@@ -119,7 +106,7 @@ class Client():
         try:
             func = getattr(self, command)
         except AttributeError:
-            terminal_handler.new_print(f"There is no command called {command}")
+            printq.put(f"There is no command called {command}")
         given_args_len = len(args)
         # get number of keyword args:
         if func.__defaults__:
@@ -134,20 +121,20 @@ class Client():
                 try:
                     return func(*args)
                 except Exception as e:
-                    terminal_handler.new_print(f"ERROR in Client.execute_cmd_client: {e}")
+                    printq.put(f"ERROR in Client.execute_cmd_client: {e}")
             elif expected_args_len == 0 and given_args_len != 0:
                 return func()
             else: # wrong number of arguments were given
-                terminal_handler.new_print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
+                printq.put(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
         else:  # no args where given:
             if expected_args_len == given_args_len:
                 # run method:
                 try:
                     return func()
                 except Exception as e:
-                    terminal_handler.new_print(f"ERROR in Client.execute_cmd_client: {e}")
+                    printq.put(f"ERROR in Client.execute_cmd_client: {e}")
             else: # wrong number of arguments were given
-                terminal_handler.new_print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
+                printq.put(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
 
     def load_aliases(self):
         """Load aliases from File"""
@@ -160,18 +147,18 @@ class Client():
                     aliases[line[0]] = line[1]
         return aliases
 
+    def _user_input_get_command(self, user_in):
+        user_in = user_in.split(" ")
+        if len(user_in) > 1:
+            return user_in[0], list(user_in[1:])
+        # else:
+        return user_in[0], []
+
+
     def user_input_get_command(self, prompt="input$>"):
         """Returns a command and the arguments for this
         command, the user typed in."""
-        user_in = terminal_handler.new_input(f"{prompt}")
-        if user_in:
-            user_in = user_in.split(" ")
-            if len(user_in) > 1:
-                return user_in[0], list(user_in[1:])
-            # else:
-            return user_in[0], []
-        #else:
-        return None
+        inputq.put((f"{prompt}", self._user_input_get_command))
 
 ##############################
 ## user executable commands ##
@@ -186,7 +173,7 @@ class Client():
             packet_type="hello", data=self.name
         ))
         self.run_user_input_loop = False  # close menu
-        terminal_handler.new_print(f"Successfully connected to {server_ip}.")
+        printq.put(f"Successfully connected to {server_ip}.")
 
     def clear(self):
         terminal_handler.clear_output_window()
@@ -196,12 +183,7 @@ class Client():
         self.execute_cmd_server("save_player")
         exit("Good bye, see you next time in Atlantica!")
 
-    def new_game(self, args=None) -> None:
-        """Creates a new game save slot"""
-        prompt = "new_game$>"
-        game_name = terminal_handler.new_input(
-            f"Please input the name of the gameslot\n{prompt} "
-        )
+    def _new_game(self, game_name, prompt):
         game_file_path = f"saves/gameslot_{game_name}.sqlite"
         if exists(game_file_path):
             overwrite = terminal_handler.new_input(
@@ -215,6 +197,12 @@ class Client():
         )
         self.__database_handler.set_database(game_file_path)
         return None
+
+    def new_game(self, args=None) -> None:
+        """Creates a new game save slot"""
+        prompt = "new_game$>"
+        printq.put( f"Please input the name of the gameslot\n{prompt} ")
+        inputq.put((prompt, self._new_game, [prompt]))
 
     def start_server(self, server_port = 27300, local:bool=False) -> None:
         """Starts a server for the client to connect to."""
@@ -247,12 +235,9 @@ class Client():
     def set_name(self, name:str=None):
         if name:
             self.name = name
+            printq.put(f"Name was set to {self.name}.")
         else:
-            user_in = None
-            while not user_in:
-                user_in = terminal_handler.new_input("set_name$>")
-            self.name = user_in
-        terminal_handler.new_print(f"Name was set to {self.name}.")
+            inputq.put(("set_name$>", self.set_name))
 
     def delete_game(self, args=None) -> None:
         """Delete the given Gameslot."""
@@ -328,14 +313,21 @@ class Client():
             terminal_handler.set_information_right(key, value)
 
 if __name__ == "__main__":
+    client = Client()  # init client
+    printq = Queue()  # init print queue
+    inputq = Queue()  # init input queue
     terminal_handler = TerminalHandler(
+        printq,
+        inputq,
         {"": ""},
         {"": ""},
         {"": ""}
     )
-    client = Client()  # init client
-    q = Queue()  #  init queue
-    client.worker()
+    terminal_worker_thread = Thread(target=terminal_handler.threaded_worker)
+    while client.run_user_input_loop:
+        if inputq.empty():
+            inputq.put(("menu>", client._user_input))
+
     # menu was closed:
     if not client.run_user_input_loop:
         input_loop = Thread(  # init ingame user input loop
@@ -344,7 +336,8 @@ if __name__ == "__main__":
         )
         server_loop = Thread(target=client.threaded_server_listen_loop, daemon=True)
         client.run_user_input_loop = True
-    #    input_loop.start()
+        input_loop.start()
         server_loop.start()
-        q.join()
+        inputq.join()
+        printq.join()
         terminal_handler.end_terminal_handler()
