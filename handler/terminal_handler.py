@@ -73,7 +73,7 @@ class TerminalHandler:
         self.__screens["input_field_border_top"].addstr(self.__border_symbol_light * (col_num -1))
         self.__screens["input_field_border_bottom"].addstr(self.__border_symbol_bold * (col_num -1))
         self.__screens["information_border_bottom"].addstr(self.__border_symbol_bold * (col_num -1))
-        self.refresh_screens()  # print data to the terminal 
+        self.refresh_screens()  # print data to the terminal
 
     def threaded_worker(self):
         while True:
