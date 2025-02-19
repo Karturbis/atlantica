@@ -61,8 +61,8 @@ class GuiHandler():
             # independent physics.
             dt = self.__clock.tick(60) / 1000
 
-pg = GuiHandler()
-pg.startup()
-pg.main_loop()
+gui_handler = GuiHandler()
+gui_handler.startup()
+gui_handler.main_loop()
 
 pygame.quit()
