@@ -11,9 +11,10 @@ class GuiHandler():
         self.__text_color = pygame.Color("green")
         pygame.init()
         pygame.key.set_repeat(420, 42)
-        self.__screen = pygame.display.set_mode((self.__screen_width, self.__screen_height), pygame.RESIZABLE)
+        self.__screen = pygame.display.set_mode((self.__screen_width, self.__screen_height))
         self.__clock = pygame.time.Clock()
         self.__dt = 0
+        self.__to_blit = []
 
     def startup(self):
         font = pygame.font.Font(None, 150)
@@ -33,6 +34,10 @@ class GuiHandler():
             pygame.display.flip()
             time += self.__clock.tick(60) / 420
 
+    def print_text(self, text):
+        font = pygame.font.Font(None, 42)
+        text_surface = font.render(text, True, self.__text_color)
+        self.__to_blit.append((text_surface, (10, self.__screen_height - 200)))
 
     def main_loop(self):
         font = pygame.font.Font(None, 42)
@@ -50,7 +55,7 @@ class GuiHandler():
                 # keyboard input:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
-                        print("DEBUG: KEY UP")
+                        self.print_text("DEBUG: KEY UP")
                     elif event.key == pygame.K_RETURN:
                         print(user_input)
                         user_input = ''
@@ -60,7 +65,9 @@ class GuiHandler():
                         user_input += event.unicode
             self.__screen.fill("black")
             text_surface = font.render(user_input, True, self.__text_color)
-            self.__screen.blit(text_surface, (200, 200))
+            for blitter in self.__to_blit:
+                self.__screen.blit(*blitter)
+            self.__screen.blit(text_surface, (10, self.__screen_height-100))
             self.__screen.blit(title_surface, title_rect)
             # flip() the display to put your work on screen
             pygame.display.flip()
