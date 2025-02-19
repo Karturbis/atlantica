@@ -6,14 +6,17 @@ import pygame
 class GuiHandler():
 
     def __init__(self):
+        self.__screen_height = 720
+        self.__screen_width = 1280
+        self.__text_color = pygame.Color("green")
         pygame.init()
         pygame.key.set_repeat(420, 42)
-        self.__screen = pygame.display.set_mode((1280, 720), pygame.RESIZABLE)
+        self.__screen = pygame.display.set_mode((self.__screen_width, self.__screen_height), pygame.RESIZABLE)
         self.__clock = pygame.time.Clock()
         self.__dt = 0
-        self.__font = pygame.font.Font(None, 150)
 
     def startup(self):
+        font = pygame.font.Font(None, 150)
         running = True
         time = 0
         print_str = "Starting..."
@@ -25,15 +28,20 @@ class GuiHandler():
             if int(time) == len(print_str) + 1:
                 running = False
             self.__screen.fill("black")
-            text_surface = self.__font.render(sliced_str, True, pygame.Color("green"))
-            self.__screen.blit(text_surface, (60, 350))
-            pygame.display.flip() 
+            text_surface = font.render(sliced_str, True, pygame.Color("green"))
+            self.__screen.blit(text_surface, (60, self.__screen_height//2))
+            pygame.display.flip()
             time += self.__clock.tick(60) / 420
 
 
     def main_loop(self):
+        font = pygame.font.Font(None, 42)
         running = True
         user_input = ""
+        title_font = pygame.font.Font(None, 90)
+        title = "Atlantica"
+        title_surface = title_font.render(title, True, self.__text_color)
+        title_rect = title_surface.get_rect(center=(self.__screen_width//2, 50))
         while running:
             # pygame.QUIT event means the user clicked X to close your window
             for event in pygame.event.get():
@@ -51,9 +59,9 @@ class GuiHandler():
                     else:
                         user_input += event.unicode
             self.__screen.fill("black")
-            text_surface = self.__font.render(user_input, True, pygame.Color('green'))
+            text_surface = font.render(user_input, True, self.__text_color)
             self.__screen.blit(text_surface, (200, 200))
-            pygame.draw.circle(self.__screen, "red", (50, 300), 40)
+            self.__screen.blit(title_surface, title_rect)
             # flip() the display to put your work on screen
             pygame.display.flip()
             # limits FPS to 60
@@ -62,7 +70,7 @@ class GuiHandler():
             dt = self.__clock.tick(60) / 1000
 
 gui_handler = GuiHandler()
-gui_handler.startup()
+#gui_handler.startup()
 gui_handler.main_loop()
 
 pygame.quit()
