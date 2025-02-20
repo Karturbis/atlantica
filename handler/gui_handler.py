@@ -20,7 +20,7 @@ class GuiHandler():
         self.__terminal_content = []
         # define window part heights:
         title_height = self.__screen_height//10
-        in_rect_height = self.__screen_height//27
+        in_rect_height = self.__screen_height//20
         stats_rect_height = self.__screen_height//7
         out_rect_height = self.__screen_height-in_rect_height-stats_rect_height-title_height
         # define window part positions (by defining top left corner):
@@ -68,7 +68,7 @@ class GuiHandler():
 
     def new_print(self, text):
         self.__terminal_content.append(text)
-        line_height = pygame.font.Font.size(self.__std_text_font, "TEST")[1]
+        line_height = pygame.font.Font.size(self.__std_text_font, "Tqpg")[1]
         upper_bound = self.__out_rect_top
         lower_bound = self.__in_rect_top
         while len(self.__terminal_content)*line_height > lower_bound -upper_bound:  # check if content fits in out_rect
@@ -79,13 +79,18 @@ class GuiHandler():
         for index, text_surface in enumerate(reversed(text_surfaces)):
             self.__to_blit.append((text_surface, (10, lower_bound - (index+1) * line_height)))
 
+    def clear(self):
+        self.__terminal_content = []
+        self.__to_blit = []
+
     def new_input(self):
         pass
 
     def main_loop(self):
+        prompt = "input> "
         font = self.__std_text_font
         running = True
-        user_input = ""
+        user_input = prompt
         title_font = pygame.font.Font(None, 90)
         title = "Atlantica"
         title_surface = title_font.render(title, True, self.__text_color)
@@ -98,11 +103,14 @@ class GuiHandler():
                 # keyboard input:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
-                        self.new_print(user_input)
+                        self.new_print(user_input[len(prompt):])
                     elif event.key == pygame.K_RETURN:
-                        print(user_input)
-                        self.new_print(user_input)
-                        user_input = ''
+                        if user_input[len(prompt):].lower() == "clear":
+                            self.clear()
+                        else:
+                            print(user_input[len(prompt):])
+                            self.new_print(user_input[len(prompt):])
+                        user_input = prompt
                     elif event.key == pygame.K_BACKSPACE:
                         user_input = user_input[:-1]
                     else:
