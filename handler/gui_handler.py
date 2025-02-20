@@ -13,15 +13,25 @@ class GuiHandler():
         pygame.init()
         pygame.key.set_repeat(420, 42)  # enable repeating key input, if key is constantly pressed
         self.__screen = pygame.display.set_mode((self.__screen_width, self.__screen_height))
-        self.__std_text_font = pygame.font.Font(None, 20)
+        self.__std_text_font = pygame.font.Font(None, 42)
         self.__clock = pygame.time.Clock()
         self.__dt = 0
         self.__to_blit = []
         self.__terminal_content = []
-        self.__title_rect = pygame.Rect(0, 0, self.__screen_width, self.__screen_height//10)
-        self.__out_rect = pygame.Rect(0, self.__screen_height//10, self.__screen_width, self.__screen_height - self.__screen_height//7)
-        self.__stats_rect = pygame.Rect(0, self.__screen_height - self.__screen_height//7, self.__screen_width, self.__screen_height//7)
-        self.__in_rect = pygame.Rect(0, self.__screen_height - self.__screen_height//7 - self.__screen_height//10, self.__screen_width, self.__screen_height//10)
+        # define window part heights:
+        title_height = self.__screen_height//10
+        in_rect_height = self.__screen_height//27
+        stats_rect_height = self.__screen_height//7
+        out_rect_height = self.__screen_height-in_rect_height-stats_rect_height-title_height
+        # define window part positions (by defining top left corner):
+        self.__out_rect_top = self.__screen_height//10
+        self.__in_rect_top = self.__screen_height - stats_rect_height - in_rect_height
+        stats_rect_top = self.__screen_height - stats_rect_height
+        # initialize the window parts as pygame rects:
+        self.__title_rect = pygame.Rect(0, 0, self.__screen_width, title_height)
+        self.__out_rect = pygame.Rect(0, self.__out_rect_top, self.__screen_width, out_rect_height)
+        self.__in_rect = pygame.Rect(0, self.__in_rect_top, self.__screen_width, in_rect_height)
+        self.__stats_rect = pygame.Rect(0, stats_rect_top, self.__screen_width, stats_rect_height)
 
     def startup(self):
         font = pygame.font.Font(None, 150)
@@ -54,19 +64,20 @@ class GuiHandler():
         pygame.draw.rect(self.__screen, fg_color, self.__title_rect)
         pygame.draw.rect(self.__screen, in_color, self.__in_rect)
         pygame.draw.rect(self.__screen, stats_color, self.__stats_rect)
+        #pygame.draw.rect(self.__screen, out_color, self.__out_rect)
 
     def new_print(self, text):
         self.__terminal_content.append(text)
         line_height = pygame.font.Font.size(self.__std_text_font, "TEST")[1]
-        upper_bound = self.__out_rect[1]
-        lower_bound = self.__out_rect[3] - upper_bound
-        print(line_height)
-        while len(self.__terminal_content)*line_height > self.__out_rect[2]:  # check if content fits in out_rect
+        upper_bound = self.__out_rect_top
+        lower_bound = self.__in_rect_top
+        while len(self.__terminal_content)*line_height > lower_bound -upper_bound:  # check if content fits in out_rect
             self.__terminal_content.pop(0)  # pop oldest content
         # render text to a list of text_surfaces:
         text_surfaces = [self.__std_text_font.render(i, True, self.__text_color) for i in self.__terminal_content]
-        for index, text_surface in enumerate(text_surfaces):
-            self.__to_blit.append((text_surface, (10, lower_bound - index * line_height)))
+        self.__to_blit = []  # reset self.__to_blit
+        for index, text_surface in enumerate(reversed(text_surfaces)):
+            self.__to_blit.append((text_surface, (10, lower_bound - (index+1) * line_height)))
 
     def new_input(self):
         pass
@@ -90,6 +101,7 @@ class GuiHandler():
                         self.new_print(user_input)
                     elif event.key == pygame.K_RETURN:
                         print(user_input)
+                        self.new_print(user_input)
                         user_input = ''
                     elif event.key == pygame.K_BACKSPACE:
                         user_input = user_input[:-1]
@@ -98,9 +110,8 @@ class GuiHandler():
             self.__screen.fill(self.__bg_color)
             self.debug_rects()
             text_surface = font.render(user_input, True, self.__text_color)
-            for blitter in self.__to_blit:
-                self.__screen.blit(*blitter)
-            self.__screen.blit(text_surface, (10, self.__screen_height-100))
+            self.__screen.blits(self.__to_blit)
+            self.__screen.blit(text_surface, (10, self.__in_rect_top))
             self.__screen.blit(title_surface, title_rect)
             # flip() the display to put your work on screen
             pygame.display.flip()
