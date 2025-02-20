@@ -19,6 +19,7 @@ class GuiHandler():
         self.__to_blit = []
         self.__terminal_content = []
         self.__title_rect = pygame.Rect(0, 0, self.__screen_width, self.__screen_height//10)
+        self.__out_rect = pygame.Rect(0, self.__screen_height//10, self.__screen_width, self.__screen_height - self.__screen_height//7)
         self.__stats_rect = pygame.Rect(0, self.__screen_height - self.__screen_height//7, self.__screen_width, self.__screen_height//7)
         self.__in_rect = pygame.Rect(0, self.__screen_height - self.__screen_height//7 - self.__screen_height//10, self.__screen_width, self.__screen_height//10)
 
@@ -49,8 +50,6 @@ class GuiHandler():
         out_color = pygame.Color("yellow")
         in_color = pygame.Color("red")
         stats_color = pygame.Color("blue")
-        # define rects
-        
         # draw rects:
         pygame.draw.rect(self.__screen, fg_color, self.__title_rect)
         pygame.draw.rect(self.__screen, in_color, self.__in_rect)
@@ -58,11 +57,16 @@ class GuiHandler():
 
     def new_print(self, text):
         self.__terminal_content.append(text)
-        line_height = pygame.font.Font.size(self.__std_text_font, "TEST")
-        text_surface = self.__std_text_font.render(text, True, self.__text_color)
-        font = pygame.font.Font(None, 20)
-        text_surface = font.render(text, True, self.__text_color)
-        self.__to_blit.append((text_surface, (10, self.__screen_height - 200)))
+        line_height = pygame.font.Font.size(self.__std_text_font, "TEST")[1]
+        upper_bound = self.__out_rect[1]
+        lower_bound = self.__out_rect[3] - upper_bound
+        print(line_height)
+        while len(self.__terminal_content)*line_height > self.__out_rect[2]:  # check if content fits in out_rect
+            self.__terminal_content.pop(0)  # pop oldest content
+        # render text to a list of text_surfaces:
+        text_surfaces = [self.__std_text_font.render(i, True, self.__text_color) for i in self.__terminal_content]
+        for index, text_surface in enumerate(text_surfaces):
+            self.__to_blit.append((text_surface, (10, lower_bound - index * line_height)))
 
     def new_input(self):
         pass
