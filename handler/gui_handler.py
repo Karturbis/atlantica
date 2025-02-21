@@ -2,7 +2,6 @@
 import pygame
 
 
-
 class GuiHandler():
 
     def __init__(self):
@@ -83,11 +82,8 @@ class GuiHandler():
         self.__terminal_content = []
         self.__to_blit = []
 
-    def new_input(self):
-        pass
-
-    def main_loop(self):
-        prompt = "input> "
+    def new_input(self, prompt = "input>"):
+        prompt = f"{prompt.strip(" ")} " # make sure promt contains exactly one space at the end
         font = self.__std_text_font
         running = True
         user_input = prompt
@@ -108,8 +104,7 @@ class GuiHandler():
                         if user_input[len(prompt):].lower() == "clear":
                             self.clear()
                         else:
-                            print(user_input[len(prompt):])
-                            self.new_print(user_input[len(prompt):])
+                            return user_input[len(prompt):]
                         user_input = prompt
                     elif event.key == pygame.K_BACKSPACE:
                         user_input = user_input[:-1]
@@ -128,8 +123,15 @@ class GuiHandler():
             # independent physics.
             dt = self.__clock.tick(60) / 1000
 
+
+
 gui_handler = GuiHandler()
 #gui_handler.startup()
-gui_handler.main_loop()
+while True:
+    text = gui_handler.new_input()
+    if text.lower() == "exit":
+        break
+    else:
+        gui_handler.new_print(text)
 
 pygame.quit()
