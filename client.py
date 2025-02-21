@@ -6,12 +6,12 @@ from os import system
 import shutil  # Used copy the content.sqlite file into a newfrom os import system gameslot
 from sys import exit
 from threading import Thread
-from queue import Queue
+from pygame.base import quit as pg_quit
 
 # handler imports:
 from handler import DatabaseHandler
 from handler import network_handler
-from handler import TerminalHandler
+from handler import GuiHandler
 
 
 class Client():
@@ -33,41 +33,37 @@ class Client():
         self.name = "test"
         self.run_user_input_loop = True
 
-    def _user_input(self, user_input:str, mode: str):
-        if not type(user_input) == list:
-            user_input = [user_input]
-        if user_input[0] in self.__aliases:
-            user_input = (self.__aliases[user_input[0]], user_input[1:][0])
-        if user_input[0] in self.__local_methods[mode]:
-            if user_input[1]:
-                self.execute_cmd_client(user_input[0], user_input[1:][0])
-            else:
-                self.execute_cmd_client(user_input[0])
-        elif user_input[0] in self.__server_methods:
-            if user_input[1]:
-                self.execute_cmd_server(user_input[0], user_input[1:][0])
-            else:
-                self.execute_cmd_client(user_input[0])
-        else:
-            printq.put(f"There is no command '{user_input[0]}'")
-
     def user_input_loop(self, mode: str, prompt:str = None):
         """takes input from user and executes the
         corresponding commands"""
         if not prompt:
             prompt = f"{mode}$>"
-        if self.run_user_input_loop:
-            inputq.put((prompt, self._user_input, [mode]))
+        while self.run_user_input_loop:
+            user_input = gui_handler.new_input().strip(" ").split(" ")
+            if user_input[0] in self.__aliases:
+                user_input = (self.__aliases[user_input[0]], user_input[1:])
+            if user_input[0] in self.__local_methods[mode]:
+                if user_input[1]:
+                    self.execute_cmd_client(user_input[0], user_input[1:])
+                else:
+                    self.execute_cmd_client(user_input[0])
+            elif user_input[0] in self.__server_methods:
+                if user_input[1]:
+                    self.execute_cmd_server(user_input[0], user_input[1:])
+                else:
+                    self.execute_cmd_client(user_input[0])
+            else:
+                gui_handler.new_print(f"There is no command '{user_input[0]}'")
 
     def threaded_server_listen_loop(self):
-        printq.put("Started threaded server listen loop")
+        gui_handler.new_print("Started threaded server listen loop")
         while True:
             data = self.__network_client.listen()
             if data.packet_type == "command":
                 self.execute_cmd_client(data.command_name, data.command_attributes)
             elif data.packet_type == "reply":
                 if not data.data == "end_of_command":
-                    printq.put(data.data)
+                    gui_handler.new_print(data.data)
 
     def execute_cmd_server(self, command, args=None):
         if not args:
@@ -82,7 +78,7 @@ class Client():
                 )
                 )
         except Exception as e:
-            printq.put(f"ERROR: {e}")
+            gui_handler.new_print(f"ERROR: {e}")
             return None
         run: bool = True
         while run:
@@ -93,9 +89,8 @@ class Client():
                         data=back_reply,
                         )
                         )
-
             except Exception as e:
-                printq.put(f"ERROR: {e}")
+                gui_handler.new_print(f"ERROR: {e}")
                 return None
 
     def execute_cmd_client(self, command: str, args = None):
@@ -106,7 +101,7 @@ class Client():
         try:
             func = getattr(self, command)
         except AttributeError:
-            printq.put(f"There is no command called {command}")
+            gui_handler.new_print(f"There is no command called {command}")
         given_args_len = len(args)
         # get number of keyword args:
         if func.__defaults__:
@@ -121,20 +116,20 @@ class Client():
                 try:
                     return func(*args)
                 except Exception as e:
-                    printq.put(f"ERROR in Client.execute_cmd_client: {e}")
+                    gui_handler.new_print(f"ERROR in Client.execute_cmd_client: {e}")
             elif expected_args_len == 0 and given_args_len != 0:
                 return func()
             else: # wrong number of arguments were given
-                printq.put(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
+                gui_handler.new_print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
         else:  # no args where given:
             if expected_args_len == given_args_len:
                 # run method:
                 try:
                     return func()
                 except Exception as e:
-                    printq.put(f"ERROR in Client.execute_cmd_client: {e}")
+                    gui_handler.new_print(f"ERROR in Client.execute_cmd_client: {e}")
             else: # wrong number of arguments were given
-                printq.put(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
+                gui_handler.new_print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
 
     def load_aliases(self):
         """Load aliases from File"""
@@ -154,11 +149,10 @@ class Client():
         # else:
         return user_in[0], []
 
-
     def user_input_get_command(self, prompt="input$>"):
         """Returns a command and the arguments for this
         command, the user typed in."""
-        inputq.put((f"{prompt}", self._user_input_get_command))
+        gui_handler.new_input(prompt)
 
 ##############################
 ## user executable commands ##
@@ -173,52 +167,50 @@ class Client():
             packet_type="hello", data=self.name
         ))
         self.run_user_input_loop = False  # close menu
-        printq.put(f"Successfully connected to {server_ip}.")
+        gui_handler.new_print(f"Successfully connected to {server_ip}.")
 
     def clear(self):
-        terminal_handler.clear_output_window()
+        gui_handler.clear()
 
     def quit_game(self, args=None) -> None:
         """Saves and quits the game."""
         self.execute_cmd_server("save_player")
+        pg_quit()  # quit pygame
         exit("Good bye, see you next time in Atlantica!")
 
-    def _new_game(self, game_name, prompt):
+    def new_game(self, args=None) -> None:
+        """Creates a new game save slot"""
+        prompt = "new_game$>"
+        game_name = gui_handler.new_input( f"Please input the name of the gameslot {prompt}")
         game_file_path = f"saves/gameslot_{game_name}.sqlite"
         if exists(game_file_path):
-            overwrite = terminal_handler.new_input(
-                f"This gameslot is already occupied, do you want to overwrite? [y/N]\n{prompt} "
+            overwrite = gui_handler.new_input(
+                f"This gameslot is already occupied, do you want to overwrite? [y/N] {prompt}"
             ).lower()
-            if not overwrite == "y" or overwrite == "yes":
+            if not (overwrite == "y" or overwrite == "yes"):
                 return None
         shutil.copyfile("data/game_content.sqlite", game_file_path)
-        terminal_handler.new_print(
+        gui_handler.new_print(
             f"The gameslot: {game_name} was sucessfully created."
         )
         self.__database_handler.set_database(game_file_path)
         return None
 
-    def new_game(self, args=None) -> None:
-        """Creates a new game save slot"""
-        prompt = "new_game$>"
-        printq.put( f"Please input the name of the gameslot\n{prompt} ")
-        inputq.put((prompt, self._new_game, [prompt]))
-
     def start_server(self, server_port = 27300, local:bool=False) -> None:
         """Starts a server for the client to connect to."""
         saved_game_files = listdir("saves/")
         if saved_game_files:
-            terminal_handler.new_print("Pick your option:")
+            gui_handler.new_print("Pick your option:")
             for index, file_name in enumerate(saved_game_files):
-                terminal_handler.new_print(
+                gui_handler.new_print(
                     f"Option {index +1} is {file_name[9:-7]}"
                 )  # prints the name of the gamestate, without printing the whole file name
             try:
                 option = int(
-                    terminal_handler.new_input("Input the number of your option.\n> ")
+                    gui_handler.new_input("Input the number of your option $> ")
                 )
             except ValueError:
-                terminal_handler.new_print(
+                gui_handler.new_print(
                     "You have to put in the NUMBER of your gameslot."
                 )
                 return None
@@ -227,7 +219,7 @@ class Client():
             # NEED TO FIND MEHTOD TO START SERVER, WITHOUT SOTTPING CLIENT!
             system(f"python3 server.py {game_file_path} {local} {server_port} &")
         else:
-            terminal_handler.new_print("There are no gameslots available, create one with 'new'.")
+            gui_handler.new_print("There are no gameslots available, create one with 'new'.")
 
     def load_game(self):
         self.start_server(local=True)
@@ -235,21 +227,21 @@ class Client():
     def set_name(self, name:str=None):
         if name:
             self.name = name
-            printq.put(f"Name was set to {self.name}.")
         else:
-            inputq.put(("set_name$>", self.set_name))
+            self.name = gui_handler.new_input("set_name$>")
+        gui_handler.new_print(f"Name was set to {self.name}.")
 
     def delete_game(self, args=None) -> None:
         """Delete the given Gameslot."""
         saved_game_files = listdir("saves/")
         if saved_game_files:
-            terminal_handler.new_print("Pick your option:")
+            gui_handler.new_print("Pick your option:")
             for index, file_name in enumerate(saved_game_files):
-                terminal_handler.new_print(
+                gui_handler.new_print(
                     f"Option {index +1} is {file_name[9:-7]}"
                 )  # prints the name of the gamestate, without printing the whole file name
-            option: str = terminal_handler.new_input(
-                "Input the number of your option.\ndel$> "
+            option: str = gui_handler.new_input(
+                "Input the number of your option. del$>"
             )
             try:
                 option: int = int(option)
@@ -257,38 +249,42 @@ class Client():
             except ValueError:
                 gameslot = f"gameslot_{option}.sqlite"
                 if not gameslot in saved_game_files:
-                    terminal_handler.new_print(
+                    gui_handler.new_print(
                         f"Der Gameslot {gameslot[9:-7]} exisiert nicht."
                     )
                     return None
-            consent = terminal_handler.new_input(
-                f"Bist du dir sicher, dass du Gameslot {gameslot[9:-7]} löschen möchtest? [y/N]\ndel$> "
+            consent = gui_handler.new_input(
+                f"Bist du dir sicher, dass du Gameslot {gameslot[9:-7]} löschen möchtest? [y/N] del$> "
             ).lower()
             if consent == "y":
                 remove(f"saves/{gameslot}")
-                terminal_handler.new_print(f"Gameslot {gameslot[9:-7]} wurde gelöscht.")
+                gui_handler.new_print(f"Gameslot {gameslot[9:-7]} wurde gelöscht.")
             else:
-                terminal_handler.new_print("Nichts wurde gelöscht.")
+                gui_handler.new_print("Nichts wurde gelöscht.")
 
         else:
-            terminal_handler.new_print("There are no gameslots.")
+            gui_handler.new_print("There are no gameslots.")
 
     def add_alias(self, alias:str, command:str):
         """add alias to the aliases File"""
         if alias.startswith("#"):
-            terminal_handler.new_print("Aliases are not allowed to start with '#'")
+            gui_handler.new_print("Aliases are not allowed to start with '#'")
         else:
             with open(self.__alias_file, "a", encoding="utf-8") as writer:
                 writer.write(f"{alias.strip(" ")} {command.strip(" ")}\n")
             self.__aliases = self.load_aliases()
 
-#############################
-## Terminal handler stuff: ##
-#############################
+########################
+## Gui handler stuff: ##
+########################
 
     def client_print(self, data:str):
-        terminal_handler.new_print(data)
+        gui_handler.new_print(data)
         return "end_of_command"
+
+######################################
+## Not yet Implement in gui handler ##
+######################################
 
     def set_information_left(self, key, value):
         terminal_handler.set_information_left(key, value)
@@ -314,30 +310,6 @@ class Client():
 
 if __name__ == "__main__":
     client = Client()  # init client
-    printq = Queue()  # init print queue
-    inputq = Queue()  # init input queue
-    terminal_handler = TerminalHandler(
-        printq,
-        inputq,
-        {"": ""},
-        {"": ""},
-        {"": ""}
-    )
-    terminal_worker_thread = Thread(target=terminal_handler.threaded_worker)
-    while client.run_user_input_loop:
-        if inputq.empty():
-            inputq.put(("menu>", client._user_input))
-
-    # menu was closed:
-    if not client.run_user_input_loop:
-        input_loop = Thread(  # init ingame user input loop
-        target=client.threaded_user_input_loop, args=["ingame", f"{client.name}@Karsten>"],
-        daemon=True
-        )
-        server_loop = Thread(target=client.threaded_server_listen_loop, daemon=True)
-        client.run_user_input_loop = True
-        input_loop.start()
-        server_loop.start()
-        inputq.join()
-        printq.join()
-        terminal_handler.end_terminal_handler()
+    gui_handler = GuiHandler()  # init gui handler
+    # main loop
+    client.user_input_loop("menu")
