@@ -8,7 +8,7 @@ class GuiHandler():
         self.__screen_width = 1280
         self.__text_color = pygame.Color("white")
         self.__bg_color = pygame.Color("black")
-        pygame.init()
+        pygame.init()  # init pygame
         pygame.key.set_repeat(420, 42)  # enable repeating key input, if key is constantly pressed
         self.__screen = pygame.display.set_mode((self.__screen_width, self.__screen_height))
         self.__std_text_font = pygame.font.Font(None, 42)
