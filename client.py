@@ -46,7 +46,6 @@ class Client():
             self.__mode = mode
         while True:
             print("uil_start")
-            gui_handler.refresh()
             user_input = gui_handler.new_input(self.__prompt).strip(" ").split(" ")
             print("uil_got_input")
             if user_input[0] in self.__aliases:
