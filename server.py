@@ -621,13 +621,14 @@ class ServerMethods():
     def fanf(self):
         packet = network_handler.NetworkPacket(
             packet_type="command",
-            command_name="new_print",
+            command_name="client_print",
             command_attributes=["DATA"]
         )
         network_server.send_packet(packet, self.__connection)
         return "end_of_command"
 
     def ping(self):
+        print(f"pinged at Time: {time.time_ns()}")
         return f"Time:{time.time_ns()}"
 
 cmd_line_args = sys.argv
