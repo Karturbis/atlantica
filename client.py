@@ -30,39 +30,52 @@ class Client():
         self.__aliases = self.load_aliases()
         self.__database_handler = DatabaseHandler()
         self.__network_client = None
+        self.__network_client_thread = None
         self.name = "test"
-        self.run_user_input_loop = True
+        self.__prompt = "input$>"
+        self.__mode = "menu"
 
-    def user_input_loop(self, mode: str, prompt:str = None):
+    def user_input_loop(self, mode: str = None, prompt:str = None):
         """takes input from user and executes the
         corresponding commands"""
         if not prompt:
-            prompt = f"{mode}$>"
-        while self.run_user_input_loop:
-            user_input = gui_handler.new_input().strip(" ").split(" ")
+            self.__prompt = f"{mode}$>"
+        else:
+            self.__prompt = prompt
+        if mode:
+            self.__mode = mode
+        while True:
+            print("uil_start")
+            gui_handler.refresh()
+            user_input = gui_handler.new_input(self.__prompt).strip(" ").split(" ")
+            print("uil_got_input")
             if user_input[0] in self.__aliases:
                 user_input = (self.__aliases[user_input[0]], user_input[1:])
-            if user_input[0] in self.__local_methods[mode]:
-                if user_input[1]:
+            if user_input[0] in self.__local_methods[self.__mode]:
+                if user_input[1:] != []:  # check if list has more than one item
                     self.execute_cmd_client(user_input[0], user_input[1:])
                 else:
                     self.execute_cmd_client(user_input[0])
             elif user_input[0] in self.__server_methods:
-                if user_input[1]:
+                if user_input[1:] != []:  # check if list has more than one item
                     self.execute_cmd_server(user_input[0], user_input[1:])
                 else:
-                    self.execute_cmd_client(user_input[0])
+                    self.execute_cmd_server(user_input[0])
             else:
                 gui_handler.new_print(f"There is no command '{user_input[0]}'")
 
     def threaded_server_listen_loop(self):
         gui_handler.new_print("Started threaded server listen loop")
         while True:
+            print("tsll_start")
             data = self.__network_client.listen()
             if data.packet_type == "command":
                 self.execute_cmd_client(data.command_name, data.command_attributes)
             elif data.packet_type == "reply":
                 if not data.data == "end_of_command":
+                    print(data)
+                    print(data.data)
+                    print(type(data.data))
                     gui_handler.new_print(data.data)
 
     def execute_cmd_server(self, command, args=None):
@@ -70,7 +83,7 @@ class Client():
             args = []
         back_reply = None
         try:
-            # send command and set reply to the answer from the server:
+            # send command
             self.__network_client.send(network_handler.NetworkPacket(
                 packet_type="command",
                 command_name=command,
@@ -96,8 +109,9 @@ class Client():
     def execute_cmd_client(self, command: str, args = None):
         """Takes a command, and arguments. Executes the command
         with the given arguments, if possible."""
+        print(f"{command}||SEP||{args}")
         if not args:
-            args = []
+            args = ([],)
         try:
             func = getattr(self, command)
         except AttributeError:
@@ -142,17 +156,14 @@ class Client():
                     aliases[line[0]] = line[1]
         return aliases
 
-    def _user_input_get_command(self, user_in):
-        user_in = user_in.split(" ")
+    def user_input_get_command(self, prompt="input$>"):
+        """Returns a command and the arguments for this
+        command, the user typed in."""
+        user_in = gui_handler.new_input(prompt).split(" ")
         if len(user_in) > 1:
             return user_in[0], list(user_in[1:])
         # else:
         return user_in[0], []
-
-    def user_input_get_command(self, prompt="input$>"):
-        """Returns a command and the arguments for this
-        command, the user typed in."""
-        gui_handler.new_input(prompt)
 
 ##############################
 ## user executable commands ##
@@ -161,12 +172,15 @@ class Client():
     def join_server(self, server_ip: str="127.0.0.1", server_port:int=27300):
         """Connect to the given server."""
         server_port = 27300
+        self.__network_client_thread = Thread(target=self.threaded_server_listen_loop, daemon=True)
         self.__network_client = network_handler.NetworkClient(server_ip, server_port)
         self.__server_methods = self.__network_client.connect().data
         self.__network_client.send(network_handler.NetworkPacket(
             packet_type="hello", data=self.name
         ))
-        self.run_user_input_loop = False  # close menu
+        self.__prompt = f"{self.name}@{server_ip}$>"
+        self.__mode = "ingame"
+        self.__network_client_thread.start()
         gui_handler.new_print(f"Successfully connected to {server_ip}.")
 
     def clear(self):
