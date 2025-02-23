@@ -29,7 +29,9 @@ class GuiHandler():
         self.__title_rect = pygame.Rect(0, 0, self.__screen_width, title_height)
         self.__out_rect = pygame.Rect(0, self.__out_rect_top, self.__screen_width, out_rect_height)
         self.__in_rect = pygame.Rect(0, self.__in_rect_top, self.__screen_width, in_rect_height)
-        self.__stats_rect = pygame.Rect(0, stats_rect_top, self.__screen_width, stats_rect_height)
+        self.__stats_rect_left = pygame.Rect(0, stats_rect_top, self.__screen_width//3, stats_rect_height)
+        self.__stats_rect_center = pygame.Rect(self.__screen_width//3, stats_rect_top, self.__screen_width//3, stats_rect_height)
+        self.__stats_rect_right = pygame.Rect(2*self.__screen_width//3, stats_rect_top, self.__screen_width//3, stats_rect_height)
 
     def startup(self):
         font = pygame.font.Font(None, 150)
@@ -73,11 +75,15 @@ class GuiHandler():
         fg_color = pygame.Color("green")
         out_color = pygame.Color("yellow")
         in_color = pygame.Color("red")
-        stats_color = pygame.Color("blue")
+        stats_color_left = pygame.Color("blue")
+        stats_color_center = pygame.Color("aqua")
+        stats_color_right = pygame.Color("cornflowerblue")
         # draw rects:
         pygame.draw.rect(self.__screen, fg_color, self.__title_rect)
         pygame.draw.rect(self.__screen, in_color, self.__in_rect)
-        pygame.draw.rect(self.__screen, stats_color, self.__stats_rect)
+        pygame.draw.rect(self.__screen, stats_color_left, self.__stats_rect_left)
+        pygame.draw.rect(self.__screen, stats_color_center, self.__stats_rect_center)
+        pygame.draw.rect(self.__screen, stats_color_right, self.__stats_rect_right)
         #pygame.draw.rect(self.__screen, out_color, self.__out_rect)
 
     def new_print(self, text):
