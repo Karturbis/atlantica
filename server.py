@@ -357,7 +357,6 @@ class ServerMethods():
         """Loads the Chunk with the given id"""
         try:
             chunk_data = self.db_handler.get_chunk_data(chunk_id)
-            self.new_print(str(chunk_data[4]))
         except IndexError:
             self.new_print("Where you wanted to go, there is just void.")
             return self.__position
@@ -427,6 +426,7 @@ class ServerMethods():
                     else:
                         self.new_print(
                             "You did not walk, the direction you want to go does not exist.")
+                self.new_print(self.__position.get_description())
             except ValueError:
                 self.new_print("Firstly, write the direction, you want to go,")
                 self.new_print("and secondly, write the number of steps you want to take.")
