@@ -73,9 +73,10 @@ class NetworkServer():
                 ]
             )))
         while True:  # main loop
-            reply = None
+            print("srvsdtc start loop")
             try:
                 data = pickle.loads(connection.recv(2048))  # receive data
+                print("received data")
             except EOFError as e:
                 print(f"Error pickle.loads data: {e}")
                 break
@@ -84,18 +85,12 @@ class NetworkServer():
                 break
             elif data.packet_type == "command":
                 command: str = data.command_name
-                # execute the received command and write the return to reply:
-                reply = callable_method(command, data.command_attributes)
+                print(f"executing command {data.command_name}")
+                # execute the received command:
+                callable_method(command, data.command_attributes)
+                print(f"finished executing command {command}")
             elif data.packet_type == "reply":
                 print(data.data)
-                continue
-            # package the reply into a sendable NetworkPacket:
-            reply_packaged = NetworkPacket(data=reply, packet_type="reply")
-            try:
-                connection.sendall(pickle.dumps(reply_packaged))  # send reply
-            except socket.error as e:
-                print(f"ERROR: {e}")
-                break
         print(f"Lost connection to client {connection_id}")
         connection.close()
         # cleanup data of the thread which does not automatically dies with the thread:
@@ -110,8 +105,8 @@ class NetworkServer():
         """Send given packet,
         returns the reply."""
         try:
+            print(f"sending packet: {packet.command_name}")
             connection.sendall(pickle.dumps(packet))  # send packet
-            return pickle.loads(connection.recv(2048))  # return the reply
         except socket.error as e:
             print(f"Error sending packet: {e}")
 
@@ -156,6 +151,7 @@ class NetworkClient():
             return pickle.loads(data)
         except socket.error as e:
             print(f"Socket ERROR: {e}")
+
 
 class ThreadData():
     """Dataclass used to store data,

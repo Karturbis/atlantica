@@ -241,7 +241,8 @@ class ServerMethods():
             self.__inventory[i] = literal_eval(self.__inventory[i])
 
     def new_print(self, data):
-        network_server.send_print_packet(data, self.__connection)
+        if data:
+            network_server.send_print_packet(data, self.__connection)
 
 
     def get_character_data(self) -> dict:
@@ -267,7 +268,7 @@ class ServerMethods():
         try:
             func = getattr(self, command)
         except AttributeError:
-            return f"There is no command called {command}"
+            self.new_print(f"There is no command called {command}")
         given_args_len = len(args)
         expected_args_len = len(signature(func).parameters)
         if given_args_len >= 1:
@@ -276,18 +277,18 @@ class ServerMethods():
                 try:
                     return func(args)
                 except Exception as e:
-                    return f"ERROR in (1) ServerMethods.excute_cmd: {e}"
+                    self.new_print(f"ERROR in (1) ServerMethods.excute_cmd: {e}")
             else: # wrong number of arguments were given
-                return f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}."
+                self.new_print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
         else:  # no args where given:
             if expected_args_len == given_args_len:
                 # run method:
                 try:
                     return func()
                 except Exception as e:
-                    return f"ERROR in (2) ServerMethods.excute_cmd: {e}"
+                    self.new_print(f"ERROR in (2) ServerMethods.excute_cmd: {e}")
             else: # wrong number of arguments were given
-                return f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}."
+                self.new_print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
 
     def reset_commands(self):
         self.__server_methods = self.__standart_server_methods
@@ -436,7 +437,7 @@ class ServerMethods():
         """Rest, no other actions
         take place. The Player
         gets healed."""
-        return "You had a nice rest!"
+        self.new_print("You had a nice rest!")
 
     def take(self, item: list = None) -> None:
         """Take a given Item from
@@ -455,13 +456,13 @@ class ServerMethods():
                     self.save_chunk()
                     found = True
                 if not found:
-                    return f"There is no {i} at your current location."
+                    self.new_print(f"There is no {i} at your current location.")
 
     def drop(self, items: list = None) -> None:
         """Drop a given Item from the
         Inventory to the current chunk."""
         if items is None:
-            return "You dropped ... nothing."
+            self.new_print("You dropped ... nothing.")
         else:
             for i in items:
                 dropped = False
@@ -490,7 +491,7 @@ class ServerMethods():
                 else:
                     self.new_print(key[5:])
         else:
-            return "Your inventory is empty."
+            self.new_print("Your inventory is empty.")
 
     def equip(self, item: list = None) -> None:
         """Equip a given Item, that either
@@ -505,13 +506,13 @@ class ServerMethods():
             self.save_chunk()
             item_selected = item_selected_pos
         else:
-            return f"There is no {item[0]}, you could equip right now."
+            self.new_print(f"There is no {item[0]}, you could equip right now.")
         self.unequip()
         self.__inventory[item_selected] = True  # set the eqiupped parameter to true
         if item[0] == "":
-            return "You wanted to equip. But what?"
+            self.new_print("You wanted to equip. But what?")
         # else:
-        return f"You equipped {item_selected[5:]}."
+        self.new_print(f"You equipped {item_selected[5:]}.")
 
     def unequip(self, item: list = None, first_iter: bool = True) -> None:
         """Unequip the Item, which
@@ -530,7 +531,7 @@ class ServerMethods():
                     found = True
                     self.unequip(None, False)
             if not found:
-                return f"{item[0]} was no equipped."
+                self.new_print(f"{item[0]} was no equipped.")
 
     def eat(self, item: list = None):
         """Removes the eaten item
@@ -573,13 +574,13 @@ class ServerMethods():
                 else:
                     self.new_print(f"You tried to eat {i}, but you had none left")
         else:
-            return "You did not eat."
+            self.new_print("You did not eat.")
 
     def inspect(self):
         """Outprints the items,
         which are in the current Chunk."""
         self.__position = self.load_chunk(self.__position.get_chunk_id())
-        return f"There are: {self.__position.get_items()}"
+        self.new_print(f"There are: {self.__position.get_items()}")
 
     def fanf(self):
         packet = network_handler.NetworkPacket(
@@ -590,8 +591,9 @@ class ServerMethods():
         network_server.send_packet(packet, self.__connection)
 
     def ping(self):
-        print(f"pinged at Time: {time.time_ns()}")
-        return f"Time:{time.time_ns()}"
+        time_now = time.time_ns()
+        print(f"pinged at Time: {time_now}")
+        self.new_print(f"Time:{time_now}")
 
 cmd_line_args = sys.argv
 try:
