@@ -1,6 +1,6 @@
 import socket
 import pickle
-from _thread import start_new_thread
+from threading import Thread
 
 class NetworkServer():
     """Used to create the server side of
@@ -41,7 +41,9 @@ class NetworkServer():
             self.__thread_data.callable_methods[connection_counter] = self.__init_callable(
                 conn, connection_counter, self.__thread_data
                 ).execute_cmd
-            start_new_thread(self.threaded_client, (conn, connection_counter))
+            t = Thread(target=self.threaded_client, args=(conn, connection_counter))
+            t.daemon = True  # daemonize thread so it ends, when main thread ends
+            t.start()
 
     def threaded_client(self, connection, connection_id):
         """Main loop for the threads. Each thread handles one
@@ -49,11 +51,9 @@ class NetworkServer():
         # set the callable_method, to be able to execute commands on the server:
         callable_method = self.__thread_data.callable_methods[connection_id]
         # send initial hello:
-        datas = callable_method("get_server_methods", [])
-        npacket = NetworkPacket(packet_type="hello", data=datas)
-        connection.sendall(
-            pickle.dumps(npacket)
-            )
+        server_methods = callable_method("get_server_methods", [])
+        npacket = NetworkPacket(packet_type="hello", data=server_methods)
+        connection.sendall(pickle.dumps(npacket))
         self.__thread_data.client_names[connection_id] = pickle.loads(
             connection.recv(2048)
             ).data
@@ -61,34 +61,35 @@ class NetworkServer():
             f"Client name is: {self.__thread_data.client_names[connection_id]}"
             )
         callable_method("init_character_data", [self.__game_file_path])
-        connection.sendall(pickle.dumps(npacket))
+        # initialize client side TerminalHandler:
+        character_data = callable_method("get_character_data")
+        connection.sendall(pickle.dumps(NetworkPacket(
+            packet_type="command",
+            command_name="reset_terminal_handler",
+            command_attributes=[
+                {k: character_data[k] for k in ["health", "saturation"]},
+                {k: character_data[k] for k in ["speed", "strength"]},
+                {"level": character_data["level"]}
+                ]
+            )))
         while True:  # main loop
             try:
                 data = pickle.loads(connection.recv(2048))  # receive data
             except EOFError as e:
                 print(f"Error pickle.loads data: {e}")
                 break
-            reply = None
             if not data:  # client has disconnected
                 print("Disconnected")
                 break
             elif data.packet_type == "command":
                 command: str = data.command_name
-                # execute the received command and write the return to reply:
-                reply = callable_method(command, data.command_attributes)
+                # execute the received command:
+                callable_method(command, data.command_attributes)
             elif data.packet_type == "reply":
                 print(data.data)
-                continue
-            # package the reply into a sendable NetworkPacket:
-            reply_packaged = NetworkPacket(data=reply, packet_type="reply")
-            try:
-                connection.sendall(pickle.dumps(reply_packaged))  # send reply
-            except socket.error as e:
-                print(f"ERROR: {e}")
-                break
         print(f"Lost connection to client {connection_id}")
         connection.close()
-        # cleanup data of the thread, which does not automatically dies with the thread:
+        # cleanup data of the thread which does not automatically dies with the thread:
         self.__thread_data.callable_methods.pop(connection_id)
         # thread dies
 
@@ -101,14 +102,13 @@ class NetworkServer():
         returns the reply."""
         try:
             connection.sendall(pickle.dumps(packet))  # send packet
-            return pickle.loads(connection.recv(2048))  # return the reply
         except socket.error as e:
             print(f"Error sending packet: {e}")
 
     def send_print_packet(self, data:str, connection):
         packet = NetworkPacket(
             packet_type="command", command_name="client_print",
-            command_attributes=str(data)
+            command_attributes=[str(data)]
             )
         self.send_packet(packet, connection)
 
@@ -127,7 +127,7 @@ class NetworkClient():
     def connect(self):
         """connect to server"""
         try:
-            self.active_socket.connect((self.__server_ip, self.__port))  # conect to server
+            self.active_socket.connect((self.__server_ip, self.__port))  # connect to server
             return pickle.loads(self.active_socket.recv(2048))  # return the server hello
         except socket.error as e:
             print(f"ERROR: {e}")
@@ -137,9 +137,15 @@ class NetworkClient():
         server"""
         try:
             self.active_socket.send(pickle.dumps(data))  # send data
-            return pickle.loads(self.active_socket.recv(2048))  # return the server reply
         except socket.error as e:
             print(f"ERROR: {e}")
+
+    def listen(self):
+        try:
+            data = self.active_socket.recv(2048)
+            return pickle.loads(data)
+        except socket.error as e:
+            print(f"Socket ERROR: {e}")
 
 
 class ThreadData():

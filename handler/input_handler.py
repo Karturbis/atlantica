@@ -1,4 +1,4 @@
-from handler import TerminalHandler
+from handler import TerminalHandlerOld
 
 class InputHandler:
     """The InputHandler is in charge
@@ -36,7 +36,7 @@ class InputHandler:
         inputing = True
         while inputing:
             try:
-                commands_input = TerminalHandler.new_input("> ").lower().split(" ")
+                commands_input = TerminalHandlerOld.new_input("> ").lower().split(" ")
                 if commands_input == [""]:
                     continue
                 command_found: bool = False
@@ -48,7 +48,7 @@ class InputHandler:
                             if func_list[0] == "main":
                                 func = getattr(self.main, func_list[1])
                             elif func_list[0] == "TerminalHandler":
-                                func = getattr(TerminalHandler, func_list[1])
+                                func = getattr(TerminalHandlerOld, func_list[1])
                             func(commands_input[1:])
                 elif len(commands_input) == 1:
                     for key, func_list in self.__commands_avail.items():
@@ -57,10 +57,10 @@ class InputHandler:
                             if func_list[0] == "main":
                                 func = getattr(self.main, func_list[1])
                             elif func_list[0] == "TerminalHandler":
-                                func = getattr(TerminalHandler, func_list[1])
+                                func = getattr(TerminalHandlerOld, func_list[1])
                             func()
                 if not command_found:
-                    TerminalHandler.new_print("Please enter a valid command, type 'help' for help.")
+                    TerminalHandlerOld.new_print("Please enter a valid command, type 'help' for help.")
 
             except RuntimeError:
                 break

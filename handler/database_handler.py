@@ -1,11 +1,16 @@
 import sqlite3
+import platform
 
 class DatabaseHandler:
     """Handles the sqlite instances,
     reads and writes to sqlite databases..."""
 
     def __init__(self, database: str=None) -> None:
-        self.__readonly_db: str = "data/game_content.sqlite"
+        if platform.system().lower == "windows":
+            self.__path_sep = "\\"
+        else:
+            self.__path_sep = "/"
+        self.__readonly_db: str = f"data{self.__path_sep}game_content.sqlite"
         if database and not database == "":
             self.__database: str = database
         else:
