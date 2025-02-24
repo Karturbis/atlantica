@@ -64,6 +64,7 @@ class NetworkServer():
         # initialize client side TerminalHandler:
         character_data = callable_method("get_character_data")
         connection.sendall(pickle.dumps(NetworkPacket(
+            packet_type="command",
             command_name="reset_terminal_handler",
             command_attributes=[
                 {k: character_data[k] for k in ["health", "saturation"]},
@@ -117,7 +118,7 @@ class NetworkServer():
     def send_print_packet(self, data:str, connection):
         packet = NetworkPacket(
             packet_type="command", command_name="client_print",
-            command_attributes=str(data)
+            command_attributes=[str(data)]
             )
         self.send_packet(packet, connection)
 
