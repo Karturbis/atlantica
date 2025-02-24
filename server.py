@@ -240,6 +240,10 @@ class ServerMethods():
         for i in self.__inventory:
             self.__inventory[i] = literal_eval(self.__inventory[i])
 
+    def new_print(self, data):
+        network_server.send_print_packet(data, self.__connection)
+
+
     def get_character_data(self) -> dict:
         """Returns the character data
         as a dict."""
@@ -352,9 +356,9 @@ class ServerMethods():
         """Loads the Chunk with the given id"""
         try:
             chunk_data = self.db_handler.get_chunk_data(chunk_id)
-            network_server.send_print_packet(str(chunk_data[4]), self.__connection)
+            self.new_print(str(chunk_data[4]))
         except IndexError:
-            network_server.send_print_packet("Where you wanted to go, there is just void.", self.__connection)
+            self.new_print("Where you wanted to go, there is just void.")
             return self.__position
         self.save_chunk()  # save the state of the current chunk.
         self.reset_commands()  # reset commands, so previous chunk has no effecet anymore
@@ -420,24 +424,13 @@ class ServerMethods():
                             self.__position.get_west_chunk_id()
                         )
                     else:
-                        network_server.send_print_packet(
-                            "You did not walk, the direction you want to go does not exist.",
-                            self.__connection
-                        )
+                        self.new_print(
+                            "You did not walk, the direction you want to go does not exist.")
             except ValueError:
-                network_server.send_print_packet(
-                    "\nFirstly, write the direction, you want to go,",
-                    self.__connection
-                )
-                network_server.send_print_packet(
-                    "and secondly, write the number of steps you want to take.",
-                    self.__connection
-                )
+                self.new_print("Firstly, write the direction, you want to go,")
+                self.new_print("and secondly, write the number of steps you want to take.")
         else:
-            network_server.send_print_packet(
-                "You did not walk, because you don't know which direction.",
-                self.__connection
-            )
+            self.new_print("You did not walk, because you don't know which direction.")
 
     def rest(self) -> None:
         """Rest, no other actions
@@ -458,10 +451,7 @@ class ServerMethods():
                         False  # Setting equipped parameter to False
                     )
                     self.__position.remove_item(item_selected)
-                    network_server.send_print_packet(
-                        f"You took {item_selected[5:]}.",
-                        self.__connection
-                    )
+                    self.new_print(f"You took {item_selected[5:]}.")
                     self.save_chunk()
                     found = True
                 if not found:
@@ -479,41 +469,26 @@ class ServerMethods():
                 if item_selected:
                     self.__inventory.pop(item_selected)
                     self.__position.add_item(item_selected)
-                    network_server.send_print_packet(
-                        f"You dropped {item_selected[5:]}.",
-                        self.__connection)
+                    self.new_print(f"You dropped {item_selected[5:]}.")
                     self.save_chunk()
                     dropped = True
                 if not dropped:
                     if not i == "":
-                        network_server.send_print_packet(
-                            f"You tried to drop {i}, but it was not even in your inventory!",
-                            self.__connection
-                        )
+                        self.new_print(
+                            f"You tried to drop {i}, but it was not even in your inventory!")
                     else:
-                        network_server.send_print_packet(
-                            "You dropped ... nothing.",
-                            self.__connection
-                        )
+                        self.new_print("You dropped ... nothing.")
 
     def print_inventory(self) -> None:
         """ "Outprints the Inventory, mark
         which item is equiped."""
         if self.__inventory:
-            network_server.send_print_packet(
-                "Your inventory contains:",
-                self.__connection
-            )
+            self.new_print("Your inventory contains:")
             for key, value in self.__inventory.items():
                 if value:  # check, if item is eqiupped
-                    network_server.send_print_packet(
-                        f"{key[5:]} - equipped",
-                        self.__connection
-                    )
+                    self.new_print(f"{key[5:]} - equipped")
                 else:
-                    network_server.send_print_packet(
-                        key[5:], self.__connection
-                    )
+                    self.new_print(key[5:])
         else:
             return "Your inventory is empty."
 
@@ -547,10 +522,7 @@ class ServerMethods():
                     self.__inventory[inventory_item] = (
                         False  # set the equipped parameter to false
                     )
-                    network_server.send_print_packet(
-                        f"You unequipped {inventory_item}.",
-                        self.__connection
-                    )
+                    self.new_print(f"You unequipped {inventory_item}.")
         else:
             found = False
             for inventory_item, equipped in self.__inventory.items():
@@ -574,9 +546,8 @@ class ServerMethods():
                     #check if item is safely eatable:
                     if nutrition > 1:
                         self.__saturation = int(self.__saturation) + nutrition
-                        network_server.send_print_packet(
-                        f"You ate {item_selected[5:]}, it was {nutrition} nutritious.",
-                        self.__connection
+                        self.new_print(
+                        f"You ate {item_selected[5:]}, it was {nutrition} nutritious."
                         )
                         # update player info:
                         network_server.send_packet(network_handler.NetworkPacket(
@@ -588,9 +559,8 @@ class ServerMethods():
                         )
                     else:
                         self.__health = int(self.__health) +  nutrition
-                        network_server.send_print_packet(
-                        f"You ate {item_selected[5:]}, it hurt you {abs(nutrition)} health.",
-                        self.__connection
+                        self.new_print(
+                        f"You ate {item_selected[5:]}, it hurt you {abs(nutrition)} health."
                         )
                         # update player info:
                         network_server.send_packet(network_handler.NetworkPacket(
@@ -601,10 +571,7 @@ class ServerMethods():
                         self.__connection
                         )
                 else:
-                    network_server.send_print_packet(
-                        f"You tried to eat {i}, but you had none left",
-                        self.__connection
-                    )
+                    self.new_print(f"You tried to eat {i}, but you had none left")
         else:
             return "You did not eat."
 
