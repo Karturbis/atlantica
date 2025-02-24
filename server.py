@@ -61,10 +61,10 @@ class Item:
 
     def get_nutrition(self) -> int:
         return self.__nutrition
-    
+
     def get_description(self) -> str:
         return self.__description
-    
+
     def get_damage(self) -> int:
         return self.__damage
 
@@ -257,6 +257,9 @@ class ServerMethods():
     def execute_cmd(self, command, args=None):
         if not args:
             args = []
+        elif not type(args) == list:
+            args = [args]
+            print(args)
         try:
             func = getattr(self, command)
         except AttributeError:
@@ -399,7 +402,7 @@ class ServerMethods():
                     direction.append(1)
                 else:
                     direction[1] = int(direction[1])
-                for i in range(direction[1]):
+                for _ in range(direction[1]):
                     if direction[0] == "north" or direction[0] == "n":
                         self.__position = self.load_chunk(
                             self.__position.get_north_chunk_id()
@@ -430,7 +433,6 @@ class ServerMethods():
                     "and secondly, write the number of steps you want to take.",
                     self.__connection
                 )
-            return "end_of_command"
         else:
             network_server.send_print_packet(
                 "You did not walk, because you don't know which direction.",
@@ -464,8 +466,6 @@ class ServerMethods():
                     found = True
                 if not found:
                     return f"There is no {i} at your current location."
-                else:
-                    return "end_of_command"
 
     def drop(self, items: list = None) -> None:
         """Drop a given Item from the
@@ -495,7 +495,6 @@ class ServerMethods():
                             "You dropped ... nothing.",
                             self.__connection
                         )
-            return "end_of_command"
 
     def print_inventory(self) -> None:
         """ "Outprints the Inventory, mark
@@ -515,7 +514,6 @@ class ServerMethods():
                     network_server.send_print_packet(
                         key[5:], self.__connection
                     )
-            return "end_of_command"
         else:
             return "Your inventory is empty."
 
@@ -553,7 +551,6 @@ class ServerMethods():
                         f"You unequipped {inventory_item}.",
                         self.__connection
                     )
-            return "end_of_command"
         else:
             found = False
             for inventory_item, equipped in self.__inventory.items():
@@ -603,7 +600,6 @@ class ServerMethods():
                         ),
                         self.__connection
                         )
-                    return "end_of_command"
                 else:
                     network_server.send_print_packet(
                         f"You tried to eat {i}, but you had none left",
@@ -625,7 +621,6 @@ class ServerMethods():
             command_attributes=["DATA"]
         )
         network_server.send_packet(packet, self.__connection)
-        return "end_of_command"
 
     def ping(self):
         print(f"pinged at Time: {time.time_ns()}")
