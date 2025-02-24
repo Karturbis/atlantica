@@ -46,9 +46,7 @@ class Client():
         if mode:
             self.__mode = mode
         while True:
-            print("uil_start")
             user_input = self.__gui_handler.new_input(self.__prompt).strip(" ").split(" ")
-            print(f"uil_got_input: {user_input}")
             if user_input[0] in self.__aliases:
                 try:
                     user_input = (self.__aliases[user_input[0]], user_input[1])
@@ -69,18 +67,14 @@ class Client():
 
     def threaded_server_listen_loop(self):
         while True:
-            print("tsll_start")
             data = self.__network_client.listen()
-            print(f"tsll got packettype: {data.packet_type}")
-            print(f"tsll got command: {data.command_name}")
-            print(f"tsll got attrs: {data.command_attributes}")
-            print(f"tsll got data: {data.data}")
             if data.packet_type == "command":
                 self.execute_cmd_client(data.command_name, data.command_attributes)
             elif data.packet_type == "reply":
                 self.__gui_handler.new_print(data.data)
 
     def execute_cmd_server(self, command, args=None):
+        print(f"start executing command {command}")
         if not args:
             args = []
         try:
@@ -111,7 +105,7 @@ class Client():
         else:
             kwargs = 0
         # subtract kwargs from all args to get positional args
-        expected_args_len = func.__code__.co_argcount - kwargs -1  # -1 otherwise self counts as an arg 
+        expected_args_len = func.__code__.co_argcount - kwargs -1  # -1 otherwise self counts as an arg
         if given_args_len >= 1:
             if expected_args_len == given_args_len:
                 # run method:
