@@ -16,7 +16,8 @@ from handler import GuiHandler
 
 class Client():
 
-    def __init__(self):
+    def __init__(self, gui_handler):
+        self.__gui_handler = gui_handler
         self.__local_methods: dict = {
             "menu": [
                 "clear", "new_game", "load_game", "delete_game",
@@ -46,7 +47,7 @@ class Client():
             self.__mode = mode
         while True:
             print("uil_start")
-            user_input = gui_handler.new_input(self.__prompt).strip(" ").split(" ")
+            user_input = self.__gui_handler.new_input(self.__prompt).strip(" ").split(" ")
             print("uil_got_input")
             if user_input[0] in self.__aliases:
                 user_input = (self.__aliases[user_input[0]], user_input[1:])
@@ -61,10 +62,10 @@ class Client():
                 else:
                     self.execute_cmd_server(user_input[0])
             else:
-                gui_handler.new_print(f"There is no command '{user_input[0]}'")
+                self.__gui_handler.new_print(f"There is no command '{user_input[0]}'")
 
     def threaded_server_listen_loop(self):
-        gui_handler.new_print("Started threaded server listen loop")
+        self.__gui_handler.new_print("Started threaded server listen loop")
         while True:
             print("tsll_start")
             data = self.__network_client.listen()
@@ -75,7 +76,7 @@ class Client():
                     print(data)
                     print(data.data)
                     print(type(data.data))
-                    gui_handler.new_print(data.data)
+                    self.__gui_handler.new_print(data.data)
 
     def execute_cmd_server(self, command, args=None):
         if not args:
@@ -90,7 +91,7 @@ class Client():
                 )
                 )
         except Exception as e:
-            gui_handler.new_print(f"ERROR: {e}")
+            self.__gui_handler.new_print(f"ERROR: {e}")
             return None
         run: bool = True
         while run:
@@ -102,7 +103,7 @@ class Client():
                         )
                         )
             except Exception as e:
-                gui_handler.new_print(f"ERROR: {e}")
+                self.__gui_handler.new_print(f"ERROR: {e}")
                 return None
 
     def execute_cmd_client(self, command: str, args = None):
@@ -114,7 +115,7 @@ class Client():
         try:
             func = getattr(self, command)
         except AttributeError:
-            gui_handler.new_print(f"There is no command called {command}")
+            self.__gui_handler.new_print(f"There is no command called {command}")
         given_args_len = len(args)
         # get number of keyword args:
         if func.__defaults__:
@@ -129,20 +130,20 @@ class Client():
                 try:
                     return func(*args)
                 except Exception as e:
-                    gui_handler.new_print(f"ERROR in Client.execute_cmd_client: {e}")
+                    self.__gui_handler.new_print(f"ERROR in Client.execute_cmd_client: {e}")
             elif expected_args_len == 0 and given_args_len != 0:
                 return func()
             else: # wrong number of arguments were given
-                gui_handler.new_print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
+                self.__gui_handler.new_print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
         else:  # no args where given:
             if expected_args_len == given_args_len:
                 # run method:
                 try:
                     return func()
                 except Exception as e:
-                    gui_handler.new_print(f"ERROR in Client.execute_cmd_client: {e}")
+                    self.__gui_handler.new_print(f"ERROR in Client.execute_cmd_client: {e}")
             else: # wrong number of arguments were given
-                gui_handler.new_print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
+                self.__gui_handler.new_print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
 
     def load_aliases(self):
         """Load aliases from File"""
@@ -158,7 +159,7 @@ class Client():
     def user_input_get_command(self, prompt="input$>"):
         """Returns a command and the arguments for this
         command, the user typed in."""
-        user_in = gui_handler.new_input(prompt).split(" ")
+        user_in = self.__gui_handler.new_input(prompt).split(" ")
         if len(user_in) > 1:
             return user_in[0], list(user_in[1:])
         # else:
@@ -180,10 +181,10 @@ class Client():
         self.__prompt = f"{self.name}@{server_ip}$>"
         self.__mode = "ingame"
         self.__network_client_thread.start()
-        gui_handler.new_print(f"Successfully connected to {server_ip}.")
+        self.__gui_handler.new_print(f"Successfully connected to {server_ip}.")
 
     def clear(self):
-        gui_handler.clear()
+        self.__gui_handler.clear()
 
     def quit_game(self, args=None) -> None:
         """Saves and quits the game."""
@@ -194,16 +195,16 @@ class Client():
     def new_game(self, args=None) -> None:
         """Creates a new game save slot"""
         prompt = "new_game$>"
-        game_name = gui_handler.new_input( f"Please input the name of the gameslot {prompt}")
+        game_name = self.__gui_handler.new_input( f"Please input the name of the gameslot {prompt}")
         game_file_path = f"saves/gameslot_{game_name}.sqlite"
         if exists(game_file_path):
-            overwrite = gui_handler.new_input(
+            overwrite = self.__gui_handler.new_input(
                 f"This gameslot is already occupied, do you want to overwrite? [y/N] {prompt}"
             ).lower()
             if not (overwrite == "y" or overwrite == "yes"):
                 return None
         shutil.copyfile("data/game_content.sqlite", game_file_path)
-        gui_handler.new_print(
+        self.__gui_handler.new_print(
             f"The gameslot: {game_name} was sucessfully created."
         )
         self.__database_handler.set_database(game_file_path)
@@ -213,17 +214,17 @@ class Client():
         """Starts a server for the client to connect to."""
         saved_game_files = listdir("saves/")
         if saved_game_files:
-            gui_handler.new_print("Pick your option:")
+            self.__gui_handler.new_print("Pick your option:")
             for index, file_name in enumerate(saved_game_files):
-                gui_handler.new_print(
+                self.__gui_handler.new_print(
                     f"Option {index +1} is {file_name[9:-7]}"
                 )  # prints the name of the gamestate, without printing the whole file name
             try:
                 option = int(
-                    gui_handler.new_input("Input the number of your option $> ")
+                    self.__gui_handler.new_input("Input the number of your option $> ")
                 )
             except ValueError:
-                gui_handler.new_print(
+                self.__gui_handler.new_print(
                     "You have to put in the NUMBER of your gameslot."
                 )
                 return None
@@ -232,7 +233,7 @@ class Client():
             # NEED TO FIND MEHTOD TO START SERVER, WITHOUT SOTTPING CLIENT!
             system(f"python3 server.py {game_file_path} {local} {server_port} &")
         else:
-            gui_handler.new_print("There are no gameslots available, create one with 'new'.")
+            self.__gui_handler.new_print("There are no gameslots available, create one with 'new'.")
 
     def load_game(self):
         self.start_server(local=True)
@@ -241,19 +242,19 @@ class Client():
         if name:
             self.name = name
         else:
-            self.name = gui_handler.new_input("set_name$>")
-        gui_handler.new_print(f"Name was set to {self.name}.")
+            self.name = self.__gui_handler.new_input("set_name$>")
+        self.__gui_handler.new_print(f"Name was set to {self.name}.")
 
     def delete_game(self, args=None) -> None:
         """Delete the given Gameslot."""
         saved_game_files = listdir("saves/")
         if saved_game_files:
-            gui_handler.new_print("Pick your option:")
+            self.__gui_handler.new_print("Pick your option:")
             for index, file_name in enumerate(saved_game_files):
-                gui_handler.new_print(
+                self.__gui_handler.new_print(
                     f"Option {index +1} is {file_name[9:-7]}"
                 )  # prints the name of the gamestate, without printing the whole file name
-            option: str = gui_handler.new_input(
+            option: str = self.__gui_handler.new_input(
                 "Input the number of your option. del$>"
             )
             try:
@@ -262,26 +263,26 @@ class Client():
             except ValueError:
                 gameslot = f"gameslot_{option}.sqlite"
                 if not gameslot in saved_game_files:
-                    gui_handler.new_print(
+                    self.__gui_handler.new_print(
                         f"Der Gameslot {gameslot[9:-7]} exisiert nicht."
                     )
                     return None
-            consent = gui_handler.new_input(
+            consent = self.__gui_handler.new_input(
                 f"Bist du dir sicher, dass du Gameslot {gameslot[9:-7]} löschen möchtest? [y/N] del$> "
             ).lower()
             if consent == "y":
                 remove(f"saves/{gameslot}")
-                gui_handler.new_print(f"Gameslot {gameslot[9:-7]} wurde gelöscht.")
+                self.__gui_handler.new_print(f"Gameslot {gameslot[9:-7]} wurde gelöscht.")
             else:
-                gui_handler.new_print("Nichts wurde gelöscht.")
+                self.__gui_handler.new_print("Nichts wurde gelöscht.")
 
         else:
-            gui_handler.new_print("There are no gameslots.")
+            self.__gui_handler.new_print("There are no gameslots.")
 
     def add_alias(self, alias:str, command:str):
         """add alias to the aliases File"""
         if alias.startswith("#"):
-            gui_handler.new_print("Aliases are not allowed to start with '#'")
+            self.__gui_handler.new_print("Aliases are not allowed to start with '#'")
         else:
             with open(self.__alias_file, "a", encoding="utf-8") as writer:
                 writer.write(f"{alias.strip(" ")} {command.strip(" ")}\n")
@@ -292,7 +293,7 @@ class Client():
 ########################
 
     def client_print(self, data:str):
-        gui_handler.new_print(data)
+        self.__gui_handler.new_print(data)
         return "end_of_command"
 
 ######################################
@@ -322,7 +323,7 @@ class Client():
             terminal_handler.set_information_right(key, value)
 
 if __name__ == "__main__":
-    client = Client()  # init client
     gui_handler = GuiHandler()  # init gui handler
+    client = Client(gui_handler)  # init client
     # main loop
     client.user_input_loop("menu")
