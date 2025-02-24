@@ -102,9 +102,11 @@ class Client():
                         data=back_reply,
                         )
                         )
+                else:
+                    run = False
             except Exception as e:
                 self.__gui_handler.new_print(f"ERROR: {e}")
-                return None
+                run = False
 
     def execute_cmd_client(self, command: str, args = None):
         """Takes a command, and arguments. Executes the command
