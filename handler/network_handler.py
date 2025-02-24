@@ -136,7 +136,7 @@ class NetworkClient():
     def connect(self):
         """connect to server"""
         try:
-            self.active_socket.connect((self.__server_ip, self.__port))  # conect to server
+            self.active_socket.connect((self.__server_ip, self.__port))  # connect to server
             return pickle.loads(self.active_socket.recv(2048))  # return the server hello
         except socket.error as e:
             print(f"ERROR: {e}")
