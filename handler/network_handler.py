@@ -73,10 +73,8 @@ class NetworkServer():
                 ]
             )))
         while True:  # main loop
-            print("srvsdtc start loop")
             try:
                 data = pickle.loads(connection.recv(2048))  # receive data
-                print("received data")
             except EOFError as e:
                 print(f"Error pickle.loads data: {e}")
                 break
@@ -85,10 +83,8 @@ class NetworkServer():
                 break
             elif data.packet_type == "command":
                 command: str = data.command_name
-                print(f"executing command {data.command_name}")
                 # execute the received command:
                 callable_method(command, data.command_attributes)
-                print(f"finished executing command {command}")
             elif data.packet_type == "reply":
                 print(data.data)
         print(f"Lost connection to client {connection_id}")
@@ -105,7 +101,6 @@ class NetworkServer():
         """Send given packet,
         returns the reply."""
         try:
-            print(f"sending packet: {packet.command_name}")
             connection.sendall(pickle.dumps(packet))  # send packet
         except socket.error as e:
             print(f"Error sending packet: {e}")
