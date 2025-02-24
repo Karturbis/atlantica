@@ -48,42 +48,43 @@ class Client():
         while True:
             print("uil_start")
             user_input = self.__gui_handler.new_input(self.__prompt).strip(" ").split(" ")
-            print("uil_got_input")
+            print(f"uil_got_input: {user_input}")
             if user_input[0] in self.__aliases:
-                user_input = (self.__aliases[user_input[0]], user_input[1:])
+                try:
+                    user_input = (self.__aliases[user_input[0]], user_input[1])
+                except IndexError:
+                    user_input = (self.__aliases[user_input[0]], [])
             if user_input[0] in self.__local_methods[self.__mode]:
                 if user_input[1:] != []:  # check if list has more than one item
-                    self.execute_cmd_client(user_input[0], user_input[1:])
+                    self.execute_cmd_client(user_input[0], user_input[1])
                 else:
                     self.execute_cmd_client(user_input[0])
             elif user_input[0] in self.__server_methods:
                 if user_input[1:] != []:  # check if list has more than one item
-                    self.execute_cmd_server(user_input[0], user_input[1:])
+                    self.execute_cmd_server(user_input[0], user_input[1])
                 else:
                     self.execute_cmd_server(user_input[0])
             else:
                 self.__gui_handler.new_print(f"There is no command '{user_input[0]}'")
 
     def threaded_server_listen_loop(self):
-        self.__gui_handler.new_print("Started threaded server listen loop")
         while True:
             print("tsll_start")
             data = self.__network_client.listen()
+            print(f"tsll got packettype: {data.packet_type}")
+            print(f"tsll got command: {data.command_name}")
+            print(f"tsll got attrs: {data.command_attributes}")
+            print(f"tsll got data: {data.data}")
             if data.packet_type == "command":
                 self.execute_cmd_client(data.command_name, data.command_attributes)
             elif data.packet_type == "reply":
-                if not data.data == "end_of_command":
-                    print(data)
-                    print(data.data)
-                    print(type(data.data))
-                    self.__gui_handler.new_print(data.data)
+                self.__gui_handler.new_print(data.data)
 
     def execute_cmd_server(self, command, args=None):
         if not args:
             args = []
-        back_reply = None
         try:
-            # send command
+            # send command:
             self.__network_client.send(network_handler.NetworkPacket(
                 packet_type="command",
                 command_name=command,
@@ -92,28 +93,13 @@ class Client():
                 )
         except Exception as e:
             self.__gui_handler.new_print(f"ERROR: {e}")
-            return None
-        run: bool = True
-        while run:
-            try:
-                if back_reply:  # send backreply:
-                    self.__network_client.send(network_handler.NetworkPacket(
-                        packet_type="reply",
-                        data=back_reply,
-                        )
-                        )
-                else:
-                    run = False
-            except Exception as e:
-                self.__gui_handler.new_print(f"ERROR: {e}")
-                run = False
 
     def execute_cmd_client(self, command: str, args = None):
         """Takes a command, and arguments. Executes the command
         with the given arguments, if possible."""
-        print(f"{command}||SEP||{args}")
+        print(f"cmd: {command} args:{args}")
         if not args:
-            args = ([],)
+            args = []
         try:
             func = getattr(self, command)
         except AttributeError:
@@ -296,7 +282,7 @@ class Client():
 
     def client_print(self, data:str):
         self.__gui_handler.new_print(data)
-        return "end_of_command"
+
 
 ######################################
 ## Not yet Implement in gui handler ##
@@ -315,14 +301,14 @@ class Client():
         self, information_content_left,
         information_content_center,
         information_content_right
-    ):
+    ):""" #does nothing right now
         terminal_handler.reset_information()
         for key, value in information_content_left.items():
             terminal_handler.set_information_left(key, value)
         for key, value in information_content_center.items():
             terminal_handler.set_information_center(key, value)
         for key, value in information_content_right.items():
-            terminal_handler.set_information_right(key, value)
+            terminal_handler.set_information_right(key, value)"""
 
 if __name__ == "__main__":
     gui_handler = GuiHandler()  # init gui handler
