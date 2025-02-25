@@ -283,26 +283,26 @@ class Client():
 ######################################
 
     def set_information_left(self, key, value):
-        terminal_handler.set_information_left(key, value)
+        self.__gui_handler.set_information_left(key, value)
 
     def set_information_center(self, key, value):
-        terminal_handler.set_information_center(key, value)
+        self.__gui_handler.set_information_center(key, value)
 
     def set_information_right(self, key, value):
-        terminal_handler.set_information_right(key, value)
+        self.__gui_handler.set_information_right(key, value)
 
     def reset_terminal_handler(
         self, information_content_left,
         information_content_center,
         information_content_right
-    ):""" #does nothing right now
-        terminal_handler.reset_information()
+    ):
+        self.__gui_handler.reset_information()
         for key, value in information_content_left.items():
-            terminal_handler.set_information_left(key, value)
+            self.__gui_handler.set_information_left(key, value)
         for key, value in information_content_center.items():
-            terminal_handler.set_information_center(key, value)
+            self.__gui_handler.set_information_center(key, value)
         for key, value in information_content_right.items():
-            terminal_handler.set_information_right(key, value)"""
+            self.__gui_handler.set_information_right(key, value)
 
 if __name__ == "__main__":
     gui_handler = GuiHandler()  # init gui handler

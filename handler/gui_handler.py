@@ -16,6 +16,9 @@ class GuiHandler():
         self.__to_blit = []
         self.terminal_content = []
         self.__command_history = [""]
+        self.__information_content_left = {}
+        self.__information_content_center = {}
+        self.__information_content_right = {}
         # define window part heights:
         title_height = self.__screen_height//10
         in_rect_height = self.__screen_height//20
@@ -57,12 +60,26 @@ class GuiHandler():
         title = "Atlantica"
         title_surface = title_font.render(title, True, self.__text_color)
         title_rect = title_surface.get_rect(center=(self.__screen_width//2, 50))
-        # flip() the display to put your work on screen
+        font = self.__std_text_font
+        # flip() the display to put your work on screenterminal
         self.__screen.fill(self.__bg_color)  # clear screen
-        self.debug_rects()  # color the screen sections
-        self.__screen.blit(self.__input, (10, self.__in_rect_top))
+        #self.debug_rects()  # color the screen sections
+        self.__screen.blit(self.__input, (10, self.__in_rect_top))  # blit user input
         self.__screen.blits(self.__to_blit)  # blit the terminal_content to the screen
-        #self.__screen.blit(title_surface, title_rect)  # blit Title to screen
+        self.__screen.blit(title_surface, title_rect)  # blit Title to screen
+        # render and blit the information content:
+        if self.__information_content_left:
+            info_content_left = str(self.__information_content_left)
+            info_content_left_surface = font.render(info_content_left, True, self.__text_color)
+            self.__screen.blit(info_content_left_surface, self.__stats_rect_left)
+        if self.__information_content_center:
+            info_content_center = str(self.__information_content_center)
+            info_content_center_surface = font.render(info_content_center, True, self.__text_color)
+            self.__screen.blit(info_content_center_surface, self.__stats_rect_center)
+        if self.__information_content_right:
+            info_content_right = str(self.__information_content_right)
+            info_content_right_surface = font.render(info_content_right, True, self.__text_color)
+            self.__screen.blit(info_content_right_surface, self.__stats_rect_right)
         pygame.display.flip()
         # limits FPS to 60
         self.__clock.tick(60)
@@ -145,6 +162,21 @@ class GuiHandler():
             self.__input = font.render(f"{prompt}{user_input}", True, self.__text_color)
             # blit user input to screen:
             self.refresh()
+
+    def set_information_left(self, key, value):
+        self.__information_content_left[key] = value
+
+    def set_information_center(self, key, value):
+        self.__information_content_center[key] = value
+
+    def set_information_right(self, key, value):
+        self.__information_content_right[key] = value
+
+    def reset_information(self):
+        self.__information_content_left = {}
+        self.__information_content_center = {}
+        self.__information_content_right = {}
+
 
 if __name__ == "__main__":
     gui_handler = GuiHandler()
