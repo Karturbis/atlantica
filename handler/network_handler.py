@@ -17,16 +17,16 @@ class NetworkServer():
         # initialize socket:
         self.__active_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if local:
-            ip = "127.0.0.1"
+            self.__ip = "127.0.0.1"
         else:
-            ip = NetworkHandler.get_ip()
+            self.__ip = NetworkHandler.get_ip()
         try:
-            self.__active_socket.bind((ip, port))
+            self.__active_socket.bind((self.__ip, port))
         except socket.error as e:
             print(f"ERROR: {e}")
         # start server:
         self.__active_socket.listen()
-        print(f"Server Started with ip {ip} on port {port}\nwaiting for connections...")
+        print(f"Server Started with ip {self.__ip} on port {port}\nwaiting for connections...")
 
     def main(self):
         """Main loop of the Server,
@@ -54,11 +54,27 @@ class NetworkServer():
         server_methods = callable_method("get_server_methods", [])
         npacket = NetworkPacket(packet_type="hello", data=server_methods)
         connection.sendall(pickle.dumps(npacket))
-        self.__thread_data.client_names[connection_id] = pickle.loads(
+        client_name = pickle.loads(
             connection.recv(2048)
             ).data
+        print(client_name)
+        print(self.__thread_data.client_names)
+        if client_name in self.__thread_data.client_names.values():
+            print(f"Client '{client_name}' already joined")
+            already_connected_message = f"'{client_name}' is already connected to the server, please use another name."
+            quit_packet = NetworkPacket(
+                packet_type="command", command_name="server_side_quit",
+                command_attributes=[already_connected_message]
+            )
+            self.send_packet(quit_packet, connection)
+            connection.close()
+            self.__thread_data.callable_methods.pop(connection_id)
+            return None
+        else:
+            self.__thread_data.client_names[connection_id] = client_name
+            self.send_print_packet(f"Successfully connected to '{self.__ip}'", connection)
         print(
-            f"Client name is: {self.__thread_data.client_names[connection_id]}"
+            f"Client name is: {client_name}"
             )
         callable_method("init_character_data", [self.__game_file_path])
         # initialize client side TerminalHandler:
@@ -90,6 +106,7 @@ class NetworkServer():
         print(f"Lost connection to client {connection_id}")
         connection.close()
         # cleanup data of the thread which does not automatically dies with the thread:
+        self.__thread_data.client_names[connection_id] = "disconnected"
         self.__thread_data.callable_methods.pop(connection_id)
         # thread dies
 

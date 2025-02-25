@@ -66,9 +66,10 @@ class Client():
                 self.__gui_handler.new_print(f"There is no command '{user_input[0]}'")
 
     def threaded_server_listen_loop(self):
-        while True:
+        while self.__mode == "ingame":
             data = self.__network_client.listen()
             if data.packet_type == "command":
+                print(f"command: {data.command_name}")
                 self.execute_cmd_client(data.command_name, data.command_attributes)
             elif data.packet_type == "reply":
                 self.__gui_handler.new_print(data.data)
@@ -147,6 +148,12 @@ class Client():
         # else:
         return user_in[0], []
 
+    def server_side_quit(self, message:str):
+        self.client_print(message)
+        self.client_print("The server quit the connection.")
+        self.__mode = "menu"
+        self.__prompt = "menu$>"
+
 ##############################
 ## user executable commands ##
 ##############################
@@ -163,7 +170,6 @@ class Client():
         self.__prompt = f"{self.name}@{server_ip}$>"
         self.__mode = "ingame"
         self.__network_client_thread.start()
-        self.__gui_handler.new_print(f"Successfully connected to {server_ip}.")
 
     def clear(self):
         self.__gui_handler.clear()
