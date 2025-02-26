@@ -189,7 +189,7 @@ class ServerMethods():
             "ping", "fanf", "move", "rest",
             "take", "drop", "print_inventory",
             "unequip", "eat", "inspect", "equip",
-            "save_player", "shutdown"
+            "save_player", "shutdown", "backflip"
             ]
         self.__server_methods_minimum = ["ping"]
         self.__server_methods = self.__standart_server_methods
@@ -203,6 +203,7 @@ class ServerMethods():
         self.__position = None
         self.__name = None
         self.db_handler = None
+        self.__backflip_counter = 0
 
     def init_character_data(self, game_file_path):
         self.__name = thread_data.client_names[self.__connection_id]
@@ -582,13 +583,13 @@ class ServerMethods():
         self.__position = self.load_chunk(self.__position.get_chunk_id())
         self.new_print(f"There are: {self.__position.get_items()}")
 
-    def fanf(self):
-        packet = network_handler.NetworkPacket(
-            packet_type="command",
-            command_name="client_print",
-            command_attributes=["DATA"]
-        )
-        network_server.send_packet(packet, self.__connection, self.__connection_id)
+    def backflip(self):
+        if self.__backflip_counter < 42:
+            self.new_print("You did a backflip.")
+            self.__backflip_counter +=1
+        else:
+            self.new_print("Why the fuck are you backflipping all the time??")
+            self.__backflip_counter = 0
 
     def ping(self):
         time_now = time.time_ns()
