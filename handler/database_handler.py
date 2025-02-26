@@ -25,7 +25,7 @@ class DatabaseHandler:
         command: str = "SELECT "
         for i in items:
             command = f"{command}{i}, "
-        command = f"{command[:-2]} FROM {table} WHERE id='{data_id.strip(" ")}'"
+        command = f"{command[:-2]} FROM {table} WHERE id='{data_id.strip(' ')}'"
         data = self.__cursor.execute(command)
         fetched_data: list = data.fetchall()
         return list(fetched_data[0])

@@ -280,7 +280,7 @@ class Client():
             self.__gui_handler.new_print("Aliases are not allowed to start with '#'")
         else:
             with open(self.__alias_file, "a", encoding="utf-8") as writer:
-                writer.write(f"{alias.strip(" ")} {command.strip(" ")}\n")
+                writer.write(f"{alias.strip(' ')} {command.strip(' ')}\n")
             self.__aliases = self.load_aliases()
 
 ########################

@@ -121,7 +121,7 @@ class GuiHandler():
         self.__to_blit = []
 
     def new_input(self, prompt = "input>"):
-        prompt = f"{prompt.strip(" ")} " # make sure promt contains exactly one space at the end
+        prompt = f"{prompt.strip(' ')} " # make sure promt contains exactly one space at the end
         font = self.__std_text_font
         running = True
         user_input = ""

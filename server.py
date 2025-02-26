@@ -2,7 +2,6 @@ import time
 import sys
 from inspect import signature
 from ast import literal_eval  # Used to evaluate a boolean from a string
-
 from handler import network_handler
 from handler import DatabaseHandler
 
