@@ -1,7 +1,7 @@
 atlantica_venv/
 __pycache__
 test*
-saves/
+saves/*
 content.sqlite-journal
 .vscode/
 language_handler_de_data
