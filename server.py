@@ -242,8 +242,7 @@ class ServerMethods():
 
     def new_print(self, data):
         if data:
-            network_server.send_print_packet(data, self.__connection)
-
+            network_server.send_print_packet(data, self.__connection, self.__connection_id)
 
     def get_character_data(self) -> dict:
         """Returns the character data
@@ -555,8 +554,9 @@ class ServerMethods():
                             packet_type="command",
                             command_name="set_information_left",
                             command_attributes=["saturation", self.__saturation]
-                        ),
-                        self.__connection
+                            ),
+                            self.__connection,
+                            self.__connection_id
                         )
                     else:
                         self.__health = int(self.__health) +  nutrition
@@ -568,8 +568,9 @@ class ServerMethods():
                             packet_type="command",
                             command_name="set_information_left",
                             command_attributes=["health", self.__health]
-                        ),
-                        self.__connection
+                            ),
+                            self.__connection,
+                            self.__connection_id
                         )
                 else:
                     self.new_print(f"You tried to eat {i}, but you had none left")
@@ -588,7 +589,7 @@ class ServerMethods():
             command_name="client_print",
             command_attributes=["DATA"]
         )
-        network_server.send_packet(packet, self.__connection)
+        network_server.send_packet(packet, self.__connection, self.__connection_id)
 
     def ping(self):
         time_now = time.time_ns()
@@ -614,7 +615,7 @@ except IndexError:
     server_port = 27300
 
 #  for custom gameslot uncomment following 2 lines
-GAMESLOT = "qwed"
+GAMESLOT = "gilbert"
 game_file_path = f"saves/gameslot_{GAMESLOT}.sqlite"
 
 thread_data = network_handler.ThreadData()

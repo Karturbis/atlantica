@@ -68,8 +68,8 @@ class Client():
     def threaded_server_listen_loop(self):
         while self.__mode == "ingame":
             data = self.__network_client.listen()
+            self.send_ack_packet(data)
             if data.packet_type == "command":
-                print(f"command: {data.command_name}")
                 self.execute_cmd_client(data.command_name, data.command_attributes)
             elif data.packet_type == "reply":
                 self.__gui_handler.new_print(data.data)
@@ -127,6 +127,13 @@ class Client():
                     self.__gui_handler.new_print(f"ERROR in Client.execute_cmd_client: {e}")
             else: # wrong number of arguments were given
                 self.__gui_handler.new_print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
+
+    def send_ack_packet(self, packet):
+        print(f"sending ack: {packet.packet_type}")
+        self.__network_client.send(network_handler.NetworkPacket(
+            packet_type="ack", data=packet.packet_type
+        )
+        )
 
     def load_aliases(self):
         """Load aliases from File"""

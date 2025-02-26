@@ -1,4 +1,5 @@
 import socket
+from queue import Queue
 import pickle
 from threading import Thread
 
@@ -48,6 +49,9 @@ class NetworkServer():
     def threaded_client(self, connection, connection_id):
         """Main loop for the threads. Each thread handles one
         connection."""
+        # init the send queue:
+        queue = Queue()
+        self.__thread_data.send_queues[connection_id] = queue
         # set the callable_method, to be able to execute commands on the server:
         callable_method = self.__thread_data.callable_methods[connection_id]
         # send initial hello:
@@ -66,13 +70,13 @@ class NetworkServer():
                 packet_type="command", command_name="server_side_quit",
                 command_attributes=[already_connected_message]
             )
-            self.send_packet(quit_packet, connection)
+            self.send_packet(quit_packet, connection, connection_id)
             connection.close()
             self.__thread_data.callable_methods.pop(connection_id)
             return None
         else:
             self.__thread_data.client_names[connection_id] = client_name
-            self.send_print_packet(f"Successfully connected to '{self.__ip}'", connection)
+            self.send_print_packet(f"Successfully connected to '{self.__ip}'", connection, connection_id)
         print(
             f"Client name is: {client_name}"
             )
@@ -88,7 +92,20 @@ class NetworkServer():
                 {"level": character_data["level"]}
                 ]
             )))
+        acknowledged = True
+        ack_data = None
         while True:  # main loop
+            # if the send queue is not empty, send the packets:
+            try:
+                if acknowledged:
+                    if not queue.empty():
+                        packet = queue.get()
+                        ack_data = packet.packet_type
+                        print(f" ack data: {ack_data}")
+                        acknowledged = False
+                        connection.sendall(pickle.dumps(packet))  # send packet
+            except socket.error as e:
+                print(f"Error sending packet: {e}")
             try:
                 data = pickle.loads(connection.recv(2048))  # receive data
             except EOFError as e:
@@ -103,6 +120,9 @@ class NetworkServer():
                 callable_method(command, data.command_attributes)
             elif data.packet_type == "reply":
                 print(data.data)
+            elif data.packet_type == "ack":
+                if data.data == ack_data:
+                    acknowledged = True
         print(f"Lost connection to client {connection_id}")
         connection.close()
         # cleanup data of the thread which does not automatically dies with the thread:
@@ -114,20 +134,16 @@ class NetworkServer():
         """close given connection"""
         connection.close()
 
-    def send_packet(self, packet, connection):
-        """Send given packet,
-        returns the reply."""
-        try:
-            connection.sendall(pickle.dumps(packet))  # send packet
-        except socket.error as e:
-            print(f"Error sending packet: {e}")
-
-    def send_print_packet(self, data:str, connection):
+    def send_packet(self, packet, connection, connection_id):
+        """Put given packet into the queue"""
+        self.__thread_data.send_queues[connection_id].put(packet)
+        
+    def send_print_packet(self, data:str, connection, connection_id):
         packet = NetworkPacket(
             packet_type="command", command_name="client_print",
             command_attributes=[str(data)]
             )
-        self.send_packet(packet, connection)
+        self.send_packet(packet, connection, connection_id)
 
 
 class NetworkClient():
@@ -175,6 +191,7 @@ class ThreadData():
         self.threads = {}
         self.callable_methods = {}
         self.client_names = {}
+        self.send_queues = {}
 
 
 class NetworkHandler():
