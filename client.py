@@ -22,9 +22,9 @@ class Client():
             "menu": [
                 "clear", "new_game", "load_game", "delete_game",
                 "quit_game", "join_server", "set_name", "start_server",
-                "load_game", "add_alias"
+                "add_alias", "print_help", "print_alias"
                 ],
-            "ingame": ["clear", "quit_game"],
+            "ingame": ["clear", "quit_game", "print_help",],
         }
         self.__server_methods: dict = {}
         self.__alias_file = "client.alias"
@@ -35,6 +35,22 @@ class Client():
         self.name = "test"
         self.__prompt = "input$>"
         self.__mode = "menu"
+        self.__help_data = {
+            "menu": {
+                "clear": "clears the screen",
+                "new_game": "creates a new gameslot",
+                "load_game": "loads a gameslot",
+                "delete_game": "deletes a gameslot",
+                "quit_game": "save and quit the game",
+                "join_server": "join a server",
+                "set_name": "set the character name",
+                "start_server": "start a server",
+                "add_alias": "add a new alias for a command",
+                "print_alias": "print all aliases",
+                "print_help": "print all available commands",
+                },
+            "ingame": {}
+        }
 
     def user_input_loop(self, mode: str = None, prompt:str = None):
         """takes input from user and executes the
@@ -135,7 +151,7 @@ class Client():
         )
         )
 
-    def load_aliases(self):
+    def load_aliases(self) -> dict:
         """Load aliases from File"""
         with open(self.__alias_file, "r", encoding="utf-8") as reader:
             lines = reader.readlines()
@@ -283,17 +299,24 @@ class Client():
                 writer.write(f"{alias.strip(' ')} {command.strip(' ')}\n")
             self.__aliases = self.load_aliases()
 
+    def print_alias(self):
+        self.client_print("Aliases:")
+        for alias, command in self.__aliases.items():
+            self.client_print(f"'{alias}' for command '{command}'")
+
+
+    def print_help(self):
+        self.client_print("Available commands:")
+        for command, explanation in self.__help_data[self.__mode].items():
+            self.client_print(f"{command}: {explanation}")
+
+
 ########################
 ## Gui handler stuff: ##
 ########################
 
     def client_print(self, data:str):
         self.__gui_handler.new_print(data)
-
-
-######################################
-## Not yet Implement in gui handler ##
-######################################
 
     def set_information_left(self, key, value):
         self.__gui_handler.set_information_left(key, value)
@@ -322,3 +345,4 @@ if __name__ == "__main__":
     client = Client(gui_handler)  # init client
     # main loop
     client.user_input_loop("menu")
+
