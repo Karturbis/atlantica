@@ -1,3 +1,14 @@
+**Installation:**
+1) Download the code as zip file, or git clone the code
+2) In the project folder create a directory named 'saves'
+3) Install dependencies from requirements.txt
+
+**Run the game:**
+1) Run the server.py file
+2) In another terminal, run the client.py file
+
+**Project description:**
+
 As of right now, atlcantica is an unfinished text adventure.
 
 At the moment functional:
