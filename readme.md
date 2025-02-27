@@ -1,13 +1,4 @@
-**Installation:**
-1) Download the code as zip file, or git clone the code
-2) In the project folder create a directory named 'saves'
-3) Install dependencies from requirements.txt
-
-**Run the game:**
-1) Run the server.py file
-2) In another terminal, run the client.py file
-
-**Project description:**
+# Project description:
 
 As of right now, atlcantica is an unfinished text adventure.
 
@@ -31,3 +22,27 @@ help (print all available commands),
 eat (removes item from inventory and adds
 nutrition value of item to saturation value of the player).
 disconnect (disconnects from server)
+
+# Installation:
+### General
+1) Download the code as zip file, or git clone the code
+2) In the project folder create a directory named 'saves'
+### Linux
+1) Create virtual environment,
+Activate virtual environment
+```bash
+python3 -m venv atlantica venv
+```
+2) Install dependencies
+```bash
+python3 -m pip install -r requirements.txt
+```
+### Windows
+1) Install dependencies
+```bash
+python -m pip install -r requirements.txt
+```
+
+# Run the game:
+1) Run the server.py file
+2) In another terminal, run the client.py file
