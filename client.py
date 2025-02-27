@@ -171,6 +171,15 @@ class Client():
         self.__mode = "menu"
         self.__prompt = "menu$>"
 
+    def add_server_help_entries(self, entries:dict) -> None:
+        print("add entries")
+        for command, description in entries.items():
+            self.__help_data["ingame"][command] = description
+
+    def delete_server_help_entries(self, entries:dict) -> None:
+        for command in entries:
+            self.__help_data["ingame"].pop(command)
+
 ##############################
 ## user executable commands ##
 ##############################
@@ -302,7 +311,6 @@ class Client():
         self.client_print("Available commands:")
         for command, explanation in self.__help_data[self.__mode].items():
             self.client_print(f"{command}: {explanation}")
-
 
 ########################
 ## Gui handler stuff: ##

@@ -186,12 +186,26 @@ class ServerMethods():
         self.__connection_id = connection_id
         self.__thread_data = thread_data
         self.__standart_server_methods = [
-            "ping", "fanf", "move", "rest",
+            "ping", "move", "rest",
             "take", "drop", "print_inventory",
             "unequip", "eat", "inspect", "equip",
             "save_player", "backflip",
             "disconnect"
             ]
+        self.__server_help_data = {
+            "ping": "prints the time of the ping in nano seconds",
+            "move": "move in the given direction",
+            "rest": "take a rest",
+            "take": "take an item from your surroundings",
+            "drop": "drop an item from inventory",
+            "print_inventory": "display the inventory",
+            "equip": "equip an item",
+            "unequip": "unequip an item",
+            "eat": "eat an item",
+            "inspect": "scheck your surroundings for items",
+            "save_player": "save the game",
+            "disconnect": "disconnect from server",
+        }
         self.__server_methods_minimum = ["ping"]
         self.__server_methods = self.__standart_server_methods
         self.__inventory = {}
@@ -207,6 +221,7 @@ class ServerMethods():
         self.__backflip_counter = 0
 
     def init_character_data(self, game_file_path):
+        self.send_cmd_packet("add_server_help_entries", [self.__server_help_data])
         self.__name = thread_data.client_names[self.__connection_id]
         self.db_handler = DatabaseHandler(game_file_path[0])
         try:
@@ -241,9 +256,18 @@ class ServerMethods():
         for i in self.__inventory:
             self.__inventory[i] = literal_eval(self.__inventory[i])
 
+    def send_cmd_packet(self, command: str, args:list = None) -> None:
+        network_server.send_packet(network_handler.NetworkPacket(
+            packet_type="command",
+            command_name=command,
+            command_attributes=args,
+            ),
+            self.__connection_id
+        )
+
     def new_print(self, data):
         if data:
-            network_server.send_print_packet(data, self.__connection, self.__connection_id)
+            network_server.send_print_packet(data, self.__connection_id)
 
     def get_character_data(self) -> dict:
         """Returns the character data
@@ -549,28 +573,14 @@ class ServerMethods():
                         f"You ate {item_selected[5:]}, it was {nutrition} nutritious."
                         )
                         # update player info:
-                        network_server.send_packet(network_handler.NetworkPacket(
-                            packet_type="command",
-                            command_name="set_information_left",
-                            command_attributes=["saturation", self.__saturation]
-                            ),
-                            self.__connection,
-                            self.__connection_id
-                        )
+                        self.send_cmd_packet("set_information_left", ["saturation", self.__saturation])
                     else:
                         self.__health = int(self.__health) +  nutrition
                         self.new_print(
                         f"You ate {item_selected[5:]}, it hurt you {abs(nutrition)} health."
                         )
                         # update player info:
-                        network_server.send_packet(network_handler.NetworkPacket(
-                            packet_type="command",
-                            command_name="set_information_left",
-                            command_attributes=["health", self.__health]
-                            ),
-                            self.__connection,
-                            self.__connection_id
-                        )
+                        self.send_cmd_packet("set_information_left", ["health", self.__health])
                 else:
                     self.new_print(f"You tried to eat {i}, but you had none left")
         else:
@@ -591,13 +601,7 @@ class ServerMethods():
             self.__backflip_counter = 0
 
     def disconnect(self) -> None:
-        network_server.send_packet(network_handler.NetworkPacket(
-            packet_type="command", command_name="server_side_quit",
-            command_attributes=["Good bye, see you next time"]
-            ),
-            self.__connection,
-            self.__connection_id,
-        )
+        self.send_cmd_packet("server_side_quit", ["Good bye, see you next time"])
 
     def ping(self):
         time_now = time.time_ns()

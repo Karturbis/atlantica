@@ -70,13 +70,13 @@ class NetworkServer():
                 packet_type="command", command_name="server_side_quit",
                 command_attributes=[already_connected_message]
             )
-            self.send_packet(quit_packet, connection, connection_id)
+            self.send_packet(quit_packet, connection_id)
             connection.close()
             self.__thread_data.callable_methods.pop(connection_id)
             return None
         else:
             self.__thread_data.client_names[connection_id] = client_name
-            self.send_print_packet(f"Successfully connected to '{self.__ip}'", connection, connection_id)
+            self.send_print_packet(f"Successfully connected to '{self.__ip}'", connection_id)
         print(
             f"Client name is: {client_name}"
             )
@@ -134,16 +134,16 @@ class NetworkServer():
         """close given connection"""
         connection.close()
 
-    def send_packet(self, packet, connection, connection_id):
+    def send_packet(self, packet, connection_id):
         """Put given packet into the queue"""
         self.__thread_data.send_queues[connection_id].put(packet)
         
-    def send_print_packet(self, data:str, connection, connection_id):
+    def send_print_packet(self, data:str, connection_id):
         packet = NetworkPacket(
             packet_type="command", command_name="client_print",
             command_attributes=[str(data)]
             )
-        self.send_packet(packet, connection, connection_id)
+        self.send_packet(packet, connection_id)
 
 
 class NetworkClient():
