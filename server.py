@@ -189,7 +189,8 @@ class ServerMethods():
             "ping", "fanf", "move", "rest",
             "take", "drop", "print_inventory",
             "unequip", "eat", "inspect", "equip",
-            "save_player", "shutdown", "backflip"
+            "save_player", "backflip",
+            "disconnect"
             ]
         self.__server_methods_minimum = ["ping"]
         self.__server_methods = self.__standart_server_methods
@@ -261,9 +262,7 @@ class ServerMethods():
     def execute_cmd(self, command, args=None):
         if not args:
             args = []
-        elif not type(args) == list:
-            args = [args]
-            print(args)
+        print(f"args: {args}")
         try:
             func = getattr(self, command)
         except AttributeError:
@@ -532,7 +531,7 @@ class ServerMethods():
             if not found:
                 self.new_print(f"{item[0]} was no equipped.")
 
-    def eat(self, item: list = None):
+    def eat(self, item: list = None) -> None:
         """Removes the eaten item
         from the inventory and adds
         the saturation to the hunger
@@ -577,19 +576,28 @@ class ServerMethods():
         else:
             self.new_print("You did not eat.")
 
-    def inspect(self):
+    def inspect(self) -> None:
         """Outprints the items,
         which are in the current Chunk."""
         self.__position = self.load_chunk(self.__position.get_chunk_id())
         self.new_print(f"There are: {self.__position.get_items()}")
 
-    def backflip(self):
+    def backflip(self) -> None:
         if self.__backflip_counter < 42:
             self.new_print("You did a backflip.")
             self.__backflip_counter +=1
         else:
             self.new_print("Why the fuck are you backflipping all the time??")
             self.__backflip_counter = 0
+
+    def disconnect(self) -> None:
+        network_server.send_packet(network_handler.NetworkPacket(
+            packet_type="command", command_name="server_side_quit",
+            command_attributes=["Good bye, see you next time"]
+            ),
+            self.__connection,
+            self.__connection_id,
+        )
 
     def ping(self):
         time_now = time.time_ns()
