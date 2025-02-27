@@ -92,8 +92,8 @@ class NetworkServer():
                 {"level": character_data["level"]}
                 ]
             )))
-        acknowledged = True
-        ack_data = None
+        acknowledged: bool = True
+        ack_data: str = None
         while True:  # main loop
             # if the send queue is not empty, send the packets:
             try:

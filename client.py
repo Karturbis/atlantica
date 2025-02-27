@@ -27,15 +27,15 @@ class Client():
             "ingame": ["clear", "quit_game", "print_help",],
         }
         self.__server_methods: dict = {}
-        self.__alias_file = "client.alias"
-        self.__aliases = self.load_aliases()
+        self.__alias_file: str = "client.alias"
+        self.__aliases: dict = self.load_aliases()
         self.__database_handler = DatabaseHandler()
         self.__network_client = None
         self.__network_client_thread = None
-        self.name = "test"
-        self.__prompt = "input$>"
-        self.__mode = "menu"
-        self.__help_data = {
+        self.name: str = "test"
+        self.__prompt: str = "input$>"
+        self.__mode: str = "menu"
+        self.__help_data: dict[dict] = {
             "menu": {
                 "clear": "clears the screen",
                 "new_game": "creates a new gameslot",
@@ -52,36 +52,38 @@ class Client():
             "ingame": {}
         }
 
-    def user_input_loop(self, mode: str = None, prompt:str = None):
+    def user_input_loop(self, mode: str = None, prompt:str = None) -> None:
         """takes input from user and executes the
         corresponding commands"""
-        if not prompt:
-            self.__prompt = f"{mode}$>"
-        else:
+        if prompt:
             self.__prompt = prompt
+        else:
+            self.__prompt = f"{mode}$>"
         if mode:
             self.__mode = mode
         while True:
-            user_input = self.__gui_handler.new_input(self.__prompt).strip(" ").split(" ")
+            user_input: list = self.__gui_handler.new_input(self.__prompt).strip(" ").split(" ")
             if user_input[0] in self.__aliases:
                 try:
-                    user_input = (self.__aliases[user_input[0]], user_input[1])
+                    user_input = [self.__aliases[user_input[0]], user_input[1:]]
                 except IndexError:
-                    user_input = (self.__aliases[user_input[0]], [])
+                    user_input = [self.__aliases[user_input[0]], []]
+            else:
+                user_input = [user_input[0], user_input[1:]]
             if user_input[0] in self.__local_methods[self.__mode]:
-                if user_input[1:] != []:  # check if list has more than one item
+                if user_input[1:] != []:  # check if list has at least one item
                     self.execute_cmd_client(user_input[0], user_input[1])
                 else:
                     self.execute_cmd_client(user_input[0])
             elif user_input[0] in self.__server_methods:
-                if user_input[1:] != []:  # check if list has more than one item
+                if user_input[1:] != []:  # check if list has at least one item
                     self.execute_cmd_server(user_input[0], user_input[1])
                 else:
                     self.execute_cmd_server(user_input[0])
             else:
                 self.__gui_handler.new_print(f"There is no command '{user_input[0]}'")
 
-    def threaded_server_listen_loop(self):
+    def threaded_server_listen_loop(self) -> None:
         while self.__mode == "ingame":
             data = self.__network_client.listen()
             self.send_ack_packet(data)
@@ -90,10 +92,11 @@ class Client():
             elif data.packet_type == "reply":
                 self.__gui_handler.new_print(data.data)
 
-    def execute_cmd_server(self, command, args=None):
+    def execute_cmd_server(self, command: str, args: list=None) -> None:
         print(f"start executing command {command}")
+        print(f"with args {args}")
         if not args:
-            args = []
+            args: list = []
         try:
             # send command:
             self.__network_client.send(network_handler.NetworkPacket(
@@ -105,7 +108,7 @@ class Client():
         except Exception as e:
             self.__gui_handler.new_print(f"ERROR: {e}")
 
-    def execute_cmd_client(self, command: str, args = None):
+    def execute_cmd_client(self, command: str, args: list=None):
         """Takes a command, and arguments. Executes the command
         with the given arguments, if possible."""
         print(f"cmd: {command} args:{args}")
@@ -124,7 +127,7 @@ class Client():
         # subtract kwargs from all args to get positional args
         expected_args_len = func.__code__.co_argcount - kwargs -1  # -1 otherwise self counts as an arg
         if given_args_len >= 1:
-            if expected_args_len == given_args_len:
+            if expected_args_len == given_args_len or expected_args_len + kwargs >= given_args_len:
                 # run method:
                 try:
                     return func(*args)
@@ -144,7 +147,7 @@ class Client():
             else: # wrong number of arguments were given
                 self.__gui_handler.new_print(f"Command {command} takes {expected_args_len} arguments, you gave {given_args_len}.")
 
-    def send_ack_packet(self, packet):
+    def send_ack_packet(self, packet) -> None:
         print(f"sending ack: {packet.packet_type}")
         self.__network_client.send(network_handler.NetworkPacket(
             packet_type="ack", data=packet.packet_type
@@ -162,16 +165,7 @@ class Client():
                     aliases[line[0]] = line[1]
         return aliases
 
-    def user_input_get_command(self, prompt="input$>"):
-        """Returns a command and the arguments for this
-        command, the user typed in."""
-        user_in = self.__gui_handler.new_input(prompt).split(" ")
-        if len(user_in) > 1:
-            return user_in[0], list(user_in[1:])
-        # else:
-        return user_in[0], []
-
-    def server_side_quit(self, message:str):
+    def server_side_quit(self, message:str) -> None:
         self.client_print(message)
         self.client_print("The server quit the connection.")
         self.__mode = "menu"
@@ -181,7 +175,7 @@ class Client():
 ## user executable commands ##
 ##############################
 
-    def join_server(self, server_ip: str="127.0.0.1", server_port:int=27300):
+    def join_server(self, server_ip: str="127.0.0.1", server_port:int=27300) -> None:
         """Connect to the given server."""
         server_port = 27300
         self.__network_client_thread = Thread(target=self.threaded_server_listen_loop, daemon=True)
@@ -194,7 +188,7 @@ class Client():
         self.__mode = "ingame"
         self.__network_client_thread.start()
 
-    def clear(self):
+    def clear(self) -> None:
         self.__gui_handler.clear()
 
     def quit_game(self, args=None) -> None:
@@ -290,7 +284,7 @@ class Client():
         else:
             self.__gui_handler.new_print("There are no gameslots.")
 
-    def add_alias(self, alias:str, command:str):
+    def add_alias(self, alias:str, command:str) -> None:
         """add alias to the aliases File"""
         if alias.startswith("#"):
             self.__gui_handler.new_print("Aliases are not allowed to start with '#'")
@@ -299,13 +293,12 @@ class Client():
                 writer.write(f"{alias.strip(' ')} {command.strip(' ')}\n")
             self.__aliases = self.load_aliases()
 
-    def print_alias(self):
+    def print_alias(self) -> None:
         self.client_print("Aliases:")
         for alias, command in self.__aliases.items():
             self.client_print(f"'{alias}' for command '{command}'")
 
-
-    def print_help(self):
+    def print_help(self) -> None:
         self.client_print("Available commands:")
         for command, explanation in self.__help_data[self.__mode].items():
             self.client_print(f"{command}: {explanation}")
