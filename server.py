@@ -257,6 +257,11 @@ class ServerMethods():
             self.__inventory = {}
         for i in self.__inventory:
             self.__inventory[i] = literal_eval(self.__inventory[i])
+        self.db_handler.update_characters(
+            self.__position.get_chunk_id(),
+            self.__name,
+            remove=False
+        )
 
     def send_cmd_packet(self, command: str, args:list = None) -> None:
         network_server.send_packet(network_handler.NetworkPacket(

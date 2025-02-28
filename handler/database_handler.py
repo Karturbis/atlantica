@@ -125,7 +125,7 @@ class DatabaseHandler:
         else:
             return "No gameslot is selected, please make a new game, or load a game."
 
-    def update_characters(self, chunk_id: str, character: str=None, remove: bool=False) -> None:
+    def update_characters(self, chunk_id: str, character: str, remove: bool=False) -> None:
         characters: list = self.get_chunk_data(chunk_id)[6]  # get players already existent in the chunk
         print(f"DBG_130: chrs {characters}; remove = {remove}")
         if characters:
