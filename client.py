@@ -202,9 +202,8 @@ class Client():
 
     def quit_game(self, args=None) -> None:
         """Saves and quits the game."""
-        self.execute_cmd_server("save_player")
-        self.execute_cmd_server("disconnect")
-        time.sleep(0.1)  # quickfix, needs better solution
+        if self.__mode == "ingame":
+            self.execute_cmd_server("disconnect")
         pg_quit()  # quit pygame
         exit("Good bye, see you next time in Atlantica!")
 
@@ -348,4 +347,3 @@ if __name__ == "__main__":
     client = Client(gui_handler)  # init client
     # main loop
     client.user_input_loop("menu")
-

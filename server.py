@@ -624,6 +624,7 @@ class ServerMethods():
             self.__backflip_counter = 0
 
     def disconnect(self) -> None:
+        self.save_player()
         self.db_handler.update_characters(self.__position.get_chunk_id(), self.__name, remove=True)
         self.send_cmd_packet("server_side_quit", ["Good bye, see you next time"])
         thread_data.client_names[self.__connection_id] = "disconnected"

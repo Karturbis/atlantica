@@ -94,7 +94,7 @@ class NetworkServer():
             )))
         acknowledged: bool = True
         ack_data: str = None
-        while client_name == self.__thread_data.client_names[connection_id]:  # main loop
+        while client_name == self.__thread_data.client_names[connection_id] or not queue.empty():  # main loop
             # if the send queue is not empty, send the packets:
             try:
                 if acknowledged:
@@ -122,10 +122,13 @@ class NetworkServer():
             elif data.packet_type == "ack":
                 if data.data == ack_data:
                     acknowledged = True
-        print(f"Lost connection to client {connection_id}")
         connection.close()
         # cleanup data of the thread which does not automatically dies with the thread:
-        self.__thread_data.client_names[connection_id] = "disconnected"
+        if self.__thread_data.client_names[connection_id] == "disconnected":
+            print(f"Client '{client_name}' with connection id '{connection_id}' disconnected.")
+        else:
+            print(f"Lost connection to client {connection_id}")
+            self.__thread_data.client_names[connection_id] = "disconnected"
         self.__thread_data.callable_methods.pop(connection_id)
         # thread dies
 
