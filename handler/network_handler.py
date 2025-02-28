@@ -94,14 +94,13 @@ class NetworkServer():
             )))
         acknowledged: bool = True
         ack_data: str = None
-        while True:  # main loop
+        while client_name == self.__thread_data.client_names[connection_id]:  # main loop
             # if the send queue is not empty, send the packets:
             try:
                 if acknowledged:
                     if not queue.empty():
                         packet = queue.get()
                         ack_data = packet.packet_type
-                        print(f" ack data: {ack_data}")
                         acknowledged = False
                         connection.sendall(pickle.dumps(packet))  # send packet
             except socket.error as e:
@@ -137,7 +136,7 @@ class NetworkServer():
     def send_packet(self, packet, connection_id):
         """Put given packet into the queue"""
         self.__thread_data.send_queues[connection_id].put(packet)
-        
+
     def send_print_packet(self, data:str, connection_id):
         packet = NetworkPacket(
             packet_type="command", command_name="client_print",

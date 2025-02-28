@@ -91,7 +91,6 @@ class Chunk:
         description: str = None,
         items: str = None,
         characters: str = None,
-        stage: str = None,
         containers: list = None,
         add_commands: str = None,
         rem_commands: str = None,
@@ -102,11 +101,14 @@ class Chunk:
         self.__south_chunk_id: str = south_chunk_id
         self.__west_chunk_id: str = west_chunk_id
         self.__description: str = description
-        self.__stage: str = stage
         if items:
             self.__items: list = items.split(", ")
         else:
             self.__items: list = []
+        if containers:
+            self.__containers: list = containers.split(", ")
+        else:
+            self.__containers: list = []
         if characters:
             self.__characters: list = characters.split(", ")
         else:
@@ -146,6 +148,9 @@ class Chunk:
         """Returns the descriptio
         of the current chunk."""
         return self.__description
+
+    def get_containers(self) -> list:
+        return self.__containers
 
     def get_items(self) -> list:
         """Returns a list of items,
@@ -225,22 +230,19 @@ class ServerMethods():
         self.__name = thread_data.client_names[self.__connection_id]
         self.db_handler = DatabaseHandler(game_file_path[0])
         try:
-            self.db_handler.get_character_data(self.__name)
+            self.db_handler.get_player_data(self.__name)
         except IndexError:  # no character data for this name was found
-            self.db_handler.new_character(self.__name)
-        try:
-            self.__position = Chunk(
-                "000-temple-start", *self.db_handler.get_chunk_data("000-temple-start")
-            )
-        except Exception as e:
-            print(f"ERROR {e}")
-        character_data = self.db_handler.get_character_data(self.__name)
+            self.db_handler.new_player(self.__name)
+        character_data = self.db_handler.get_player_data(self.__name)
         self.__health: int = int(character_data[0])
         self.__saturation: int = int(character_data[1])
         self.__speed: int = int(character_data[2])
         self.__strength: int = int(character_data[3])
         self.__level: int = int(character_data[4])
         self.__position_save_id = character_data[6]
+        self.__position = Chunk(
+            self.__position_save_id, *self.db_handler.get_chunk_data(self.__position_save_id)
+        )
         # load inventory from database:
         inventory_data_raw: str = character_data[5]
         if inventory_data_raw:
@@ -347,11 +349,12 @@ class ServerMethods():
     def save_player(self):
         """Saves the player data to
         the current gameslot."""
+        self.__position_save_id = self.__position.get_chunk_id()
         inventory: str = ""
         for key, item in self.__inventory.items():
             inventory = f"{inventory}{key}:{item}, "
         inventory = inventory[:-2]
-        self.db_handler.update_character(
+        self.db_handler.update_player(
             {
                 "health": str(self.__health),
                 "saturation": str(self.__saturation),
@@ -429,6 +432,14 @@ class ServerMethods():
                 else:
                     direction[1] = int(direction[1])
                 for _ in range(direction[1]):
+                    try:
+                        # remove character from current position:
+                        self.db_handler.update_characters(
+                        self.__position.get_chunk_id(),
+                        self.__name, remove=True
+                        )
+                    except Exception as e:
+                        print(f"ERROR in removeing character from chunk: {e}")
                     if direction[0] == "north" or direction[0] == "n":
                         self.__position = self.load_chunk(
                             self.__position.get_north_chunk_id()
@@ -448,7 +459,15 @@ class ServerMethods():
                     else:
                         self.new_print(
                             "You did not walk, the direction you want to go does not exist.")
-                self.new_print(self.__position.get_description())
+                try:
+                    # add character to new position:
+                    self.db_handler.update_characters(
+                        self.__position.get_chunk_id(),
+                        self.__name, remove=False
+                        )
+                    self.new_print(self.__position.get_description())
+                except Exception as e:
+                    print(f"ERROR while writing character to chunk: {e}")
             except ValueError:
                 self.new_print("Firstly, write the direction, you want to go,")
                 self.new_print("and secondly, write the number of steps you want to take.")
@@ -591,6 +610,10 @@ class ServerMethods():
         which are in the current Chunk."""
         self.__position = self.load_chunk(self.__position.get_chunk_id())
         self.new_print(f"There are: {self.__position.get_items()}")
+        characters = self.__position.get_characters()
+        characters.remove(self.__name)
+        self.new_print(f"You see {characters}")
+        self.new_print(f"There are also {self.__position.get_containers()}")
 
     def backflip(self) -> None:
         if self.__backflip_counter < 42:
@@ -601,7 +624,9 @@ class ServerMethods():
             self.__backflip_counter = 0
 
     def disconnect(self) -> None:
+        self.db_handler.update_characters(self.__position.get_chunk_id(), self.__name, remove=True)
         self.send_cmd_packet("server_side_quit", ["Good bye, see you next time"])
+        thread_data.client_names[self.__connection_id] = "disconnected"
 
     def ping(self):
         time_now = time.time_ns()

@@ -49,7 +49,6 @@ class DatabaseHandler:
                 "west_id",
                 "description",
                 "items",
-                "stage",
                 "characters",
                 "containers",
                 "add_commands",
@@ -58,7 +57,7 @@ class DatabaseHandler:
             chunk_id,
         )
 
-    def get_character_data(self, character_name: str) -> list:
+    def get_player_data(self, player_name: str) -> list:
         return self.get_data(
             "player",
             [
@@ -70,10 +69,10 @@ class DatabaseHandler:
                 "inventory",
                 "position",
             ],
-            character_name,
+            player_name,
         )
 
-    def new_character(self, name: str, inventory:str="''", position="'000-temple-start'", health=42, saturation=42, speed=42, strength=42, level=1):
+    def new_player(self, name: str, inventory:str="''", position="'000-temple-start'", health=42, saturation=42, speed=42, strength=42, level=1):
         name = f"'{name}'"
         self.set_data("player", [name, health, saturation, speed, strength, level, inventory, position])
 
@@ -90,7 +89,7 @@ class DatabaseHandler:
         else:
             return "No gameslot is selected, please make a new game, or load a game."
 
-    def update_character(self, attributes: dict, character_name: str) -> None:
+    def update_player(self, attributes: dict, player_name: str) -> None:
         """Update the attributes of the given character."""
         if self.__database != self.__readonly_db:
             for key, attribute in attributes.items():
@@ -98,12 +97,12 @@ class DatabaseHandler:
                     command: str = f"UPDATE player SET {key} = "
                     for i in attribute:
                         command = f"{command} {i}, "
-                    command = f"{command[:-2]} WHERE id = {character_name}"
+                    command = f"{command[:-2]} WHERE id = {player_name}"
                 elif key == "":
                     command = None
                 else:
                     command: str = (
-                        f'UPDATE player SET {key} = "{attribute}" WHERE id = "{character_name}"'
+                        f'UPDATE player SET {key} = "{attribute}" WHERE id = "{player_name}"'
                     )
                 if command:
                     self.__cursor.execute(command)
@@ -116,8 +115,37 @@ class DatabaseHandler:
         if self.__database != self.__readonly_db:
             command: str = 'UPDATE chunks SET items = "'
             if items:
-                for i in items:
-                    command = f"{command}{i}, "
+                for item in items:
+                    command = f"{command}{item}, "
+                command = f'{command[:-2]}" WHERE id = "{chunk_id}"'
+            else:
+                command = f'{command}" WHERE id = "{chunk_id}"'
+            self.__cursor.execute(command)
+            self.__connection.commit()
+        else:
+            return "No gameslot is selected, please make a new game, or load a game."
+
+    def update_characters(self, chunk_id: str, character: str=None, remove: bool=False) -> None:
+        characters: list = self.get_chunk_data(chunk_id)[6]  # get players already existent in the chunk
+        print(f"DBG_130: chrs {characters}; remove = {remove}")
+        if characters:
+            characters = characters.split(", ")
+            print(f"DBG_133: chrs {characters}")
+        else:
+            characters = []
+        print(f"DBG_137: chr {character}")
+        if remove and character in characters:
+            characters.remove(character)
+            print("DBG_ 140 removed character from, characters")
+            print(f"DBG_141: chrs: {characters}; chr: {character}")
+        elif not remove and not character in characters:
+            print("DBG_143: got into else")
+            characters.append(character)
+        if self.__database != self.__readonly_db:
+            command: str = 'UPDATE chunks SET characters = "'
+            if characters:
+                for character in characters:
+                    command = f'{command}{character}, '
                 command = f'{command[:-2]}" WHERE id = "{chunk_id}"'
             else:
                 command = f'{command}" WHERE id = "{chunk_id}"'

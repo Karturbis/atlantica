@@ -7,6 +7,7 @@ import shutil  # Used copy the content.sqlite file into a newfrom os import syst
 from sys import exit
 from threading import Thread
 from pygame.base import quit as pg_quit
+import time
 
 # handler imports:
 from handler import DatabaseHandler
@@ -172,7 +173,6 @@ class Client():
         self.__prompt = "menu$>"
 
     def add_server_help_entries(self, entries:dict) -> None:
-        print("add entries")
         for command, description in entries.items():
             self.__help_data["ingame"][command] = description
 
@@ -203,6 +203,8 @@ class Client():
     def quit_game(self, args=None) -> None:
         """Saves and quits the game."""
         self.execute_cmd_server("save_player")
+        self.execute_cmd_server("disconnect")
+        time.sleep(0.1)  # quickfix, needs better solution
         pg_quit()  # quit pygame
         exit("Good bye, see you next time in Atlantica!")
 
