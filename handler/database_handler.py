@@ -127,19 +127,13 @@ class DatabaseHandler:
 
     def update_characters(self, chunk_id: str, character: str, remove: bool=False) -> None:
         characters: list = self.get_chunk_data(chunk_id)[6]  # get players already existent in the chunk
-        print(f"DBG_130: chrs {characters}; remove = {remove}")
         if characters:
             characters = characters.split(", ")
-            print(f"DBG_133: chrs {characters}")
         else:
             characters = []
-        print(f"DBG_137: chr {character}")
         if remove and character in characters:
             characters.remove(character)
-            print("DBG_ 140 removed character from, characters")
-            print(f"DBG_141: chrs: {characters}; chr: {character}")
         elif not remove and not character in characters:
-            print("DBG_143: got into else")
             characters.append(character)
         if self.__database != self.__readonly_db:
             command: str = 'UPDATE chunks SET characters = "'
