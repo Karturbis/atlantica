@@ -63,7 +63,11 @@ class Client():
         if mode:
             self.__mode = mode
         while True:
-            user_input: list = self.__gui_handler.new_input(self.__prompt).strip(" ").split(" ")
+            user_input_raw = self.__gui_handler.new_input(self.__prompt)
+            if user_input_raw:
+                user_input: list = user_input_raw.strip(" ").split(" ")
+            else:
+                continue
             if user_input[0] in self.__aliases:
                 try:
                     user_input = [self.__aliases[user_input[0]], user_input[1:]]
@@ -171,6 +175,7 @@ class Client():
         self.client_print("The server quit the connection.")
         self.__mode = "menu"
         self.__prompt = "menu$>"
+        self.__gui_handler.stop_input()
 
     def add_server_help_entries(self, entries:dict) -> None:
         for command, description in entries.items():

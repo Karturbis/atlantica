@@ -19,6 +19,7 @@ class GuiHandler():
         self.__information_content_left = {}
         self.__information_content_center = {}
         self.__information_content_right = {}
+        self.__running_input: bool = True
         # define window part heights:
         title_height = self.__screen_height//10
         in_rect_height = self.__screen_height//20
@@ -120,17 +121,20 @@ class GuiHandler():
         self.terminal_content = []
         self.__to_blit = []
 
+    def stop_input(self):
+        self.__running_input = False
+
     def new_input(self, prompt = "input>"):
         prompt = f"{prompt.strip(' ')} " # make sure promt contains exactly one space at the end
         font = self.__std_text_font
-        running = True
+        self.__running_input = True
         user_input = ""
         command_history_index = 1
-        while running:
+        while self.__running_input:
             # pygame.QUIT event means the user clicked X to close your window
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    self.__running_input = False
                 # text input:
                 elif event.type == pygame.TEXTINPUT:
                     user_input += event.text
