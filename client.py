@@ -27,12 +27,15 @@ class Client():
         self.__gui_setttings_file: str = "client_data/gui_settings"
         self.__gui_handler = GuiHandler(**self.load_gui_settings())
         self.__local_methods: dict = {
-            "menu": [
-                "clear", "new_game", "load_game", "delete_game",
-                "quit_game", "join_server", "set_name", "start_server",
-                "add_alias", "print_help", "print_alias"
+            "general": [
+                "clear", "quit_game", "print_help",
+                "print_alias", "add_alias",
                 ],
-            "ingame": ["clear", "quit_game", "print_help",],
+            "menu": [
+                "new_game", "load_game", "delete_game",
+                "join_server", "set_name", "start_server",
+                ],
+            "ingame": [],
         }
         self.__server_methods: dict = {}
         self.__aliases: dict = self.load_aliases()
@@ -81,7 +84,7 @@ class Client():
                     user_input = [self.__aliases[user_input[0]], []]
             else:
                 user_input = [user_input[0], user_input[1:]]
-            if user_input[0] in self.__local_methods[self.__mode]:
+            if user_input[0] in self.__local_methods[self.__mode] or user_input[0] in self.__local_methods["general"]:
                 if user_input[1:] != []:  # check if list has at least one item
                     self.execute_cmd_client(user_input[0], user_input[1])
                 else:
