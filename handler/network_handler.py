@@ -25,7 +25,13 @@ class NetworkServer():
             self.__active_socket.bind((self.__ip, port))
         except socket.error as e:
             print(f"ERROR: {e}")
-            exit("Server could not start correctly")
+            try:
+                print("Trying different port")
+                port += 1
+                self.__active_socket.bind((self.__ip, port))
+            except socket.error as err:
+                print(f"ERROR: {err}")
+                exit("Server could not start correctly")
         # start server:
         self.__active_socket.listen()
         print(f"Server Started with ip {self.__ip} on port {port}\nwaiting for connections...")
