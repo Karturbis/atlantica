@@ -299,9 +299,15 @@ class ServerMethods():
         except AttributeError:
             self.new_print(f"There is no command called {command}")
         given_args_len = len(args)
-        expected_args_len = len(signature(func).parameters)
+        # get number of keyword args:
+        if func.__defaults__:
+            kwargs = len(func.__defaults__)
+        else:
+            kwargs = 0
+        # subtract kwargs from all args to get positional args
+        expected_args_len = func.__code__.co_argcount - kwargs -1  # -1 otherwise self counts as an arg
         if given_args_len >= 1:
-            if expected_args_len == given_args_len:
+            if expected_args_len == given_args_len or expected_args_len + kwargs >= given_args_len:
                 # run method:
                 try:
                     return func(args)
@@ -427,16 +433,16 @@ class ServerMethods():
         self.save_chunk()
         exit("Shutting down...")
 
-    def move(self, direction: list = None) -> None:
+    def move(self, direction: list=None, steps: str="1") -> None:
         """Move the character
         in a given direction."""
         if not direction is None:
             try:
-                if len(direction) == 1:
-                    direction.append(1)
-                else:
-                    direction[1] = int(direction[1])
-                for _ in range(direction[1]):
+                steps = int(direction[1])
+            except IndexError:
+                steps = 1
+            try:
+                for _ in range(steps):
                     try:
                         # remove character from current position:
                         self.db_handler.update_characters(
