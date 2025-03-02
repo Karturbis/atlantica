@@ -25,3 +25,4 @@ new_alias add_alias
 exit quit_game
 name set_name
 help print_help
+? print_help
