@@ -6,6 +6,7 @@ from os import system
 import shutil  # Used copy the content.sqlite file into a newfrom os import system gameslot
 from sys import exit
 from threading import Thread
+from multiprocessing import Process
 from pygame.base import quit as pg_quit
 import time
 
@@ -230,7 +231,7 @@ class Client():
         self.__database_handler.set_database(game_file_path)
         return None
 
-    def start_server(self, server_port = 27300, local:bool=False) -> None:
+    def start_server(self, server_port = 27300, local:bool=True) -> None:
         """Starts a server for the client to connect to."""
         saved_game_files = listdir("saves/")
         if saved_game_files:
@@ -250,11 +251,11 @@ class Client():
                 return None
             game_file_path = f"saves/{saved_game_files[option-1]}"
             # start server:
-            t = Thread(
+            p = Process(
                 target=system, daemon=True,
                 args=[f"python3 server.py {game_file_path} {local} {server_port}"]
                 )
-            t.start()
+            p.start()
         else:
             self.__gui_handler.new_print("There are no gameslots available, create one with 'new'.")
 
