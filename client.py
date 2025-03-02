@@ -20,8 +20,12 @@ from handler import GuiHandler
 
 class Client():
 
-    def __init__(self, gui_handler):
-        self.__gui_handler = gui_handler
+    def __init__(self):
+        # file paths:
+        self.__alias_file: str = "client_data/aliases"
+        self.__name_file: str = "client_data/name"
+        self.__gui_setttings_file: str = "client_data/gui_settings"
+        self.__gui_handler = GuiHandler(**self.load_gui_settings())
         self.__local_methods: dict = {
             "menu": [
                 "clear", "new_game", "load_game", "delete_game",
@@ -31,12 +35,11 @@ class Client():
             "ingame": ["clear", "quit_game", "print_help",],
         }
         self.__server_methods: dict = {}
-        self.__alias_file: str = "client_data/aliases"
         self.__aliases: dict = self.load_aliases()
         self.__database_handler = DatabaseHandler()
         self.__network_client = None
         self.__network_client_thread = None
-        self.name: str = "test"
+        self.name: str = self.load_name()
         self.__prompt: str = "input$>"
         self.__mode: str = "menu"
         self.__help_data: dict[dict] = {
@@ -162,17 +165,6 @@ class Client():
         )
         )
 
-    def load_aliases(self) -> dict:
-        """Load aliases from File"""
-        with open(self.__alias_file, "r", encoding="utf-8") as reader:
-            lines = reader.readlines()
-            aliases: dict = {}
-            for line in lines:
-                if not line.startswith("#"):  # make comments with '#' in aliases file
-                    line = line.strip("\n").split(" ")
-                    aliases[line[0]] = line[1]
-        return aliases
-
     def server_side_quit(self, message:str) -> None:
         self.client_print(message)
         self.client_print("The server quit the connection.")
@@ -187,6 +179,41 @@ class Client():
     def delete_server_help_entries(self, entries:dict) -> None:
         for command in entries:
             self.__help_data["ingame"].pop(command)
+
+######################
+## file operations: ##
+######################
+
+    def load_dict(self, file: str, seperator: str, comment_char: str="#", encoding: str="utf-8") -> dict:
+        with open(file, "r", encoding=encoding) as reader:
+            lines = reader.readlines()
+            return_dict: dict = {}
+            for line in lines:
+                if not line.startswith(comment_char):
+                    line = line.strip("\n").split(seperator)
+                    return_dict[line[0]] = line[1]
+            return return_dict
+
+    def load_name(self) -> str:
+        with open(self.__name_file, "r", encoding="utf-8") as reader:
+            return reader.readline()
+
+    def write_name(self, name) -> None:
+        with open(self.__name_file, "w", encoding="utf-8") as writer:
+            writer.write(name)
+
+    def load_aliases(self) -> dict:
+        """Load aliases from File"""
+        return self.load_dict(self.__alias_file, " ")
+
+    def load_gui_settings(self) -> dict:
+        settings = self.load_dict(self.__gui_setttings_file, ": ")
+        settings["screen_height"] = int(settings["screen_height"])
+        settings["screen_width"] = int(settings["screen_width"])
+        return settings
+
+    def write_gui_settings(self) -> None:
+        raise NotImplementedError
 
 ##############################
 ## user executable commands ##
@@ -277,6 +304,7 @@ class Client():
             self.name = name
         else:
             self.name = self.__gui_handler.new_input("set_name$>")
+        self.write_name(self.name)
         self.__gui_handler.new_print(f"Name was set to {self.name}.")
 
     def delete_game(self, args=None) -> None:
@@ -362,7 +390,6 @@ class Client():
             self.__gui_handler.set_information_right(key, value)
 
 if __name__ == "__main__":
-    gui_handler = GuiHandler()  # init gui handler
-    client = Client(gui_handler)  # init client
+    client = Client()  # init client
     # main loop
     client.user_input_loop("menu")

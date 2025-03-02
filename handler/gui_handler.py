@@ -3,11 +3,13 @@ import pygame
 
 class GuiHandler():
 
-    def __init__(self):
-        self.__screen_height = 720
-        self.__screen_width = 1280
-        self.__text_color = pygame.Color("white")
-        self.__bg_color = pygame.Color("black")
+    def __init__(
+        self, screen_height: int=720, screen_width: int=1280,
+        text_color: str="white", bg_color: str="black"):
+        self.__screen_height = screen_height
+        self.__screen_width = screen_width
+        self.__text_color = pygame.Color(text_color)
+        self.__bg_color = pygame.Color(bg_color)
         pygame.init()  # init pygame
         pygame.key.set_repeat(420, 42)  # enable repeating key input, if key is constantly pressed
         self.__screen = pygame.display.set_mode((self.__screen_width, self.__screen_height))
