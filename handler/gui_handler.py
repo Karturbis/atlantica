@@ -44,7 +44,8 @@ class GuiHandler():
             command_history: list = []
             for line in lines:
                 line = line.strip("\n")
-                command_history.append(line)
+                if line:
+                    command_history.append(line)
         if not command_history:
             command_history = [""]
         return command_history
@@ -169,9 +170,6 @@ class GuiHandler():
                             user_input = user_input_tmp_history
                         else:
                             user_input = self.__command_history[command_history_index]
-                        print(f"Keyup, index: {command_history_index}")
-                        print(f"history: {self.__command_history}")
-                        print(f"user_in history single: {user_input_tmp_history}")
                     # arrow key down:
                     elif event.key == pygame.K_DOWN:
                         if not user_input_tmp_history:
@@ -184,12 +182,9 @@ class GuiHandler():
                             user_input = user_input_tmp_history
                         else:
                             user_input = self.__command_history[command_history_index]
-                        print(f"Keydown, index: {command_history_index}")
-                        print(f"history: {self.__command_history}")
-                        print(f"user_in history single: {user_input_tmp_history}")
                     # enter key input:
                     elif event.key == pygame.K_RETURN:
-                        if user_input.strip(" ") != "" and user_input.strip(" ") != self.__command_history[-1]:
+                        if user_input.strip(" ") != "" and user_input.strip(" ") != self.__command_history[0]:
                             self.__command_history.insert(0, user_input)
                         command_history_index = -1
                         user_input_tmp_history = None
