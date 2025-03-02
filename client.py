@@ -231,7 +231,7 @@ class Client():
         self.__database_handler.set_database(game_file_path)
         return None
 
-    def start_server(self, server_port = 27300, local:bool=True) -> None:
+    def start_server(self, server_port = 27300, local:bool=False) -> None:
         """Starts a server for the client to connect to."""
         saved_game_files = listdir("saves/")
         if saved_game_files:
@@ -250,7 +250,7 @@ class Client():
                 )
                 return None
             game_file_path = f"saves/{saved_game_files[option-1]}"
-            # start server:
+            # start server in extra process:
             p = Process(
                 target=system, daemon=True,
                 args=[f"python3 server.py {game_file_path} {local} {server_port}"]
@@ -261,6 +261,7 @@ class Client():
 
     def load_game(self):
         self.start_server(local=True)
+        time.sleep(0.1)
         self.join_server()
 
     def set_name(self, name:str=None):
