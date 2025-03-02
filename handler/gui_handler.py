@@ -13,12 +13,13 @@ class GuiHandler():
         self.__screen = pygame.display.set_mode((self.__screen_width, self.__screen_height))
         self.__std_text_font = pygame.font.Font(None, 42)
         self.__clock = pygame.time.Clock()
-        self.__to_blit = []
-        self.terminal_content = []
-        self.__command_history = [""]
-        self.__information_content_left = {}
-        self.__information_content_center = {}
-        self.__information_content_right = {}
+        self.__to_blit: list = []
+        self.terminal_content: list = []
+        self.__command_history_file_path = "client_data/terminal_history"
+        self.__command_history: list = self.load_command_history()
+        self.__information_content_left: dict = {}
+        self.__information_content_center: dict = {}
+        self.__information_content_right: dict = {}
         self.__running_input: bool = True
         # define window part heights:
         title_height = self.__screen_height//10
@@ -36,6 +37,22 @@ class GuiHandler():
         self.__stats_rect_left = pygame.Rect(0, stats_rect_top, self.__screen_width//3, stats_rect_height)
         self.__stats_rect_center = pygame.Rect(self.__screen_width//3, stats_rect_top, self.__screen_width//3, stats_rect_height)
         self.__stats_rect_right = pygame.Rect(2*self.__screen_width//3, stats_rect_top, self.__screen_width//3, stats_rect_height)
+
+    def load_command_history(self) -> list:
+        with open(self.__command_history_file_path, "r", encoding="utf-8") as reader:
+            lines = reader.readlines()
+            command_history: list = []
+            for line in lines:
+                line = line.strip("\n")
+                command_history.append(line)
+        if not command_history:
+            command_history = [""]
+        return command_history
+
+    def write_command_history(self) -> None:
+        with open(self.__command_history_file_path, "w", encoding="utf-8") as writer:
+            for command in self.__command_history:
+                writer.write(f"{command}\n")
 
     def startup(self):
         font = pygame.font.Font(None, 150)
@@ -128,8 +145,9 @@ class GuiHandler():
         prompt = f"{prompt.strip(' ')} " # make sure promt contains exactly one space at the end
         font = self.__std_text_font
         self.__running_input = True
-        user_input = ""
-        command_history_index = 1
+        user_input: str = ""
+        user_input_tmp_history: str = None
+        command_history_index = -1
         while self.__running_input:
             # pygame.QUIT event means the user clicked X to close your window
             for event in pygame.event.get():
@@ -140,22 +158,41 @@ class GuiHandler():
                     user_input += event.text
                 # special keys input:
                 elif event.type == pygame.KEYDOWN:
+                    # arrow key up:
                     if event.key == pygame.K_UP:
-                        try:
-                            user_input = self.__command_history[-command_history_index]
-                        except IndexError:
-                            command_history_index = 0
-                        command_history_index += 1
+                        if not user_input_tmp_history:
+                            user_input_tmp_history = user_input
+                        command_history_index +=1
+                        if command_history_index == len(self.__command_history):
+                            command_history_index -=1
+                        if command_history_index == -1:
+                            user_input = user_input_tmp_history
+                        else:
+                            user_input = self.__command_history[command_history_index]
+                        print(f"Keyup, index: {command_history_index}")
+                        print(f"history: {self.__command_history}")
+                        print(f"user_in history single: {user_input_tmp_history}")
+                    # arrow key down:
                     elif event.key == pygame.K_DOWN:
-                        try:
-                            user_input = self.__command_history[-command_history_index]
-                        except IndexError:
-                            command_history_index = 0
-                        command_history_index -= 1
+                        if not user_input_tmp_history:
+                            user_input_tmp_history = user_input
+                        command_history_index -=1
+                        if command_history_index <= -2:
+                            user_input = ""
+                            command_history_index = -2
+                        elif command_history_index == -1:
+                            user_input = user_input_tmp_history
+                        else:
+                            user_input = self.__command_history[command_history_index]
+                        print(f"Keydown, index: {command_history_index}")
+                        print(f"history: {self.__command_history}")
+                        print(f"user_in history single: {user_input_tmp_history}")
+                    # enter key input:
                     elif event.key == pygame.K_RETURN:
-                        if not user_input.strip(" ") == "":
-                            self.__command_history.append(user_input)
-                        command_history_index = 0
+                        if user_input.strip(" ") != "" and user_input.strip(" ") != self.__command_history[-1]:
+                            self.__command_history.insert(0, user_input)
+                        command_history_index = -1
+                        user_input_tmp_history = None
                         if user_input.lower() == "clear":
                             self.clear()
                             user_input = ""

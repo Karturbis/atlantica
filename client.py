@@ -31,7 +31,7 @@ class Client():
             "ingame": ["clear", "quit_game", "print_help",],
         }
         self.__server_methods: dict = {}
-        self.__alias_file: str = "client.alias"
+        self.__alias_file: str = "client_data/aliases"
         self.__aliases: dict = self.load_aliases()
         self.__database_handler = DatabaseHandler()
         self.__network_client = None
@@ -166,9 +166,9 @@ class Client():
         """Load aliases from File"""
         with open(self.__alias_file, "r", encoding="utf-8") as reader:
             lines = reader.readlines()
-            aliases = {}
+            aliases: dict = {}
             for line in lines:
-                if not line.startswith("#"):  # make comments with '#' in aliases.als
+                if not line.startswith("#"):  # make comments with '#' in aliases file
                     line = line.strip("\n").split(" ")
                     aliases[line[0]] = line[1]
         return aliases
@@ -215,6 +215,7 @@ class Client():
 
     def quit_game(self, args=None) -> None:
         """Saves and quits the game."""
+        self.__gui_handler.write_command_history()
         if self.__mode == "ingame":
             self.execute_cmd_server("disconnect")
         pg_quit()  # quit pygame
