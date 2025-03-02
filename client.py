@@ -7,8 +7,10 @@ import shutil  # Used copy the content.sqlite file into a newfrom os import syst
 from sys import exit
 from threading import Thread
 from multiprocessing import Process
-from pygame.base import quit as pg_quit
 import time
+import socket
+from pygame.base import quit as pg_quit
+
 
 # handler imports:
 from handler import DatabaseHandler
@@ -192,16 +194,21 @@ class Client():
 
     def join_server(self, server_ip: str="127.0.0.1", server_port:int=27300) -> None:
         """Connect to the given server."""
-        server_port = 27300
-        self.__network_client_thread = Thread(target=self.threaded_server_listen_loop, daemon=True)
-        self.__network_client = network_handler.NetworkClient(server_ip, server_port)
-        self.__server_methods = self.__network_client.connect().data
-        self.__network_client.send(network_handler.NetworkPacket(
-            packet_type="hello", data=self.name
-        ))
-        self.__prompt = f"{self.name}@{server_ip}$>"
-        self.__mode = "ingame"
-        self.__network_client_thread.start()
+        try:
+            self.__network_client_thread = Thread(target=self.threaded_server_listen_loop, daemon=True)
+            self.__network_client = network_handler.NetworkClient(server_ip, server_port)
+            self.__server_methods = self.__network_client.connect().data
+            self.__network_client.send(network_handler.NetworkPacket(
+                packet_type="hello", data=self.name
+            ))
+            self.__prompt = f"{self.name}@{server_ip}$>"
+            self.__mode = "ingame"
+            self.__network_client_thread.start()
+        except socket.error:
+            self.__gui_handler.new_print("Please enter the Server Ip and the port manually")
+            new_server_ip = self.__gui_handler.new_input("enter the server ip $>")
+            port = self.__gui_handler.new_input("enter the server port $>")
+            self.join_server(server_ip=new_server_ip, server_port=int(port))
 
     def clear(self) -> None:
         self.__gui_handler.clear()
