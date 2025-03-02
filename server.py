@@ -653,13 +653,13 @@ try:
 except IndexError:
     local = True
 try:
-    server_port = cmd_line_args[3]
+    server_port = int(cmd_line_args[3])
 except IndexError:
     server_port = 27300
 
 #  for custom gameslot uncomment following 2 lines
-GAMESLOT = "gilbert"
-game_file_path = f"saves/gameslot_{GAMESLOT}.sqlite"
+#GAMESLOT = "gilbert"
+#game_file_path = f"saves/gameslot_{GAMESLOT}.sqlite"
 
 thread_data = network_handler.ThreadData()
 network_server = network_handler.NetworkServer(

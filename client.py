@@ -250,13 +250,17 @@ class Client():
                 return None
             game_file_path = f"saves/{saved_game_files[option-1]}"
             # start server:
-            # NEED TO FIND MEHTOD TO START SERVER, WITHOUT SOTTPING CLIENT!
-            system(f"python3 server.py {game_file_path} {local} {server_port} &")
+            t = Thread(
+                target=system, daemon=True,
+                args=[f"python3 server.py {game_file_path} {local} {server_port}"]
+                )
+            t.start()
         else:
             self.__gui_handler.new_print("There are no gameslots available, create one with 'new'.")
 
     def load_game(self):
         self.start_server(local=True)
+        self.join_server()
 
     def set_name(self, name:str=None):
         if name:
