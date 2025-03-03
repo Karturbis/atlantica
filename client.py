@@ -29,7 +29,7 @@ class Client():
         self.__local_methods: dict = {
             "general": [
                 "clear", "quit_game", "print_help",
-                "print_alias", "add_alias",
+                "print_alias", "add_alias", "gui_settings"
                 ],
             "menu": [
                 "new_game", "load_game", "delete_game",
@@ -349,16 +349,26 @@ class Client():
         else:
             self.__gui_handler.new_print("There are no gameslots.")
 
-    def gui_settings(self) -> None:
+    def gui_settings(self, change_setting: str=None, new_value: str=None) -> None:
         settings = self.load_gui_settings()
-        self.__gui_handler.new_print("Select which setting you want to change:")
-        for number, option in enumerate(settings.keys()):
-            self.__gui_handler.new_print(f"{number-1}: {option}")
-        try:
-            self.change_setting = settings[int(self.__gui_handler.new_input("change setting nr.$>"))]
-        except IndexError:
-            self.__gui_handler.new_print("quitting settings, because you did not enter a number.")
-            
+        if not change_setting:
+            self.__gui_handler.new_print("Select which setting you want to change:")
+            for _, option in enumerate(settings.keys()):
+                self.__gui_handler.new_print(f"> {option}")
+            try:
+                change_setting = self.__gui_handler.new_input("change setting $>")
+            except IndexError:
+                self.__gui_handler.new_print("quitting settings, because you did not enter a number.")
+                return None
+        if change_setting in settings.keys():
+            if not new_value:
+                new_value = self.__gui_handler.new_input(f"please enter the new value for {change_setting}$>")
+            settings[change_setting] = new_value
+            self.write_dict(settings, self.__gui_setttings_file, ": ", flush_file=True)
+            self.__gui_handler.new_print("Please restart the game for the Settings to take effekt.")
+        else:
+            self.__gui_handler.new_print("This setting does not exist.")
+
     def add_alias(self, alias:str, command:str) -> None:
         """add alias to the aliases File"""
         if alias.startswith("#"):
