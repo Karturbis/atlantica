@@ -197,6 +197,14 @@ class Client():
                     return_dict[line[0]] = line[1]
             return return_dict
 
+    def write_dict(self, data: dict, file: str, seperator: str, flush_file: bool=False, encoding: str="utf-8") -> None:
+        if flush_file:
+            with open(file, "w", encoding=encoding) as flusher:
+                flusher.write("")
+        with open(file, "a", encoding=encoding) as writer:
+            for key, value in data.items():
+                writer.write(f"{key}{seperator}{value}\n")
+
     def load_name(self) -> str:
         with open(self.__name_file, "r", encoding="utf-8") as reader:
             return reader.readline()
@@ -214,9 +222,6 @@ class Client():
         settings["screen_height"] = int(settings["screen_height"])
         settings["screen_width"] = int(settings["screen_width"])
         return settings
-
-    def write_gui_settings(self) -> None:
-        raise NotImplementedError
 
 ##############################
 ## user executable commands ##
@@ -254,7 +259,7 @@ class Client():
     def new_game(self, args=None) -> None:
         """Creates a new game save slot"""
         prompt = "new_game$>"
-        game_name = self.__gui_handler.new_input( f"Please input the name of the gameslot {prompt}")
+        game_name = self.__gui_handler.new_input(f"Please input the name of the gameslot {prompt}")
         game_file_path = f"saves/gameslot_{game_name}.sqlite"
         if exists(game_file_path):
             overwrite = self.__gui_handler.new_input(
@@ -344,6 +349,16 @@ class Client():
         else:
             self.__gui_handler.new_print("There are no gameslots.")
 
+    def gui_settings(self) -> None:
+        settings = self.load_gui_settings()
+        self.__gui_handler.new_print("Select which setting you want to change:")
+        for number, option in enumerate(settings.keys()):
+            self.__gui_handler.new_print(f"{number-1}: {option}")
+        try:
+            self.change_setting = settings[int(self.__gui_handler.new_input("change setting nr.$>"))]
+        except IndexError:
+            self.__gui_handler.new_print("quitting settings, because you did not enter a number.")
+            
     def add_alias(self, alias:str, command:str) -> None:
         """add alias to the aliases File"""
         if alias.startswith("#"):
