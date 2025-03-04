@@ -37,7 +37,7 @@ class Client():
                 ],
             "ingame": [],
         }
-        self.__server_methods: dict = {}
+        self.__server_methods: list = []
         self.__aliases: dict = self.load_aliases()
         self.__database_handler = DatabaseHandler()
         self.__network_client = None
@@ -182,6 +182,14 @@ class Client():
     def delete_server_help_entries(self, entries:dict) -> None:
         for command in entries:
             self.__help_data["ingame"].pop(command)
+
+    def add_server_ingame_entries(self, entries: list) -> None:
+        for command in entries:
+            self.__server_methods.append(command)
+
+    def delete_server_ingame_entries(self, entries: list) -> None:
+        for command in entries:
+            self.__server_methods.remove(command)
 
 ######################
 ## file operations: ##
