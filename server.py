@@ -1,6 +1,7 @@
 import time
 import sys
 from ast import literal_eval  # Used to evaluate a boolean from a string
+import random
 from handler import network_handler
 from handler import DatabaseHandler
 #from data_classes import Container
@@ -469,16 +470,30 @@ class ServerMethods():
         print(f"pinged at Time: {time_now}")
         self.new_print(f"Time:{time_now}")
 
-####################
-## combat system: ##
-####################
+#############################
+## combat system user side ##
+#############################
 
     def attack(self):
-        pass
+        self.send_cmd_packet(command="add_server_ingame_entries", ["attack"])
+        #attack
+        self.send_cmd_packet(command="delete_server_ingame_entries", ["attack"])
 
-    def block(self):
-        pass
+    def defend(self):
+        self.send_cmd_packet(command="add_server_ingame_entries", ["block"])
+        # defend
+        self.send_cmd_packet(command="delete_server_ingame_entries", ["block"])
 
+#####################################
+## combat system internal methods: ##
+#####################################
+
+    def start_fight(self, opponnents: list) -> None:
+        self.send_cmd_packet(command="delete_server_ingame_entries", args=["save_player", "move", "rest", "inspect"])
+
+    def end_fight(self, opponnents: list) -> None:
+        self.send_cmd_packet(command="add_server_ingame_entries", args=["save_player", "move", "rest", "inspect"])
+        
 
 cmd_line_args = sys.argv
 try:
