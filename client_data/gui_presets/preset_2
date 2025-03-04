@@ -1,4 +1,4 @@
 screen_height: 720
 screen_width: 1280
-text_color: green
-bg_color: black
+text_color: black
+bg_color: white

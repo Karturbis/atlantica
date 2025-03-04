@@ -217,8 +217,10 @@ class Client():
         """Load aliases from File"""
         return self.load_dict(self.__alias_file, " ")
 
-    def load_gui_settings(self) -> dict:
-        settings = self.load_dict(self.__gui_setttings_file, ": ")
+    def load_gui_settings(self, gui_settings_file: str = None) -> dict:
+        if not gui_settings_file:
+            gui_settings_file = self.__gui_setttings_file
+        settings = self.load_dict(gui_settings_file, ": ")
         settings["screen_height"] = int(settings["screen_height"])
         settings["screen_width"] = int(settings["screen_width"])
         return settings
@@ -317,7 +319,7 @@ class Client():
 
     def delete_game(self, args=None) -> None:
         """Delete the given Gameslot."""
-        saved_game_files = listdir("saves/")
+        saved_game_files: list = listdir("saves/")
         if saved_game_files:
             self.__gui_handler.new_print("Pick your option:")
             for index, file_name in enumerate(saved_game_files):
@@ -345,25 +347,39 @@ class Client():
                 self.__gui_handler.new_print(f"Gameslot {gameslot[9:-7]} wurde gelöscht.")
             else:
                 self.__gui_handler.new_print("Nichts wurde gelöscht.")
-
         else:
             self.__gui_handler.new_print("There are no gameslots.")
 
     def gui_settings(self, change_setting: str=None, new_value: str=None) -> None:
         settings = self.load_gui_settings()
+        settings["load_preset"] = None
         if not change_setting:
-            self.__gui_handler.new_print("Select which setting you want to change:")
-            for _, option in enumerate(settings.keys()):
+            self.__gui_handler.new_print("Select which setting you want to change or load a preset:")
+            for _, option in enumerate(settings):
                 self.__gui_handler.new_print(f"> {option}")
+            change_setting = self.__gui_handler.new_input("change setting $>")
+        if change_setting == "load_preset":
+            presets: list = listdir("client_data/gui_presets/")
+            self.__gui_handler.new_print("Select the preset:")
+            for index, preset in enumerate(presets):
+                self.__gui_handler.new_print(f"{index+1}: {preset}")
+            user_input_preset = self.__gui_handler.new_input("Enter the preset you want to load$>")
             try:
-                change_setting = self.__gui_handler.new_input("change setting $>")
-            except IndexError:
-                self.__gui_handler.new_print("quitting settings, because you did not enter a number.")
-                return None
-        if change_setting in settings.keys():
+                preset_file = presets[int(user_input_preset)-1]
+            except ValueError:
+                preset_file = user_input_preset
+            try:
+                settings = self.load_gui_settings(f"client_data/gui_presets/{preset_file}")
+                self.write_dict(settings, self.__gui_setttings_file, ": ", flush_file=True)
+                self.__gui_handler.new_print("Please restart the game for the Settings to take effekt.")
+            except ValueError:
+                self.__gui_handler.new_print(f"There is no option {user_input_preset}")
+            return None
+        if change_setting in settings:
             if not new_value:
                 new_value = self.__gui_handler.new_input(f"please enter the new value for {change_setting}$>")
             settings[change_setting] = new_value
+            settings.pop("load")
             self.write_dict(settings, self.__gui_setttings_file, ": ", flush_file=True)
             self.__gui_handler.new_print("Please restart the game for the Settings to take effekt.")
         else:
