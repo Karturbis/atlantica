@@ -20,7 +20,7 @@ class ServerMethods():
             "take", "drop", "print_inventory",
             "unequip", "eat", "inspect", "equip",
             "save_player", "backflip",
-            "disconnect"
+            "disconnect", "start_fight"
             ]
         self.__server_help_data = {
             "ping": "prints the time of the ping in nano seconds",
@@ -488,9 +488,25 @@ class ServerMethods():
 ## combat system internal methods: ##
 #####################################
 
-    def start_fight(self, opponnents: list) -> None:
-        self.send_cmd_packet(command="delete_server_ingame_entries", args=["save_player", "move", "rest", "inspect"])
+    def enter_attack_mode(self):
+        self.send_cmd_packet(command="add_server_ingame_entries", ["attack"])
 
+    def leave_attack_mode(self):
+        self.send_cmd_packet(command="delete_server_ingame_entries", ["attack"])
+
+    def enter_defend_mode(self):
+        self.send_cmd_packet(command="add_server_ingame_entries", ["block"])
+
+    def leave_defend_mode(self):
+        self.send_cmd_packet(command="delete_server_ingame_entries", ["block"])
+
+    def start_fight(self, opponnent) -> None:
+        opponnents: list = self.__position.get_characters()
+        if opponnent in opponnents:
+            self.send_cmd_packet(command="delete_server_ingame_entries", args=["save_player", "move", "rest", "inspect"])
+            
+        else:
+            self.new_print(f"You can not attack {opponnent}, because {opponnent} is not here right now.")
     def end_fight(self, opponnents: list) -> None:
         self.send_cmd_packet(command="add_server_ingame_entries", args=["save_player", "move", "rest", "inspect"])
         
