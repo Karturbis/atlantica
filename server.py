@@ -475,30 +475,30 @@ class ServerMethods():
 #############################
 
     def attack(self):
-        self.send_cmd_packet(command="add_server_ingame_entries", ["attack"])
+        self.send_cmd_packet(command="add_server_ingame_entries", args=["attack"])
         #attack
-        self.send_cmd_packet(command="delete_server_ingame_entries", ["attack"])
+        self.send_cmd_packet(command="delete_server_ingame_entries", args=["attack"])
 
     def defend(self):
-        self.send_cmd_packet(command="add_server_ingame_entries", ["block"])
+        self.send_cmd_packet(command="add_server_ingame_entries", args=["block"])
         # defend
-        self.send_cmd_packet(command="delete_server_ingame_entries", ["block"])
+        self.send_cmd_packet(command="delete_server_ingame_entries", args=["block"])
 
 #####################################
 ## combat system internal methods: ##
 #####################################
 
     def enter_attack_mode(self):
-        self.send_cmd_packet(command="add_server_ingame_entries", ["attack"])
+        self.send_cmd_packet(command="add_server_ingame_entries", args=["attack"])
 
     def leave_attack_mode(self):
-        self.send_cmd_packet(command="delete_server_ingame_entries", ["attack"])
+        self.send_cmd_packet(command="delete_server_ingame_entries", args=["attack"])
 
     def enter_defend_mode(self):
-        self.send_cmd_packet(command="add_server_ingame_entries", ["block"])
+        self.send_cmd_packet(command="add_server_ingame_entries", args=["block"])
 
     def leave_defend_mode(self):
-        self.send_cmd_packet(command="delete_server_ingame_entries", ["block"])
+        self.send_cmd_packet(command="delete_server_ingame_entries", args=["block"])
 
     def start_fight(self, opponnent) -> None:
         opponnents: list = self.__position.get_characters()
