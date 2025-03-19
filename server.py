@@ -509,7 +509,7 @@ class ServerMethods():
             self.new_print(f"You can not attack {opponnent}, because {opponnent} is not here right now.")
     def end_fight(self, opponnents: list) -> None:
         self.send_cmd_packet(command="add_server_ingame_entries", args=["save_player", "move", "rest", "inspect"])
-        
+
 
 cmd_line_args = sys.argv
 try:
