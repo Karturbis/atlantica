@@ -1,6 +1,5 @@
 """Compiles the given sentence
 to valid german language output."""
-import sqlite3
 
 
 class LanguageHandlerDE:
