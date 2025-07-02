@@ -9,11 +9,12 @@ class GuiHandler():
         self.__screen_height = screen_height
         self.__screen_width = screen_width
         self.__text_color = pygame.Color(text_color)
+        self.__line_height_modifier = 1.3
         self.__bg_color = pygame.Color(bg_color)
         pygame.init()  # init pygame
         pygame.key.set_repeat(420, 42)  # enable repeating key input, if key is constantly pressed
         self.__screen = pygame.display.set_mode((self.__screen_width, self.__screen_height))
-        self.__std_text_font = pygame.font.Font(None, 42)
+        self.__std_text_font = pygame.font.SysFont("mono", 27)
         self.__clock = pygame.time.Clock()
         self.__to_blit: list = []
         self.terminal_content: list = []
@@ -77,7 +78,7 @@ class GuiHandler():
 
     def refresh(self):
         # make title
-        title_font = pygame.font.Font(None, 90)
+        title_font = pygame.font.SysFont("Helvetica", 90)
         title = "Atlantica"
         title_surface = title_font.render(title, True, self.__text_color)
         title_rect = title_surface.get_rect(center=(self.__screen_width//2, 50))
@@ -135,7 +136,7 @@ class GuiHandler():
         text_surfaces = [self.__std_text_font.render(i, True, self.__text_color) for i in self.terminal_content]
         self.__to_blit = []  # reset self.__to_blit
         for index, text_surface in enumerate(reversed(text_surfaces)):
-            self.__to_blit.append((text_surface, (10, lower_bound - (index+1) * line_height)))
+            self.__to_blit.append((text_surface, (10, lower_bound - (index+1) * line_height*self.__line_height_modifier)))
 
     def clear(self):
         self.terminal_content = []
