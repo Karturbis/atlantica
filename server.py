@@ -54,11 +54,16 @@ class ServerMethods():
         self.send_cmd_packet("add_server_help_entries", [self.__server_help_data])
         self.__name = thread_data.client_names[self.__connection_id]
         self.db_handler = DatabaseHandler(game_file_path[0])
+        print("DEBUG:Initialized DatabaseHandler")
         try:
             self.db_handler.get_player_data(self.__name)
+            print("Player already exists, loading data.")
         except IndexError:  # no character data for this name was found
             self.db_handler.new_player(self.__name)
+            print("Player does not exist yet, initialize new player.")
+        print("DEBUG:Read character data from Database")
         character_data = self.db_handler.get_player_data(self.__name)
+        print(f"DEBUG:Character_data: {character_data}")
         self.__health: int = int(character_data[0])
         self.__saturation: int = int(character_data[1])
         self.__speed: int = int(character_data[2])
@@ -68,6 +73,7 @@ class ServerMethods():
         self.__position = Chunk(
             self.__position_save_id, *self.db_handler.get_chunk_data(self.__position_save_id)
         )
+        print(f"DEBUG:Position: {self.__position}")
         # load inventory from database:
         inventory_data_raw: str = character_data[5]
         if inventory_data_raw:
@@ -119,6 +125,7 @@ class ServerMethods():
         if not args:
             args = []
         print(f"args: {args}")
+        print(f"command: {command}")
         try:
             func = getattr(self, command)
         except AttributeError:
@@ -384,6 +391,7 @@ class ServerMethods():
             item_selected = item_selected_pos
         else:
             self.new_print(f"There is no {item[0]}, you could equip right now.")
+            return None
         self.unequip()
         self.__inventory[item_selected] = True  # set the eqiupped parameter to true
         if item[0] == "":
@@ -447,6 +455,7 @@ class ServerMethods():
         self.__position = self.load_chunk(self.__position.get_chunk_id())
         self.new_print(f"There are: {self.__position.get_items()}")
         characters = self.__position.get_characters()
+        print(f"DEBUG: characters: {characters}")
         characters.remove(self.__name)
         self.new_print(f"You see {characters}")
         self.new_print(f"There are also {self.__position.get_containers()}")
