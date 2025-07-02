@@ -26,3 +26,4 @@ exit quit_game
 name set_name
 help print_help
 ? print_help
+dc disconnect
