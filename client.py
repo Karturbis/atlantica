@@ -237,8 +237,9 @@ class Client():
 ## user executable commands ##
 ##############################
 
-    def join_server(self, server_ip: str="127.0.0.1", server_port:int=27300) -> None:
+    def join_server(self, server_ip: str="127.0.0.1", server_port:str="27300") -> None:
         """Connect to the given server."""
+        server_port = int(server_port)
         try:
             self.__network_client_thread = Thread(target=self.threaded_server_listen_loop, daemon=True)
             self.__network_client = network_handler.NetworkClient(server_ip, server_port)
