@@ -214,7 +214,7 @@ class NetworkHandler():
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.settimeout(0)
         try:
-            # doesn't even have to be reachable
+            # connect to non relevant ip, to get the socketname
             s.connect(('10.254.254.254', 1))
             ip_adress = s.getsockname()[0]
         except socket.error:
