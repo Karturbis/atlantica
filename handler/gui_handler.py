@@ -14,7 +14,7 @@ class GuiHandler():
         pygame.init()  # init pygame
         pygame.key.set_repeat(420, 42)  # enable repeating key input, if key is constantly pressed
         self.__screen = pygame.display.set_mode((self.__screen_width, self.__screen_height))
-        self.__std_text_font = pygame.font.SysFont("mono", 27)
+        self.__std_text_font = pygame.font.SysFont("mono", 17)
         self.__clock = pygame.time.Clock()
         self.__to_blit: list = []
         self.terminal_content: list = []
