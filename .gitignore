@@ -1,7 +1,16 @@
+# python stuff:
 atlantica_venv/
 __pycache__
+
+# tests:
 test*
+
+# not pushing game state saves:
 saves/*
 content.sqlite-journal
+
+# vscode configuration:
 .vscode/
+
+# the files are too large:
 language_handler_de_data
