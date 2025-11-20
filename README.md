@@ -88,7 +88,6 @@ side command. Else the client sends the wordlist to the server.
 - set name (args: new name) > sets the player name, which will be used to connect to the server
 - clear (args: none) > clears the screen
 - quit game (args: none) > saves and exits the game
-- save game (args: savefile) > saves the game to the specified savefile
 - add alias (args: what to alias, alias name) > add an alias to the aliases list
 - print alias (args: none) > prints all aliases
 - print help (args: none) > prints all available commands
