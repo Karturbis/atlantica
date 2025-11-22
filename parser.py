@@ -11,7 +11,7 @@ def stage_one(input_str:str, aliases: dict) -> list :
     return input_str.lower().split()
 
 def stage_two(input_command: list):
-    
+    pass
 
 def stage_three():
     pass
