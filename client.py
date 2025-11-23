@@ -5,18 +5,19 @@ the relevant parts of the Game happen."""
 from threading import Thread
 
 # local imports:
-from parser import stage_one
+from parser import Parser
 
 class Client():
 
     def __init__(self):
-        self.__aliases = self.load_aliases()
+        self._aliases = self.load_aliases()
+        self._parser = Parser()
 
     def main(self):
         running = True
         while running:
             user_input = input("$> ")
-            command_stage_one: str = stage_one(user_input, self.__aliases)
+            command_stage_one: str = self._parser.stage_one(user_input, self._aliases)
 
     def load_aliases(self) -> dict:
         """Loads the aliases from the aliases
