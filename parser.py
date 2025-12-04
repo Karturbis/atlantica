@@ -28,7 +28,7 @@ class Parser():
 
 #########################
 ## The actual parsing: ##
-########################
+#########################
 
     def stage_one(self, input_str:str, aliases: dict) -> list :
         """Convert the input string into a list of words"""
