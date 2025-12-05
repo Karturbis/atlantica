@@ -122,18 +122,18 @@ class Bow(RangeWeapon):
 class Player():
 
     def __init__(self, name: int, position: int):
-        self.__name: str = name
-        self.__inventory: list[int] = []
-        self.__position: int = position
+        self._name: str = name
+        self._inventory: list[int] = []
+        self._position: int = position
 
     def remove_from_inventory(self, item_id: str):
-        self.__inventory.remove(item_id)
+        self._inventory.remove(item_id)
 
     def add_to_inventory(self, item_id: str):
-        self.__inventory.append(item_id)
-    
+        self._inventory.append(item_id)
+
     def get_position(self):
-        return self.__position
+        return self._position
 
 
 class Room():
@@ -142,36 +142,36 @@ class Room():
         self, room_id: str, room_north_id: str, room_east_id: str,
         room_south_id: str, room_west_id: str
         ):
-        self.__id: str = room_id
-        self.__north_id: str = room_north_id
-        self.__east_id: str = room_east_id
-        self.__west_id: str = room_west_id
-        self.__south_id: str = room_south_id
-        self.__content: list[str] = []
+        self._id: str = room_id
+        self._north_id: str = room_north_id
+        self._east_id: str = room_east_id
+        self._west_id: str = room_west_id
+        self._south_id: str = room_south_id
+        self._content: list[str] = []
         self.lock = threading.Lock()
 
     # getter:
 
     def get_id(self):
-        return self.__id
+        return self._id
 
     def get_north_id(self):
-        return self.__north_id
+        return self._north_id
 
     def get_east_id(self):
-        return self.__east_id
+        return self._east_id
 
     def get_south_id(self):
-        return self.__south_id
+        return self._south_id
 
     def get_west_id(self):
-        return self.__west_id
+        return self._west_id
 
     def get_content(self):
-        return self.__content
-    
+        return self._content
+
     def item_exists(self, item_id) -> bool:
-        if item_id in self.__content:
+        if item_id in self._content:
             return True
         # no else needed
         return False
@@ -179,11 +179,11 @@ class Room():
     # setter:
 
     def remove_item(self, item_id) -> None:
-        if item_id in self.__content:
-            self.__content.remove(item_id)
+        if item_id in self._content:
+            self._content.remove(item_id)
 
     def add_item(self, item_id) -> None:
-        self.__content.append(item_id)
+        self._content.append(item_id)
 
 
 
