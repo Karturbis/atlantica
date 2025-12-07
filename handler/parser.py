@@ -131,8 +131,8 @@ class Parser():
             for i in command_checker:
                 if not i:
                     return "Error, not all words could be clasified."
-            command_object = Command(verb, [direct_object_adjective, direct_object_noun],
-                                    [indirect_object_adjective, indirect_object_noun]
+            command_object = Command(verb, {"adjective": direct_object_adjective, "noun": direct_object_noun},
+                                    {"adjective": indirect_object_adjective, "noun": indirect_object_noun}
                                     )
             return command_object
 
@@ -156,23 +156,42 @@ class Parser():
         for i in command_checker:
             if not i:
                 return "Error, not all words could be clasified."
-        command_object = Command(verb, [direct_object_adjective, direct_object_noun])
+        command_object = Command(verb, {"adjective": direct_object_adjective, "noun": direct_object_noun})
         return command_object
 
-
-
-    def stage_three(self, command, player):
+    def stage_three(self, command, player_name):
+        player = self._game_state.get_player_by_name(player_name)
         room_id = player.get_position()
         room = self._game_state.get_room_by_id(room_id)
+        player_inventory: dict = {}
+        for i in player.get_inventory():
+            item = self._game_state.get_item_by_id(i)
+            item_name = item.get_name()
+            player_inventory[item_name] = item
+        if command.direct_object["noun"] in player_inventory.keys():
+            # TODO: implement return of the right method
+            
+        else:
+            items = []
+            for i in room.get_content():
+                item = self._game_state.get_item_by_id(i)
+                room_content.append(item.get_name())
+                items.append(item)
+            if command.direct_object["noun"] in room_content:
+                # TODO: execute command
+                pass
+            else:
+                # TODO: add error message
+                pass
         return "test"
 
 
 @dataclasses.dataclass
 class Command():
 
-    def __init__(self, verb: str, direct_object: list,
-                indirect_object: list=None
+    def __init__(self, verb: str, direct_object: dict,
+                indirect_object: dict=None
                 ):
         self.verb: str = verb
-        self.direct_object: list[str] = direct_object
-        self.indirect_object: list[str] = indirect_object
+        self.direct_object: dict = direct_object
+        self.indirect_object: dict = indirect_object

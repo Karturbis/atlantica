@@ -17,7 +17,7 @@ class Server():
         self._clients_lock = threading.Lock()
         self._game_state = GameState()
         # initialize parser:
-        self._parser = Parser()
+        self._parser = Parser(self._game_state)
         # network configuration
         ip = "0.0.0.0"
         port = "27300"
@@ -51,7 +51,7 @@ class Server():
 
     def execute_command(self, command: list, player_name: str) -> str:
         command_obj_stage_two = self._parser.stage_two(command)
-        command_obj_final = self._parser.stage_three(command_obj_stage_two)
+        command_obj_final = self._parser.stage_three(command_obj_stage_two, player_name)
         
 
     def receive_message(self, connection) -> list:

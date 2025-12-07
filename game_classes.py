@@ -21,10 +21,7 @@ class Thing():
         """create a list of verbs in the current class
         all verbs are methods, which start with v_.
         add the verbs to the verbs file."""
-        self_verbs: list = [f"{method[2:]}\n" for method in dir(self) if
-                callable(getattr(self, method))
-                and method.startswith("v_")
-                ]
+        self_verbs: list = [f"{i}\n" for i in self.get_verbs()]
         with open("parser/verbs", "r", encoding="utf-8") as reader:
             file_verbs: list = reader.readlines()
         # add only verbs to file, wich it does not contain yet
@@ -37,6 +34,18 @@ class Thing():
     def get_id(self):
         return self._id
 
+    def get_name(self):
+        return self._name
+
+    def get_verbs(self) -> list:
+        """Returns all verbnames of the current item.
+        A verb is a method, which is user executable.
+        Verb methods always start with 'v_'. This method
+        strips the 'v_' from the verb name."""
+        return [method[2:] for method in dir(self) if
+                callable(getattr(self, method))
+                and method.startswith("v_")
+                ]
     # verbs:
 
     def v_drop(self, player, room_id: str) -> str:
@@ -74,7 +83,6 @@ class Apple(Food):
 
     def __init__(self, thing_id: str, name: str, article: str, game_state):
         super().__init__(thing_id, name, article, game_state)
-    
 
 
 class Potato(Food):
@@ -123,17 +131,29 @@ class Player():
 
     def __init__(self, name: int, position: int):
         self._name: str = name
-        self._inventory: list[int] = []
+        self._inventory: list[str] = []
+        self._inventory_lock = threading.Lock()
         self._position: int = position
 
     def remove_from_inventory(self, item_id: str):
-        self._inventory.remove(item_id)
+        with self._inventory_lock:
+            self._inventory.remove(item_id)
 
     def add_to_inventory(self, item_id: str):
-        self._inventory.append(item_id)
+        with self._inventory_lock:
+            self._inventory.append(item_id)
 
     def get_position(self):
         return self._position
+
+    # getter:
+
+    def get_name(self):
+        return self._name
+
+    def get_inventory(self):
+        with self._inventory_lock:
+            return self._inventory
 
 
 class Room():
@@ -148,7 +168,7 @@ class Room():
         self._west_id: str = room_west_id
         self._south_id: str = room_south_id
         self._content: list[str] = []
-        self.lock = threading.Lock()
+        self._content_lock = threading.Lock()
 
     # getter:
 
@@ -168,22 +188,26 @@ class Room():
         return self._west_id
 
     def get_content(self):
-        return self._content
+        with self._content_lock:
+            return self._content
 
     def item_exists(self, item_id) -> bool:
-        if item_id in self._content:
-            return True
-        # no else needed
-        return False
+        with self._content_lock:
+            if item_id in self._content:
+                return True
+            # no else needed
+            return False
 
     # setter:
 
     def remove_item(self, item_id) -> None:
-        if item_id in self._content:
-            self._content.remove(item_id)
+        with self._content_lock:
+            if item_id in self._content:
+                self._content.remove(item_id)
 
     def add_item(self, item_id) -> None:
-        self._content.append(item_id)
+        with self._content_lock:
+            self._content.append(item_id)
 
 
 
