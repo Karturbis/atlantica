@@ -1,21 +1,19 @@
-import threading
-
 
 class GameState():
 
     # initialisation:
 
     def __init__(self):
-        self._map: dict = {}# self.load_map()
-        self._things: dict ={}# self.load_things()
+        self._map: dict = {}  # self.load_map()
+        self._things: dict ={}  # self.load_things()
 
-    def load_map(self) -> dict:
+    def _load_map(self) -> dict:
         """Return a dict, where the keys
         are the room IDs of all rooms
         and the values are the room objects."""
         raise NotImplementedError
 
-    def load_things(self) -> dict:
+    def _load_things(self) -> dict:
         """Return a dict, where the keys
         are the thing Ids of all things
         in the game and the values are
