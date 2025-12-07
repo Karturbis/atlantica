@@ -1,9 +1,13 @@
 """This is the parser, it converts the user
 input into a command, that can be used by the
 game."""
+
+import dataclasses
+
 class Parser():
 
-    def __init__(self, language: str="en"):
+    def __init__(self, game_state, language: str="en"):
+        self._game_state = game_state
         """The language as a two letter language code."""
         self._language: str = language.lower()
         self._articles: list = self.load_words(f"parser/articles_{self._language}")
@@ -157,15 +161,18 @@ class Parser():
 
 
 
-    def stage_three(self):
-        pass
+    def stage_three(self, command, player):
+        room_id = player.get_position()
+        room = self._game_state.get_room_by_id(room_id)
+        return "test"
 
 
+@dataclasses.dataclass
 class Command():
 
     def __init__(self, verb: str, direct_object: list,
                 indirect_object: list=None
                 ):
-        self._verb: str = verb
-        self._direct_object: list[str] = direct_object
-        self._indirect_object: list[str] = indirect_object
+        self.verb: str = verb
+        self.direct_object: list[str] = direct_object
+        self.indirect_object: list[str] = indirect_object
