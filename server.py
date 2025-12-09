@@ -50,9 +50,13 @@ class Server():
             t.start()
 
     def execute_command(self, command: list, player_name: str) -> str:
+        """Executes the given command and returns the result."""
+        # get the command object, so parser stage three can be called.
         command_obj_stage_two = self._parser.stage_two(command)
+        # get the method that has to be executed:
         command_obj_final = self._parser.stage_three(command_obj_stage_two, player_name)
-        
+        # execute the verb and return the result, which is a string.
+        return command_obj_final()
 
     def receive_message(self, connection) -> list:
         """Return the incoming message as a list"""

@@ -160,30 +160,39 @@ class Parser():
         return command_object
 
     def stage_three(self, command, player_name):
+        """Take the output from stage two and the
+        name of the player, who issued the command.
+        return the method which has to be executed."""
+        # TODO: implement adjective functionality
+        # initialize variables:
+        direct_noun = command.direct_object["noun"]
+        direct_adjective = command.direct_object["adjective"]
         player = self._game_state.get_player_by_name(player_name)
         room_id = player.get_position()
         room = self._game_state.get_room_by_id(room_id)
+        # create the player_inventory dict, which has
+        # item names as keys and the corresponding item
+        # objects as values.
         player_inventory: dict = {}
         for i in player.get_inventory():
             item = self._game_state.get_item_by_id(i)
             item_name = item.get_name()
             player_inventory[item_name] = item
-        if command.direct_object["noun"] in player_inventory.keys():
-            # TODO: implement return of the right method
-            
-        else:
-            items = []
-            for i in room.get_content():
-                item = self._game_state.get_item_by_id(i)
-                room_content.append(item.get_name())
-                items.append(item)
-            if command.direct_object["noun"] in room_content:
-                # TODO: execute command
-                pass
-            else:
-                # TODO: add error message
-                pass
-        return "test"
+        # check if the item wich is used by the
+        # command is contained in the player inventory.
+        if direct_noun in player_inventory:
+            return player_inventory[direct_noun].get_verb_by_name(command.verb)
+        room_content: dict = {}
+        for i in room.get_content():
+            item = self._game_state.get_item_by_id(i)
+            item_name = item.get_name()
+            room_content[item_name] = item
+        if direct_noun in room_content:
+            return room_content[direct_noun].get_verb_by_name(command.verb)
+        return self.error_message(f"There is no {direct_adjective} {direct_noun} in your vicinity.")
+
+    def error_message(self, message):
+        return message
 
 
 @dataclasses.dataclass

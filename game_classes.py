@@ -21,7 +21,7 @@ class Thing():
         """create a list of verbs in the current class
         all verbs are methods, which start with v_.
         add the verbs to the verbs file."""
-        self_verbs: list = [f"{i}\n" for i in self.get_verbs()]
+        self_verbs: list = [f"{i}\n" for i in self.get_verb_names()]
         with open("parser/verbs", "r", encoding="utf-8") as reader:
             file_verbs: list = reader.readlines()
         # add only verbs to file, wich it does not contain yet
@@ -37,7 +37,7 @@ class Thing():
     def get_name(self):
         return self._name
 
-    def get_verbs(self) -> list:
+    def get_verb_names(self) -> list:
         """Returns all verbnames of the current item.
         A verb is a method, which is user executable.
         Verb methods always start with 'v_'. This method
@@ -46,6 +46,12 @@ class Thing():
                 callable(getattr(self, method))
                 and method.startswith("v_")
                 ]
+    def get_verb_by_name(self, verb_name: str):
+        """returns the verb, which corresponds to
+        the given name. The name must not include
+        the prefix 'v_'."""
+        return getattr(self, f"v_{verb_name}")
+
     # verbs:
 
     def v_drop(self, player, room_id: str) -> str:
