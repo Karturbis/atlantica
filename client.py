@@ -4,27 +4,32 @@ the relevant parts of the Game happen."""
 
 from threading import Thread
 
-# local imports:
-from parser import Parser
-
 class Client():
 
     def __init__(self):
         self._aliases = self.load_aliases()
-        self._parser = Parser()
 
     def main(self):
         running = True
         while running:
             user_input = input("$> ")
-            command_stage_one: str = self._parser.stage_one(user_input, self._aliases)
+            command_stage_one: str = self.parser_stage_one(user_input)
+            #TODO: implement connection with server
+
+    def parser_stage_one(self, input_str:str) -> list :
+        """Convert the input string into a list of words"""
+        # replace aliases with their values:
+        for key, value in self._aliases.items():
+            input_str = input_str.replace(key, value)
+        # convert string into list of lower case words:
+        return input_str.lower().split()
 
     def load_aliases(self) -> dict:
         """Loads the aliases from the aliases
         file and writing returning them as a dict."""
         seperator: str = ":"
         start_comment: str = "#"
-        alias_file_path: str = "user_data/aliases"
+        alias_file_path: str = "parser/aliases"
         with open(alias_file_path, "r", encoding="utf-8") as reader:
             lines: list = reader.readlines()
             return_dict: dict = {}

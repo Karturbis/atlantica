@@ -34,14 +34,6 @@ class Parser():
 ## The actual parsing: ##
 #########################
 
-    def stage_one(self, input_str:str, aliases: dict) -> list :
-        """Convert the input string into a list of words"""
-        # replace aliases with their values:
-        for key, value in aliases.items():
-            input_str = input_str.replace(key, value)
-        # convert string into list of lower case words:
-        return input_str.lower().split()
-
     def stage_two(self, input_command: list):
         """Classify the words from the command."""
         # TODO: Implement "it" functionality
