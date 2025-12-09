@@ -27,7 +27,7 @@ future.
 In the following is an outline of the theoratical functionalty of the code.
 
 # The Parser:
-The following structure is (with small changes) from Raybert's Post https://groups.google.com/g/rec.arts.int-fiction/c/Y-S-bBojK7E/m/e-xy-z6WRfUJ
+The parser structure is (with small changes) from Raybert's Post https://groups.google.com/g/rec.arts.int-fiction/c/Y-S-bBojK7E/m/e-xy-z6WRfUJ
 
 The sentences are imperative (The Implied subject is "I").
 The sentence structure is:
