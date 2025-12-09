@@ -2,7 +2,7 @@
 atlantica_venv/
 __pycache__
 
-# tests:
+# testign small code chunks, before implementing them:
 test*
 
 # logs:
