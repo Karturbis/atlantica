@@ -9,13 +9,25 @@ class Client():
     def __init__(self):
         self._aliases = self.load_dict("parser/aliases")
         self._name = self.load_string("user_data/name")
+        self._user_side_methods: dict = {
+                                        "connect": self.connect_to_server,
+                                        "set_name": self.set_name,
+                                        "clear": self.clear,
+                                        "quit": self.quit_game,
+                                        }
+        self._is_connected_to_server: bool = False
 
-    def main(self):
-        running = True
-        while running:
+    def main_offline(self):
+        """Main method, if not connected to a
+        server. Take user input, parse it and
+        execute commands."""
+        while not self._is_connected_to_server:
             user_input = input("$> ")
-            command_stage_one: str = self.parser_stage_one(user_input)
-            #TODO: implement connection with server
+            command_stage_one: list = self.parser_stage_one(user_input)
+            if command_stage_one[0] in self._user_side_methods:
+                # call the method in element 0 of the list with other list elements as args:
+                self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
+
 
     def parser_stage_one(self, input_str:str) -> list :
         """Convert the input string into a list of words"""
@@ -57,6 +69,7 @@ class Client():
     def set_name(self, new_name):
         self._name = new_name
         self.dump_string("user_data/name", new_name)
+        print(f"Changed name to {self._name}.")
 
     def clear(self):
         pass
@@ -65,8 +78,7 @@ class Client():
         pass
 
 
-
 if __name__ == "__main__":
 
     client = Client()
-    client.main()
+    client.main_offline()
