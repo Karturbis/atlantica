@@ -23,10 +23,15 @@ class Client():
         execute commands."""
         while not self._is_connected_to_server:
             user_input = input("$> ")
-            command_stage_one: list = self.parser_stage_one(user_input)
-            if command_stage_one[0] in self._user_side_methods:
-                # call the method in element 0 of the list with other list elements as args:
-                self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
+            if not user_input:
+                print("You have to enter a command")
+            else:
+                command_stage_one: list = self.parser_stage_one(user_input)
+                if command_stage_one[0] in self._user_side_methods:
+                    # call the method in element 0 of the list with other list elements as args:
+                    self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
+                else:
+                    print(f"There is no command {command_stage_one[0]}")
 
 
     def parser_stage_one(self, input_str:str) -> list :
@@ -75,7 +80,10 @@ class Client():
         pass
 
     def quit_game(self):
-        pass
+        if self._is_connected_to_server:
+            # TODO implement server quiting
+            pass
+        exit(0)
 
 
 if __name__ == "__main__":
