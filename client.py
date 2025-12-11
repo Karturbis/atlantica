@@ -2,11 +2,13 @@
 provides the user with an interface to the server, where
 the relevant parts of the Game happen."""
 
+import socket
 from threading import Thread
 
 class Client():
 
     def __init__(self):
+        # load client data:
         self._aliases = self.load_dict("parser/aliases")
         self._name = self.load_string("user_data/name")
         self._user_side_methods: dict = {
@@ -15,6 +17,11 @@ class Client():
                                         "clear": self.clear,
                                         "quit": self.quit_game,
                                         }
+        # network stuff:
+        self._active_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # set localhost as standart server:
+        self._server_ip: str = "127.0.0.1"
+        self._server_port: int = 27300
         self._is_connected_to_server: bool = False
 
     def main_offline(self):
@@ -22,17 +29,40 @@ class Client():
         server. Take user input, parse it and
         execute commands."""
         while not self._is_connected_to_server:
-            user_input = input("$> ")
+            command_stage_one: list = self.get_user_input()
+            if command_stage_one[0] in self._user_side_methods:
+                # call the method in element 0 of the list with other list elements as args:
+                self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
+            else:
+                print(f"There is no command {command_stage_one[0]}")
+
+    def main_online(self):
+        """Main method if connected to a
+        server. Take user input, check for
+        local executable commands and send the
+        rest to the server."""
+        prompt = f"{self._name}@{self._server_ip}$>"
+        while self._is_connected_to_server:
+            command_stage_one: list = self.get_user_input(prompt)
+            if command_stage_one[0] in self._user_side_methods:
+                # call the method in element 0 of the list with other list elements as args:
+                self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
+            else:
+                self.send(command_stage_one)
+
+
+
+
+    def get_user_input(self, prompt: str = "$>") -> list:
+        """Asks the user for an input, until the user
+        enters one. Then returns the input."""
+        user_input = None
+        while not user_input:
+            user_input = input(f"{prompt} ")
             if not user_input:
                 print("You have to enter a command")
-            else:
-                command_stage_one: list = self.parser_stage_one(user_input)
-                if command_stage_one[0] in self._user_side_methods:
-                    # call the method in element 0 of the list with other list elements as args:
-                    self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
-                else:
-                    print(f"There is no command {command_stage_one[0]}")
-
+        return self.parser_stage_one(user_input)
+        
 
     def parser_stage_one(self, input_str:str) -> list :
         """Convert the input string into a list of words"""
@@ -68,8 +98,18 @@ class Client():
 # user executable methods: #
 ############################
 
-    def connect_to_server(self, ip, port):
-        pass
+    def connect_to_server(self, ip: str = None, port: int = None):
+        if not ip:
+            ip = self._server_ip
+        else:
+            self._server_ip = ip
+        if not port:
+            port = self._server_port
+        try:
+            # connect to the server:
+            self._active_socket.connect((ip, port))
+        except socket.error as e:
+            print(f"Failed to connect to the server: {e}")
 
     def set_name(self, new_name):
         self._name = new_name
