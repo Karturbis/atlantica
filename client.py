@@ -7,7 +7,8 @@ from threading import Thread
 class Client():
 
     def __init__(self):
-        self._aliases = self.load_aliases()
+        self._aliases = self.load_dict("parser/aliases")
+        self._name = self.load_string("user_data/name")
 
     def main(self):
         running = True
@@ -24,13 +25,20 @@ class Client():
         # convert string into list of lower case words:
         return input_str.lower().split()
 
-    def load_aliases(self) -> dict:
-        """Loads the aliases from the aliases
-        file and writing returning them as a dict."""
+    def load_string(self, file_path: str) -> str:
+        with open(file_path, "r", encoding="utf-8") as reader:
+            return reader.readline()
+
+    def dump_string(self, file_path: str, data: str) -> None:
+        with open(file_path, "w", encoding="utf-8") as writer:
+            writer.write(data)
+
+    def load_dict(self, file_path: str) -> dict:
+        """Loads the a dict from the given file
+        and returning them as a dict."""
         seperator: str = ":"
         start_comment: str = "#"
-        alias_file_path: str = "parser/aliases"
-        with open(alias_file_path, "r", encoding="utf-8") as reader:
+        with open(file_path, "r", encoding="utf-8") as reader:
             lines: list = reader.readlines()
             return_dict: dict = {}
             for line in lines:
@@ -38,7 +46,6 @@ class Client():
                     line = line.strip("\n").split(seperator)
                     return_dict[line[0]] = line[1]
             return return_dict
-
 
 ############################
 # user executable methods: #
@@ -48,7 +55,8 @@ class Client():
         pass
 
     def set_name(self, new_name):
-        pass
+        self._name = new_name
+        self.dump_string("user_data/name", new_name)
 
     def clear(self):
         pass
