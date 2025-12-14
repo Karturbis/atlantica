@@ -2,12 +2,20 @@
 provides the user with an interface to the server, where
 the relevant parts of the Game happen."""
 
+# standard imports:
 import socket
 from threading import Thread
+
+# local imports:
+from handler import TerminalHandler
 
 class Client():
 
     def __init__(self):
+        # activate the terminal handler:
+        self._terminal_handler = TerminalHandler()
+        self._print = self._terminal_handler.new_print
+        self._input = self._terminal_handler.new_input
         # load client data:
         self._aliases = self.load_dict("parser/aliases")
         self._name = self.load_string("user_data/name")
@@ -34,7 +42,7 @@ class Client():
                 # call the method in element 0 of the list with other list elements as args:
                 self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
             else:
-                print(f"There is no command {command_stage_one[0]}")
+                self._print(f"There is no command {command_stage_one[0]}")
 
     def main_online(self):
         """Main method if connected to a
@@ -58,11 +66,9 @@ class Client():
         enters one. Then returns the input."""
         user_input = None
         while not user_input:
-            user_input = input(f"{prompt} ")
-            if not user_input:
-                print("You have to enter a command")
+            user_input = self._input(prompt)
         return self.parser_stage_one(user_input)
-        
+
 
     def parser_stage_one(self, input_str:str) -> list :
         """Convert the input string into a list of words"""
@@ -109,12 +115,12 @@ class Client():
             # connect to the server:
             self._active_socket.connect((ip, port))
         except socket.error as e:
-            print(f"Failed to connect to the server: {e}")
+            self._print(f"Failed to connect to the server: {e}")
 
     def set_name(self, new_name):
         self._name = new_name
         self.dump_string("user_data/name", new_name)
-        print(f"Changed name to {self._name}.")
+        self._print(f"Changed name to {self._name}.")
 
     def clear(self):
         pass
@@ -123,6 +129,7 @@ class Client():
         if self._is_connected_to_server:
             # TODO implement server quiting
             pass
+        self._terminal_handler.quit_terminal_handler()
         exit(0)
 
 
