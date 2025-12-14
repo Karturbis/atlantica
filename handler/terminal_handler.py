@@ -82,9 +82,6 @@ class TerminalHandler:
                 in_field.addstr(f"{prompt}{input_str}")
             else:  # the inputed character is appended to the input string
                 input_str = f"{input_str}{chr(key)}"
-        if input_str == "clear":
-            self.clear_screen()
-            input_str = ""
         return input_str
 
     def quit_terminal_handler(self):

@@ -123,7 +123,7 @@ class Client():
         self._print(f"Changed name to {self._name}.")
 
     def clear(self):
-        pass
+        self._terminal_handler.clear_screen()
 
     def quit_game(self):
         if self._is_connected_to_server:
