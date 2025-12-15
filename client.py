@@ -58,9 +58,6 @@ class Client():
             else:
                 self.send(command_stage_one)
 
-
-
-
     def get_user_input(self, prompt: str = "$>") -> list:
         """Asks the user for an input, until the user
         enters one. Then returns the input."""
@@ -68,7 +65,6 @@ class Client():
         while not user_input:
             user_input = self._input(prompt)
         return self.parser_stage_one(user_input)
-
 
     def parser_stage_one(self, input_str:str) -> list :
         """Convert the input string into a list of words"""
@@ -99,6 +95,15 @@ class Client():
                     line = line.strip("\n").split(seperator)
                     return_dict[line[0]] = line[1]
             return return_dict
+
+####################
+# Network methods: #
+####################
+
+    def send(self, data: list) -> None:
+        """Sending data to the server"""
+        self._active_socket.sendall(bytes(data))
+
 
 ############################
 # user executable methods: #
