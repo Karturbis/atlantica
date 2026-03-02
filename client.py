@@ -24,10 +24,12 @@ class Client():
                                         "set_name": self.set_name,
                                         "clear": self.clear,
                                         "quit": self.quit_game,
+                                        "help": self.help,
                                         }
+        self._help_dict: dict = self.load_dict("game_data/help.data")
         # network stuff:
         self._active_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # set localhost as standart server:
+        # set localhost as standard server:
         self._server_ip: str = "127.0.0.1"
         self._server_port: int = 27300
         self._is_connected_to_server: bool = False
@@ -136,6 +138,21 @@ class Client():
             pass
         self._terminal_handler.quit_terminal_handler()
         exit(0)
+
+    def help(self):
+        # add all local methods, because they are always available:
+        available_methods_help: dict = self._user_side_methods
+        # add help strings to the dict
+        for key in available_methods_help:
+            available_methods_help[key] = self._help_dict[key]
+        # bring dict into alphabetical order
+        available_methods_help = dict(sorted(available_methods_help.items()))
+        # print the help
+        for command, explanation in available_methods_help.items():
+            self._print(f"{command} - {explanation}")
+        # execute a server side help
+        if self._is_connected_to_server:
+            self.send([help])
 
 
 if __name__ == "__main__":
