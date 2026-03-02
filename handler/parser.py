@@ -11,7 +11,7 @@ class Parser():
         """The language as a two letter language code."""
         self._language: str = language.lower()
         self._articles: list = self.load_words(f"parser/articles_{self._language}")
-        self._verbs: list = self.load_words("parser/verbs")
+        self._verbs: list = self.load_words(f"parser/verbs_{self._language}")
         self._prepositions: list = self.load_words(f"parser/prepositions_{self._language}")
         self._adjectives: list = self.load_words(f"parser/adjectives_{self._language}")
 
