@@ -19,8 +19,8 @@ class Server():
         # initialize parser:
         self._parser = Parser(self._game_state)
         # network configuration
-        ip = "0.0.0.0"
-        port = "27300"
+        ip: str = "0.0.0.0"
+        port: int = 27300
         # socket initialization
         self._active_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -94,3 +94,7 @@ class Server():
             self.send_message(connection, self.execute_command(command, client_name))
         connection.close()
         # thread dies
+
+if __name__ == "__main__":
+    srv = Server()
+    srv.main()
