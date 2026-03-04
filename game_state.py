@@ -1,4 +1,7 @@
 import threading
+import json
+
+import game_classes as gc
 
 
 class GameState():
@@ -17,7 +20,23 @@ class GameState():
         """Return a dict, where the keys
         are the room IDs of all rooms
         and the values are the room objects."""
-        raise NotImplementedError
+        game_map: dict = {}
+        # load the map file:
+        with open("game_data/map.json", "r", encoding="utf-8") as reader:
+            data = json.loads(reader.read())
+        # create room objects
+        for room_id in data:
+            room = data[room_id]
+            game_map[room_id] = gc.Room(
+                room_id, room["room_north_id"], room["room_east_id"],
+                room["room_south_id"], room["room_wes_id"]
+                )
+            # add items to room objects
+            for item in room["content"]:
+                game_map[room].add_item(item)
+        return game_map
+
+
 
     def _load_things(self) -> dict:
         """Return a dict, where the keys
