@@ -19,12 +19,13 @@ class Thing():
         all verbs are methods, which start with v_.
         add the verbs to the verbs file."""
         self_verbs: list = [f"{i}\n" for i in self.get_verb_names()]
-        with open("parser/verbs", "r", encoding="utf-8") as reader:
+        with open("parser/verbs_en", "r", encoding="utf-8") as reader:
             file_verbs: list = reader.readlines()
         # add only verbs to file, wich it does not contain yet
         verbs_to_add: list = [verb for verb in self_verbs if not verb in file_verbs]
-        with open("parser/verbs", "a", encoding="utf-8") as writer:
-            writer.writelines(verbs_to_add)
+        if verbs_to_add:
+            with open("parser/verbs_en", "a", encoding="utf-8") as writer:
+                writer.writelines(verbs_to_add)
 
     # getter and setter:
 
@@ -211,14 +212,14 @@ class Room():
             self._content.append(item_id)
 
 
-def make_thing(thing_id: str, name:str, articel:str, *args, **kwargs):
+def make_thing(thing_id: str, name:str, article:str, *args, **kwargs):
     # strip number of thing id, to get type:
     thing_type = thing_id.strip("0123456789_").lower()
     # big switch case for all types:
     if thing_type == "apple":
-        return Apple(thing_id, name, *args, **kwargs)
+        return Apple(thing_id, name, article, *args, **kwargs)
     elif thing_type == "potato":
-        return Potato(thing_id, name, *args, **kwargs)
+        return Potato(thing_id, name, article, *args, **kwargs)
 
 
 if __name__ == "__main__":
