@@ -29,11 +29,11 @@ class GameState():
             room_data = data[room_id]
             game_map[room_id] = gc.Room(
                 room_id, room_data["room_north_id"], room_data["room_east_id"],
-                room_data["room_south_id"], room_data["room_wes_id"]
+                room_data["room_south_id"], room_data["room_west_id"]
                 )
             # add items to room objects
             for item in room_data["content"]:
-                game_map[room_data].add_item(item)
+                game_map[room_id].add_item(item)
         return game_map
 
 
@@ -55,7 +55,7 @@ class GameState():
         """Return a dict, where the keys
         are the player names and the values
         are the player objects."""
-        raise NotImplementedError
+        return {}
 
     # getter:
 
@@ -76,3 +76,7 @@ class GameState():
     def add_player(self, player):
         with self._players_lock:
             self._players[player.get_name()] = player
+
+
+if __name__ == "__main__":
+    gs = GameState()
