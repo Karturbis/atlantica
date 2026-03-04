@@ -88,8 +88,8 @@ class Apple(Food):
 
 class Potato(Food):
 
-    def __init__(self):
-        pass
+    def __init__(self, thing_id: str, name: str, article: str):
+        super().__init__(thing_id, name, article)
 
 
 class Weapon(Thing):
@@ -210,6 +210,15 @@ class Room():
         with self._content_lock:
             self._content.append(item_id)
 
+
+def make_thing(thing_id: str, name:str, articel:str, *args, **kwargs):
+    # strip number of thing id, to get type:
+    thing_type = thing_id.strip("0123456789_").lower()
+    # big switch case for all types:
+    if thing_type == "apple":
+        return Apple(thing_id, name, *args, **kwargs)
+    elif thing_type == "potato":
+        return Potato(thing_id, name, *args, **kwargs)
 
 
 if __name__ == "__main__":
