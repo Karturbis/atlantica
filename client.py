@@ -40,15 +40,17 @@ class Client():
         """Main method, if not connected to a
         server. Take user input, parse it and
         execute commands."""
-        while not self._is_connected_to_server:
+        while True:
             command_stage_one: list = self.get_user_input()
             if command_stage_one[0] in self._user_side_methods:
                 if len(command_stage_one) > 1:
                     if command_stage_one[1] == "help" or command_stage_one[1] == "?":
                         self.help(command_stage_one[0])
+                    else:
+                        # call the method in element 0 of the list with other list elements as args:
+                        self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
                 else:
-                    # call the method in element 0 of the list with other list elements as args:
-                    self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
+                    self._user_side_methods[command_stage_one[0]]()
             else:
                 self._print(f"There is no command {command_stage_one[0]}")
 
@@ -57,14 +59,15 @@ class Client():
         server. Take user input, check for
         local executable commands and send the
         rest to the server."""
-        prompt = f"{self._name}@{self._server_ip}$>"
         while self._is_connected_to_server:
-            command_stage_one: list = self.get_user_input(prompt)
-            if command_stage_one[0] in self._user_side_methods:
-                # call the method in element 0 of the list with other list elements as args:
-                self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
-            else:
-                self.send(command_stage_one)
+            prompt = f"{self._name}@{self._server_ip}$>"
+            while self._is_connected_to_server:
+                command_stage_one: list = self.get_user_input(prompt)
+                if command_stage_one[0] in self._user_side_methods:
+                    # call the method in element 0 of the list with other list elements as args:
+                    self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
+                else:
+                    self.send(command_stage_one)
 
     def get_user_input(self, prompt: str = "$>") -> list:
         """Asks the user for an input, until the user
@@ -127,6 +130,8 @@ class Client():
         try:
             # connect to the server:
             self._active_socket.connect((ip, port))
+            self._is_connected_to_server = True
+            self.main_online()
         except socket.error as e:
             self._print(f"Failed to connect to the server: {e}")
 
