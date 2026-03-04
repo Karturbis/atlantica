@@ -5,6 +5,7 @@ the relevant parts of the Game happen."""
 # standard imports:
 import socket
 from threading import Thread
+import json
 
 # local imports:
 from handler import TerminalHandler
@@ -26,7 +27,8 @@ class Client():
                                         "quit": self.quit_game,
                                         "help": self.help,
                                         }
-        self._help_dict: dict = self.load_dict("game_data/help.data")
+        with open("game_data/help.json", "r", encoding="utf-8") as reader:
+            self._help_dict: dict = json.loads(reader.read())
         # network stuff:
         self._active_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # set localhost as standard server:
@@ -41,8 +43,12 @@ class Client():
         while not self._is_connected_to_server:
             command_stage_one: list = self.get_user_input()
             if command_stage_one[0] in self._user_side_methods:
-                # call the method in element 0 of the list with other list elements as args:
-                self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
+                if len(command_stage_one) > 1:
+                    if command_stage_one[1] == "help" or command_stage_one[1] == "?":
+                        self.help(command_stage_one[0])
+                else:
+                    # call the method in element 0 of the list with other list elements as args:
+                    self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
             else:
                 self._print(f"There is no command {command_stage_one[0]}")
 
@@ -124,7 +130,10 @@ class Client():
         except socket.error as e:
             self._print(f"Failed to connect to the server: {e}")
 
-    def set_name(self, new_name):
+    def set_name(self, new_name=None):
+        if not new_name:
+            self.help("set_name")
+            return
         self._name = new_name
         self.dump_string("user_data/name", new_name)
         self._print(f"Changed name to {self._name}.")
@@ -139,20 +148,26 @@ class Client():
         self._terminal_handler.quit_terminal_handler()
         exit(0)
 
-    def help(self):
-        # add all local methods, because they are always available:
-        available_methods_help: dict = self._user_side_methods
-        # add help strings to the dict
-        for key in available_methods_help:
-            available_methods_help[key] = self._help_dict[key]
-        # bring dict into alphabetical order
-        available_methods_help = dict(sorted(available_methods_help.items()))
-        # print the help
-        for command, explanation in available_methods_help.items():
-            self._print(f"{command} - {explanation}")
-        # execute a server side help
-        if self._is_connected_to_server:
-            self.send([help])
+    def help(self, func_name = None):
+        if not func_name:
+            # add all local methods, because they are always available:
+            available_methods_help: dict = self._user_side_methods
+            # add help strings to the dict
+            for key in available_methods_help:
+                available_methods_help[key] = self._help_dict["short"][key]
+            # bring dict into alphabetical order
+            available_methods_help = dict(sorted(available_methods_help.items()))
+            # print the help
+            for command, explanation in available_methods_help.items():
+                self._print(f"{command} - {explanation}")
+            # execute a server side help
+            if self._is_connected_to_server:
+                self.send([help])
+        else:
+            try:
+                self._print(self._help_dict["long"][func_name])
+            except KeyError:
+                self._print(f"There is no help entry for {func_name}")
 
 
 if __name__ == "__main__":

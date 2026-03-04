@@ -1,7 +1,0 @@
-# This file contains all methods and the
-# explanation for them.
-connect:Connect to a server, if no argument is given connect to localhost.
-set_name:Set your username.
-clear:Clear the screen.
-quit:Exit the game.
-help:Get information about available commands.

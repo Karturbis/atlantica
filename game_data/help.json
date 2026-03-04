@@ -1,0 +1,18 @@
+{
+  "short":
+  {
+    "connect": "connect to a server",
+    "set_name": "sets your username",
+    "clear": "clears the screen",
+    "quit": "quits the game",
+    "help": "gives information about available commands"
+  },
+  "long":
+  {
+    "connect": "Connects you to a Server. If you do not give any arguments, connect will connect to localhost. Otherwise it will connect to the specified server.",
+    "set_name": "Sets your username to the name you gave as an argument.",
+    "clear": "Clears the screen, nothing more to say",
+    "quit": "Quits the game, no more information here",
+    "help": "Gives general information about the available commands. You can also give a command as an argument and get specific help for this command."
+  }
+}
