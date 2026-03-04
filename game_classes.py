@@ -3,19 +3,16 @@ items and players."""
 
 import threading
 
-from game_state import GameState
-
 class Thing():
 
     # initialisation:
 
-    def __init__(self, thing_id: str, name: str, article: str, game_state):
+    def __init__(self, thing_id: str, name: str, article: str):
         self.export_verbs()
         self._id: str = thing_id
         self._name: str = name
         self._article: str = article
         self.lock = threading.Lock()
-        self.game_state = game_state
 
     def export_verbs(self) -> None:
         """create a list of verbs in the current class
@@ -54,15 +51,13 @@ class Thing():
 
     # verbs:
 
-    def v_drop(self, player, room_id: str) -> str:
-        position = self.game_state.get_room_by_id(room_id)
+    def v_drop(self, player, position) -> str:
         player.remove_from_inventory(self._id)
         with position.lock:
             position.add_item(self._id)
         return f"You dropped {self._article} {self._name}."
 
-    def v_pick_up(self, player, room_id: str) -> str:
-        position = self.game_state.get_room_by_id(room_id)
+    def v_pick_up(self, player, position) -> str:
         success = False
         with position.lock:
             if position.item_exists(self._id):
@@ -76,8 +71,8 @@ class Thing():
 
 class Food(Thing):
 
-    def __init__(self, thing_id: str, name: str, article: str, game_state):
-        super().__init__(thing_id, name, article, game_state)
+    def __init__(self, thing_id: str, name: str, article: str):
+        super().__init__(thing_id, name, article)
 
     # verbs:
 
@@ -87,8 +82,8 @@ class Food(Thing):
 
 class Apple(Food):
 
-    def __init__(self, thing_id: str, name: str, article: str, game_state):
-        super().__init__(thing_id, name, article, game_state)
+    def __init__(self, thing_id: str, name: str, article: str):
+        super().__init__(thing_id, name, article)
 
 
 class Potato(Food):
@@ -218,5 +213,4 @@ class Room():
 
 
 if __name__ == "__main__":
-    gs = GameState()
-    apple = Apple("apple_000", "Apple", "The", gs)
+    apple = Apple("apple_000", "Apple", "The")
