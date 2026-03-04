@@ -1,0 +1,12 @@
+{
+    "0001_apple":
+    {
+        "name": "apple",
+        "article": "an"
+    },
+    "0002_apple":
+    {
+        "name": "apple",
+        "article": "an"
+    }
+}

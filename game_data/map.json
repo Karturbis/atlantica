@@ -1,0 +1,34 @@
+{
+    "0001":
+    {
+        "room_north_id": "",
+        "room_east_id": "0002",
+        "room_south_id": "0004",
+        "roomt_west_id": "",
+        "content": ["0001_apple"]
+    },
+    "0002":
+    {
+        "room_north_id": "",
+        "room_east_id": "0003",
+        "room_south_id": "0005",
+        "roomt_west_id": "0001",
+        "content": []
+    },
+    "0003":
+    {
+        "room_north_id": "",
+        "room_east_id": "",
+        "room_south_id": "0006",
+        "roomt_west_id": "0002",
+        "content": []
+    },
+    "0004":
+    {
+        "room_north_id": "0001",
+        "room_east_id": "0005",
+        "room_south_id": "0007",
+        "roomt_west_id": "",
+        "content": ""
+    }
+}
