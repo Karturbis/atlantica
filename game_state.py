@@ -26,14 +26,14 @@ class GameState():
             data = json.loads(reader.read())
         # create room objects
         for room_id in data:
-            room = data[room_id]
+            room_data = data[room_id]
             game_map[room_id] = gc.Room(
-                room_id, room["room_north_id"], room["room_east_id"],
-                room["room_south_id"], room["room_wes_id"]
+                room_id, room_data["room_north_id"], room_data["room_east_id"],
+                room_data["room_south_id"], room_data["room_wes_id"]
                 )
             # add items to room objects
-            for item in room["content"]:
-                game_map[room].add_item(item)
+            for item in room_data["content"]:
+                game_map[room_data].add_item(item)
         return game_map
 
 
@@ -43,7 +43,13 @@ class GameState():
         are the thing Ids of all things
         in the game and the values are
         the thing objects."""
-        raise NotImplementedError
+        items: dict = {}
+        with open("game_data/items.json", "r", encoding="utf-8") as reader:
+            data = json.loads(reader.read())
+        for item_id in data:
+            item_data = data[item_id]
+            items[item_id] = gc.make_thing(item_id, item_data["name"], item_data["article"])
+        return items
 
     def _load_players(self) -> dict:
         """Return a dict, where the keys
