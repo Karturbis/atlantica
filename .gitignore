@@ -15,5 +15,5 @@ content.sqlite-journal
 # vscode configuration:
 .vscode/
 
-# the files are too large:
+# the files are too large (and not really relevant anymore):
 language_handler_de_data
