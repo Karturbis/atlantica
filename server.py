@@ -74,6 +74,7 @@ class Server():
 
 
     def threaded_client(self, connection) -> None:
+        """Game loop for each client"""
         self.send_message(connection, "Connected to server.")
         # receive a message, which is a list containing only the client name.
         client_name: str = self.receive_message(connection)[0]
@@ -82,7 +83,6 @@ class Server():
             logger.warning("Client %s is already connected.", client_name)
             # quitting the thread:
             return None
-        # no else required
         # prevent racing conditions when writing to a class variable:
         with self._clients_lock:
             self._clients.append(client_name)
@@ -91,7 +91,6 @@ class Server():
             if not command:  # client disconnected
                 logger.info("Client %s disconnected", client_name)
                 break
-            # no else required
             # execute the command and send the output to the client:
             self.send_message(connection, self.execute_command(command, client_name))
         connection.close()
