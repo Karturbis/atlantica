@@ -3,8 +3,8 @@ Atlantica uses a client server model independent of the mode, for single player 
 server does not have to open any ports on a network, it can just open the ports to the
 localhost.
 
-- All data send over the network is lists, converted to bytes using the bytes() method
-- Data can easily being decoded using the list() method on the incoming bytes object
+- Data is send over the network using utf-8 encode json strings. These strings encode lists.
+- List element 0 is a command, the other elements are arguments.
 
 ## The client
 The client handles the first stage of [The Parser](#the-parser).

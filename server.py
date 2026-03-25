@@ -1,5 +1,6 @@
 import socket
 import logging
+import json
 import threading
 
 from handler import Parser
@@ -62,25 +63,28 @@ class Server():
 
     def receive_message(self, connection) -> list:
         """Return the incoming message as a list"""
-        incoming: str = connection.receive(2048)
+        incoming: str = connection.recv(2048)
         if not incoming:  # the client has disconnected
             return None
         # no else required
-        return incoming.split(":")
+        return json.loads(incoming)
 
-    def send_message(self, connection, message:str) -> None:
+    def send_data(self, connection, data:list) -> None:
+        """Send the given data to the client."""
+        connection.sendall(json.dumps(data).encode("utf-8"))
+
+    def client_print(self, connection, message: str) -> None:
         """Send the given message to the client."""
-        connection.sendall(message)
-
+        self.send_data(connection, ["print", message])
 
     def threaded_client(self, connection) -> None:
         """Game loop for each client"""
-        self.send_message(connection, "Connected to server.")
+        self.client_print(connection, "Connected to server.")
         # receive a message, which is a list containing only the client name.
         client_name: str = self.receive_message(connection)[0]
         logger.info("Client %s connected", client_name)
         if client_name in self._clients:
-            self.send_message(connection, f"The user {client_name} is already connected.")
+            self.client_print(connection, f"The user {client_name} is already connected.")
             logger.warning("Client %s is already connected.", client_name)
             # quitting the thread:
             return None
@@ -93,7 +97,7 @@ class Server():
                 logger.info("Client %s disconnected", client_name)
                 break
             # execute the command and send the output to the client:
-            self.send_message(connection, self.execute_command(command, client_name))
+            self.client_print(connection, self.execute_command(command, client_name))
         connection.close()
         return None
         # thread dies

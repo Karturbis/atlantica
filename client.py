@@ -113,8 +113,7 @@ class Client():
 
     def send(self, data: list) -> None:
         """Sending data to the server"""
-        self._active_socket.sendall(bytes(data))
-
+        self._active_socket.sendall(json.dumps(data).encode("utf-8"))
 
 ############################
 # user executable methods: #
