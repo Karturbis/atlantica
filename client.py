@@ -83,7 +83,7 @@ class Client():
         for key, value in self._aliases.items():
             input_str = input_str.replace(key, value)
         # convert string into list of lower case words:
-        return input_str.lower().split()
+        return input_str.lower().split(" ")
 
     def load_string(self, file_path: str) -> str:
         with open(file_path, "r", encoding="utf-8") as reader:
@@ -120,13 +120,18 @@ class Client():
 # user executable methods: #
 ############################
 
-    def connect_to_server(self, ip: str = None, port: int = None):
+    def connect_to_server(self, ip: str = None, port: str = None):
         if not ip:
             ip = self._server_ip
         else:
             self._server_ip = ip
         if not port:
             port = self._server_port
+        else:
+            try:
+                port = int(port)
+            except ValueError:
+                self._print("Could not connect to server, the Port has to be an Integer.")
         try:
             # connect to the server:
             self._active_socket.connect((ip, port))
@@ -135,7 +140,7 @@ class Client():
         except socket.error as e:
             self._print(f"Failed to connect to the server: {e}")
 
-    def set_name(self, new_name=None):
+    def set_name(self, new_name:str=None):
         if not new_name:
             self.help("set_name")
             return
@@ -153,7 +158,7 @@ class Client():
         self._terminal_handler.quit_terminal_handler()
         exit(0)
 
-    def help(self, func_name = None):
+    def help(self, func_name:str = None):
         if not func_name:
             # add all local methods, because they are always available:
             available_methods_help: dict = dict(self._user_side_methods.items())

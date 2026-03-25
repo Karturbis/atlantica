@@ -218,7 +218,7 @@ def make_thing(thing_id: str, name:str, article:str, *args, **kwargs):
     # big switch case for all types:
     if thing_type == "apple":
         return Apple(thing_id, name, article, *args, **kwargs)
-    elif thing_type == "potato":
+    if thing_type == "potato":
         return Potato(thing_id, name, article, *args, **kwargs)
 
 

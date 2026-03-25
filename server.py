@@ -27,7 +27,7 @@ class Server():
         try:
             self._active_socket.bind((ip, port))
         except socket.error:
-            logger.exception("failed binding socket")
+            logger.exception("Failed binding socket")
             try:
                 logger.info("Trying another port")
                 port +=1
@@ -47,7 +47,7 @@ class Server():
             connection, address = self._active_socket.accept()
             logger.info("Connecting to client with address %s", address)
             # start a new thread for the connected client:
-            t = threading.Thread(target=self.threaded_client, args=connection)
+            t = threading.Thread(target=self.threaded_client, args=[connection])
             t.daemon = True  # daemonize thread so it ends, when main thread ends
             t.start()
 
@@ -68,7 +68,7 @@ class Server():
         # no else required
         return incoming.split(":")
 
-    def send_message(self, connection, message) -> None:
+    def send_message(self, connection, message:str) -> None:
         """Send the given message to the client."""
         connection.sendall(message)
 
@@ -78,6 +78,7 @@ class Server():
         self.send_message(connection, "Connected to server.")
         # receive a message, which is a list containing only the client name.
         client_name: str = self.receive_message(connection)[0]
+        logger.info("Client %s connected", client_name)
         if client_name in self._clients:
             self.send_message(connection, f"The user {client_name} is already connected.")
             logger.warning("Client %s is already connected.", client_name)
@@ -94,6 +95,7 @@ class Server():
             # execute the command and send the output to the client:
             self.send_message(connection, self.execute_command(command, client_name))
         connection.close()
+        return None
         # thread dies
 
 if __name__ == "__main__":

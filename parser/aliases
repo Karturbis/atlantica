@@ -14,8 +14,8 @@
 #############################
 # System hardcoded aliases: #
 #############################
-.: then
-,: and
+. : then 
+, : and 
 ?:help
 ##########################
 # End of system aliases. #
