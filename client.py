@@ -99,6 +99,8 @@ class Client():
             command_stage_one: list = self.receive()
             if not command_stage_one:
                 self._print("Disconnected from the server")
+                self._active_socket.close()  #  disconnect from server
+                self._is_connected_to_server = False
                 return  # thread dies
             self.execute_client_side_command(command_stage_one)
         # thread dies
