@@ -57,14 +57,15 @@ class Parser():
         command_checker[0] = True
         # verb modifier shows if and where there is a verb modifier in the command
         verb_modifier: int = 0
-        if f"{verb}_{command[1]}" in self._verbs:
-            verb = f"{verb}_{command[1]}"
-            command_checker[1] = True
-            verb_modifier = 1
-        elif f"{verb}_{command[-1]}" in self._verbs:
-            verb = f"{verb}_{command[-1]}"
-            command_checker[-1] = True
-            verb_modifier = -1
+        if len(command) > 1:
+            if f"{verb}_{command[1]}" in self._verbs:
+                verb = f"{verb}_{command[1]}"
+                command_checker[1] = True
+                verb_modifier = 1
+            elif f"{verb}_{command[-1]}" in self._verbs:
+                verb = f"{verb}_{command[-1]}"
+                command_checker[-1] = True
+                verb_modifier = -1
         # The preposition range is the range, in
         # which there can be a preposition within the
         # command.
