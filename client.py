@@ -94,7 +94,7 @@ class Client():
         while self._is_connected_to_server:
             command_stage_one: list = self.receive()
             if not command_stage_one:
-                self._print("Disconnected from the server.")
+                self._print("Disconnected from the server")
                 return  # thread dies
             self.execute_client_side_command(command_stage_one)
         # thread dies
@@ -183,7 +183,7 @@ class Client():
             return
         self._name = new_name
         self.dump_string("user_data/name", new_name)
-        self._print(f"Changed name to {self._name}.")
+        self._print(f"Changed name to {self._name}")
 
     def clear(self):
         self._terminal_handler.clear_screen()

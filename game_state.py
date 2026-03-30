@@ -36,8 +36,6 @@ class GameState():
                 game_map[room_id].add_item(item)
         return game_map
 
-
-
     def _load_things(self) -> dict:
         """Return a dict, where the keys
         are the thing Ids of all things

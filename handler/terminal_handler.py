@@ -67,7 +67,9 @@ class TerminalHandler:
         prompt = f"{prompt} "  # add one space to the end of the prompt
         inputing = True
         in_field = self._input_field
+        in_field.clear()
         in_field.addstr(prompt)
+        in_field.refresh()
         while inputing:
             # get the keyboard input:
             key = in_field.getch()
@@ -89,14 +91,11 @@ class TerminalHandler:
         shell environment is not messed up"""
         curses.endwin()
 
-
-
     def clear_screen(self) -> None:
         """Clears the output screen"""
         self._terminal_content = []
         self._output_window.clear()
         self._output_window.refresh()
-
 
 # tests:
 
