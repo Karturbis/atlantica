@@ -197,8 +197,8 @@ class Client():
 
     def help(self, func_name:str = None):
         if not func_name:
-            # add all local methods, because they are always available:
-            available_methods_help: dict = dict(self._user_side_methods.items())
+            # add all local user executable methods, because they are always available:
+            available_methods_help: dict = {key:value for key, value in self._user_side_methods.items() if not key.startswith("s_") }
             # add help strings to the dict
             for key in available_methods_help:
                 available_methods_help[key] = self._help_dict["short"][key]
