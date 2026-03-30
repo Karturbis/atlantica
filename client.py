@@ -194,8 +194,7 @@ class Client():
 
     def quit_game(self):
         if self._is_connected_to_server:
-            # TODO implement server quiting
-            pass
+            self.send(["quit_game"])
         self._running = False
 
     def help(self, func_name:str = None):
