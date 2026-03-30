@@ -26,7 +26,7 @@ class Server():
                                         # admin only:
                                         "/quit_game": self.quit_game,
                                         }
-        self._running = True
+        self._exit_event = threading.Event()
         # initialize parser:
         self._parser = Parser(self._game_state)
         # network configuration
@@ -50,16 +50,29 @@ class Server():
         logger.info("Server started on port %u", port)
 
     def main(self):
+        """wrapper for the main method, so that
+        terminating the program is possible"""
+        main_thread = threading.Thread(target=self._main)
+        main_thread.daemon = True
+        main_thread.start()
+        # quitting the server iv exit event is omitted
+        self._exit_event.wait()
+        self.broadcast_print("The server is shutting down")
+        exit(0)
+
+    def _main(self):
         """Accept incoming connections and create new
         threads for them, so they can be used in parallel."""
-        while self._running:
-            connection, address = self._active_socket.accept()
-            logger.info("Connecting to client with address %s", address)
-            # start a new thread for the connected client:
-            t = threading.Thread(target=self.threaded_client, args=[connection])
-            t.daemon = True  # daemonize thread so it ends, when main thread ends
-            t.start()
-        exit(0)
+        while True:
+            try:
+                connection, address = self._active_socket.accept()
+                logger.info("Connecting to client with address %s", address)
+                # start a new thread for the connected client:
+                t = threading.Thread(target=self.threaded_client, args=[connection])
+                t.daemon = True  # daemonize thread so it ends, when main thread ends
+                t.start()
+            except KeyboardInterrupt:
+                self._exit_event.set()
 
     def execute_command(self, command: list, player_name: str) -> str:
         """Executes the given command and returns the result."""
@@ -133,7 +146,7 @@ class Server():
 #############################
 
     def help(self, *args) -> str:
-        return "Server side help is not implemented jet\nsecond line test"
+        return "Server side help is not implemented jetsecond line test"
 
     def ping(self, *args) -> str:
         return "pong"
@@ -145,9 +158,7 @@ class Server():
     def quit_game(self, *args) -> None:
         """Disconnect from all clients and terminate the
         server program"""
-        self.broadcast_print("The server is shutting down")
-        # TODO implement disconnect from every client
-        self._running = False
+        self._exit_event.set()
 
 if __name__ == "__main__":
     srv = Server()
