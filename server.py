@@ -8,6 +8,7 @@ from game_state import GameState
 
 # configure logging:
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler())
 logging.basicConfig(level=logging.DEBUG, filename="logs/server.log", filemode="w",
                     format="%(asctime)s - %(levelname)s: %(message)s")
 
@@ -38,7 +39,6 @@ class Server():
                 exit("Server could not start correctly")
         # start the server
         self._active_socket.listen()
-        print(f"LOG: Server started on port {port}")
         logger.info("Server started on port %u", port)
 
     def main(self):
@@ -79,10 +79,10 @@ class Server():
 
     def threaded_client(self, connection) -> None:
         """Game loop for each client"""
-        self.client_print(connection, "Connected to server")
+        self.client_print(connection, "Connecting to server ...")
         # receive a message, which is a list containing only the client name.
         client_name: str = self.receive_message(connection)[0]
-        logger.info("Client %s connected", client_name)
+        logger.info("Client %s is connecting", client_name)
         if client_name in self._clients:
             self.client_print(connection, f"The user {client_name} is already connected.")
             logger.warning("Client %s is already connected.", client_name)
@@ -91,6 +91,8 @@ class Server():
         # prevent racing conditions when writing to a class variable:
         with self._clients_lock:
             self._clients.append(client_name)
+        self.client_print(connection, "Successfully connected to the server")
+        logger.info("Client %s connected successfully", client_name)
         while True:
             command: list = self.receive_message(connection)
             if not command:  # client disconnected
