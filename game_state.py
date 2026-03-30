@@ -116,9 +116,11 @@ class GameState():
                 player_data[name] = {"position": player.get_position(), "inventory": player.get_inventory()}
         # write the saved data to the save file
         with open(f"saves/gameslot_{game_slot}.players", "w", encoding="utf-8") as writer:
-            writer.write(json.dumps(player_data))
+            writer.write(json.dumps(player_data, indent=4))
 
-
-
+    def save_map(self, game_slot):
+        "saves the contents of the map"
+        # TODO implement map saving
+    
 if __name__ == "__main__":
     gs = GameState("tres117p")
