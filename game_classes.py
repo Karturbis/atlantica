@@ -131,11 +131,15 @@ class Bow(RangeWeapon):
 
 class Player():
 
-    def __init__(self, name: int, position: int):
+    def __init__(self, name: str, position: str, inventory: list[str] = None):
         self._name: str = name
-        self._inventory: list[str] = []
+        if inventory:
+            self._inventory: list[str] = inventory
+        else:
+            self._inventory: list[str] = []
         self._inventory_lock = threading.Lock()
         self._position: int = position
+        self._position_lock = threading.Lock()
 
     def remove_from_inventory(self, item_id: str):
         with self._inventory_lock:
@@ -145,10 +149,11 @@ class Player():
         with self._inventory_lock:
             self._inventory.append(item_id)
 
-    def get_position(self):
-        return self._position
-
     # getter:
+
+    def get_position(self):
+        with self._position_lock:
+            return self._position
 
     def get_name(self):
         return self._name
@@ -156,6 +161,12 @@ class Player():
     def get_inventory(self):
         with self._inventory_lock:
             return self._inventory
+
+    # setter:
+
+    def set_position(self, position: str):
+        with self._position_lock:
+            self._position = position
 
 
 class Room():

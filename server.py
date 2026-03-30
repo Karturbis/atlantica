@@ -5,6 +5,7 @@ import threading
 
 from handler import Parser
 from game_state import GameState
+from game_classes import Player
 
 # configure logging:
 logger = logging.getLogger(__name__)
@@ -14,17 +15,19 @@ logging.basicConfig(level=logging.DEBUG, filename="logs/server.log", filemode="w
 
 class Server():
 
-    def __init__(self):
+    def __init__(self, game_slot:str):
         # initialize variables:
         self._clients: dict = {}
         self._clients_lock = threading.Lock()
-        self._game_state = GameState()
+        self._game_slot = game_slot
+        self._game_state = GameState(self._game_slot)
         self._client_executable: dict = {
                                         # user executable:
                                         "help": self.help,
                                         "ping": self.ping,
                                         # admin only:
                                         "/quit_game": self.quit_game,
+                                        "/save_game": self.save_game,
                                         }
         self._exit_event = threading.Event()
         # initialize parser:
@@ -122,6 +125,14 @@ class Server():
                 return None
             self._clients[client_name] = connection
         self.client_print(connection, "Successfully connected to the server")
+        if not self._game_state.get_player_by_name(client_name):
+            # creating the player object for the new player:
+            player = Player(client_name, "start")
+            self._game_state.add_player(player)
+            logger.info("Created new Player for %s", client_name)
+        else:
+            self._game_state.load_player(client_name, self._game_slot)
+            logger.info("Loaded existing Player object %s", client_name)
         logger.info("Client %s connected successfully", client_name)
         while True:
             command: list = self.receive_message(connection)
@@ -160,6 +171,10 @@ class Server():
         server program"""
         self._exit_event.set()
 
+    def save_game(self, *args) -> str:
+        self._game_state.save_game(self._game_slot)
+        return "the game was saved"
+
 if __name__ == "__main__":
-    srv = Server()
+    srv = Server("testiongh")
     srv.main()

@@ -8,12 +8,12 @@ class GameState():
 
     # initialisation:
 
-    def __init__(self):
+    def __init__(self, game_slot: str):
         self._map: dict = self._load_map()
         self._map_lock = threading.Lock()
         self._things: dict = self._load_things()
         self._things_lock = threading.Lock()
-        self._players: dict = self._load_players()
+        self._players: dict = self._load_players(game_slot)
         self._players_lock = threading.Lock()
 
     def _load_map(self) -> dict:
@@ -49,25 +49,41 @@ class GameState():
             items[item_id] = gc.make_thing(item_id, item_data["name"], item_data["article"])
         return items
 
-    def _load_players(self) -> dict:
+    def _load_players(self, game_slot) -> dict:
         """Return a dict, where the keys
         are the player names and the values
-        are the player objects."""
-        return {}
+        are the player objects. All player positions
+        are 'offline' until the corresponding clients
+        connect to the server."""
+        with open(f"saves/gameslot_{game_slot}.players", "r", encoding="utf-8") as reader:
+            players_raw = json.loads(reader.read())
+        players: dict = {}
+        for name, player_data in players_raw.items():
+            players[name] = gc.Player(name, "offline", player_data["inventory"])
+        return players
 
     # getter:
 
     def get_room_by_id(self, room_id: str):
         with self._map_lock:
-            return self._map[room_id]
+            try:
+                return self._map[room_id]
+            except KeyError:
+                return False
 
     def get_item_by_id(self, item_id: str):
         with self._things_lock:
-            return self._things[item_id]
+            try:
+                return self._things[item_id]
+            except KeyError:
+                return False
 
     def get_player_by_name(self, player_name: str):
         with self._players_lock:
-            return self._players[player_name]
+            try:
+                return self._players[player_name]
+            except KeyError:
+                return False
 
     # adder:
 
@@ -75,6 +91,34 @@ class GameState():
         with self._players_lock:
             self._players[player.get_name()] = player
 
+    def load_player(self, player_name:str, game_slot):
+        """Loads the player. Because the player is already in
+        the players dict, the only action necessary is to set the
+        players position from 'offline' to the previously saced position"""
+        with open(f"saves/gameslot_{game_slot}.players", "r", encoding="utf-8") as reader:
+            players_raw = json.loads(reader.read())
+        position: str = players_raw[player_name]["position"]
+        with self._players_lock:
+            player = self._players[player_name]
+        player.set_position(position)
+
+    # saving:
+
+    def save_game(self, game_slot):
+        self.save_players(game_slot)
+
+    def save_players(self, game_slot):
+        player_data: dict = {  # structure:
+                            # player_name: {"position": position, "inventory:" inventory}
+                            }
+        with self._players_lock:
+            for name, player in self._players.items():
+                player_data[name] = {"position": player.get_position(), "inventory": player.get_inventory()}
+        # write the saved data to the save file
+        with open(f"saves/gameslot_{game_slot}.players", "w", encoding="utf-8") as writer:
+            writer.write(json.dumps(player_data))
+
+
 
 if __name__ == "__main__":
-    gs = GameState()
+    gs = GameState("tres117p")
