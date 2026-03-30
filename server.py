@@ -55,7 +55,7 @@ class Server():
         main_thread = threading.Thread(target=self._main)
         main_thread.daemon = True
         main_thread.start()
-        # quitting the server iv exit event is omitted
+        # quitting the server if exit event is omitted
         self._exit_event.wait()
         self.broadcast_print("The server is shutting down")
         exit(0)
