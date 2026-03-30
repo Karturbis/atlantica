@@ -213,7 +213,7 @@ class Client():
                 self._print(f"{command} - {explanation}")
             # execute a server side help
             if self._is_connected_to_server:
-                self.send([help])
+                self.send(["help"])
         else:
             try:
                 self._print(self._help_dict["long"][func_name])
