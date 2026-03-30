@@ -75,11 +75,11 @@ class Server():
 
     def client_print(self, connection, message: str) -> None:
         """Send the given message to the client."""
-        self.send_data(connection, ["print", message])
+        self.send_data(connection, ["s_print", message])
 
     def threaded_client(self, connection) -> None:
         """Game loop for each client"""
-        self.client_print(connection, "Connected to server.")
+        self.client_print(connection, "Connected to server")
         # receive a message, which is a list containing only the client name.
         client_name: str = self.receive_message(connection)[0]
         logger.info("Client %s connected", client_name)

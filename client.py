@@ -4,7 +4,7 @@ the relevant parts of the Game happen."""
 
 # standard imports:
 import socket
-from threading import Thread
+import threading
 import json
 
 # local imports:
@@ -21,11 +21,15 @@ class Client():
         self._aliases = self.load_dict("parser/aliases")
         self._name = self.load_string("user_data/name")
         self._user_side_methods: dict = {
+                                        # user executable:
                                         "connect": self.connect_to_server,
                                         "set_name": self.set_name,
                                         "clear": self.clear,
                                         "quit": self.quit_game,
                                         "help": self.help,
+                                        # executable by the server:
+                                        # all server executable methods start with s_
+                                        "s_print": self._print
                                         }
         with open("game_data/help.json", "r", encoding="utf-8") as reader:
             self._help_dict: dict = json.loads(reader.read())
@@ -36,38 +40,64 @@ class Client():
         self._server_port: int = 27300
         self._is_connected_to_server: bool = False
 
+    def execute_client_side_command(self, command_stage_one:list):
+        if command_stage_one[0] in self._user_side_methods:
+            if len(command_stage_one) > 1:
+                if command_stage_one[1] == "help" or command_stage_one[1] == "?":
+                    self.help(command_stage_one[0])
+                else:
+                    # call the method in element 0 of the list with other list elements as args:
+                    self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
+            else:
+                self._user_side_methods[command_stage_one[0]]()
+        else:
+            self._print(f"There is no command {command_stage_one[0]}")
+
+
     def main_offline(self):
         """Main method, if not connected to a
         server. Take user input, parse it and
         execute commands."""
         while True:
             command_stage_one: list = self.get_user_input()
-            if command_stage_one[0] in self._user_side_methods:
-                if len(command_stage_one) > 1:
-                    if command_stage_one[1] == "help" or command_stage_one[1] == "?":
-                        self.help(command_stage_one[0])
-                    else:
-                        # call the method in element 0 of the list with other list elements as args:
-                        self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
-                else:
-                    self._user_side_methods[command_stage_one[0]]()
+            if command_stage_one[0].startswith("s_"):
+                self._print(f"There is no user executable command {command_stage_one[0]}")
             else:
-                self._print(f"There is no command {command_stage_one[0]}")
+                self.execute_client_side_command(command_stage_one)
 
     def main_online(self):
-        """Main method if connected to a
-        server. Take user input, check for
+        st = threading.Thread(target=self.send_thread)
+        st.daemon = True  # thread dies if main thread dies
+        st.start()
+        # creating the receive thread:
+        rt = threading.Thread(target=self.receive_thread)
+        rt.daemon = True
+        rt.start()
+
+
+    def send_thread(self):
+        """Take user input, check for
         local executable commands and send the
         rest to the server."""
+        prompt = f"{self._name}@{self._server_ip}$>"
         while self._is_connected_to_server:
-            prompt = f"{self._name}@{self._server_ip}$>"
-            while self._is_connected_to_server:
-                command_stage_one: list = self.get_user_input(prompt)
-                if command_stage_one[0] in self._user_side_methods:
-                    # call the method in element 0 of the list with other list elements as args:
-                    self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
-                else:
-                    self.send(command_stage_one)
+            command_stage_one: list = self.get_user_input(prompt)
+            if command_stage_one[0] in self._user_side_methods:
+                self.execute_client_side_command(command_stage_one)
+            else:
+                self.send(command_stage_one)
+        # thread dies
+
+    def receive_thread(self):
+        """Take the data received from the server
+        and execute commands from that"""
+        while self._is_connected_to_server:
+            command_stage_one: list = self.receive()
+            if not command_stage_one:
+                self._print("Disconnected from the server.")
+                return  # thread dies
+            self.execute_client_side_command(command_stage_one)
+        # thread dies
 
     def get_user_input(self, prompt: str = "$>") -> list:
         """Asks the user for an input, until the user
@@ -115,6 +145,13 @@ class Client():
         """Sending data to the server"""
         self._active_socket.sendall(json.dumps(data).encode("utf-8"))
 
+    def receive(self) -> list:
+        "receives data from the server"
+        incoming: str = self._active_socket.recv(2048)
+        if not incoming:  # the server has disconnected
+            return None
+        return json.loads(incoming)
+
 ############################
 # user executable methods: #
 ############################
@@ -135,6 +172,7 @@ class Client():
             # connect to the server:
             self._active_socket.connect((ip, port))
             self._is_connected_to_server = True
+            self.send([self._name])
             self.main_online()
         except socket.error as e:
             self._print(f"Failed to connect to the server: {e}")
