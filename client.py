@@ -39,6 +39,7 @@ class Client():
         self._server_ip: str = "127.0.0.1"
         self._server_port: int = 27300
         self._is_connected_to_server: bool = False
+        self._running: bool = True
 
     def execute_client_side_command(self, command_stage_one:list):
         if command_stage_one[0] in self._user_side_methods:
@@ -58,12 +59,15 @@ class Client():
         """Main method, if not connected to a
         server. Take user input, parse it and
         execute commands."""
-        while True:
-            command_stage_one: list = self.get_user_input()
-            if command_stage_one[0].startswith("s_"):
-                self._print(f"There is no user executable command {command_stage_one[0]}")
-            else:
-                self.execute_client_side_command(command_stage_one)
+        while self._running:
+            if not self._is_connected_to_server:
+                command_stage_one: list = self.get_user_input()
+                if command_stage_one[0].startswith("s_"):
+                    self._print(f"There is no user executable command {command_stage_one[0]}")
+                else:
+                    self.execute_client_side_command(command_stage_one)
+        self._terminal_handler.quit_terminal_handler()
+        exit(0) # the game ends
 
     def main_online(self):
         st = threading.Thread(target=self.send_thread)
@@ -192,8 +196,7 @@ class Client():
         if self._is_connected_to_server:
             # TODO implement server quiting
             pass
-        self._terminal_handler.quit_terminal_handler()
-        exit(0)
+        self._running = False
 
     def help(self, func_name:str = None):
         if not func_name:
