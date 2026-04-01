@@ -188,11 +188,7 @@ class Parser():
                 room_content[item_name] = item
         if direct_noun in room_content:
             return room_content[direct_noun].get_verb_by_name(command.verb)
-        return self.error_message(f"There is no {direct_adjective} {direct_noun} in your vicinity.")
-
-    def error_message(self, message):
-        return message
-
+        return lambda: f"There is no {direct_adjective} {direct_noun} in your vicinity."
 
 @dataclasses.dataclass
 class Command():
