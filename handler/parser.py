@@ -16,7 +16,7 @@ class Parser():
         self._language: str = language.lower()
         self._articles: list = self.load_words(f"parser/articles_{self._language}")
         self._verbs: list = self.load_words(f"parser/verbs_{self._language}")
-        self._prepositions: list = self.load_words(f"parser/prepositions_{self._language}")
+        self._verb_modifiers: list = self.load_words(f"parser/verbmodifiers_{self._language}")
         self._adjectives: list = self.load_words(f"parser/adjectives_{self._language}")
 
     def load_words(self, file_path: str):
@@ -77,42 +77,42 @@ class Parser():
         # the player itself is the direct object
         else:
             return Command(command[0], {"adjective": None, "noun": "player"})
-        # The preposition range is the range, in
-        # which there can be a preposition within the
+        # The verb_modifier range is the range, in
+        # which there can be a verb_modifier within the
         # command.
         # The direct object is directly in before the
-        # preposition. Because the verb is at position 0,
-        # the first place a preposition can be is position 2.
+        # verb_modifier. Because the verb is at position 0,
+        # the first place a verb_modifier can be is position 2.
         # If the verb modifier is at position 1 the first
-        # possible position for the preposition is there for
+        # possible position for the verb_modifier is there for
         # position 3.
-        # The indirect object follows the preposition, so
-        # the last position the preposition can be is -2.
+        # The indirect object follows the verb_modifier, so
+        # the last position the verb_modifier can be is -2.
         # If the verb modifier is in the last place, the
         # indirect object comes before that and so the last
-        # possible position for the preposition is -3.
-        preposition_range: list = [2, -2]
+        # possible position for the verb_modifier is -3.
+        verb_modifier_range: list = [2, -2]
         if verb_modifier == 1:
-            preposition_range[0] = 3
+            verb_modifier_range[0] = 3
         elif verb_modifier == -1:
-            preposition_range[1] = -3
-        # because there is only one preposition, the search
-        # for prepostitions ends after the preposition is found.
-        preposition_index: int = None
-        for prep in self._prepositions:
-            if prep in command[preposition_range[0]:preposition_range[1]]:
-                preposition_index = command.index(prep)
-                command_checker[preposition_index] = True
+            verb_modifier_range[1] = -3
+        # because there is only one verb_modifier, the search
+        # for prepostitions ends after the verb_modifier is found.
+        verb_modifier_index: int = None
+        for prep in self._verb_modifiers:
+            if prep in command[verb_modifier_range[0]:verb_modifier_range[1]]:
+                verb_modifier_index = command.index(prep)
+                command_checker[verb_modifier_index] = True
                 break
-        if preposition_index:
-            logger.debug("A preposition has been found")
+        if verb_modifier_index:
+            logger.debug("A verb_modifier has been found")
             # calculate index for direct object noun:
-            direct_object_noun = command[preposition_index -1]
-            command_checker[preposition_index -1] = True
+            direct_object_noun = command[verb_modifier_index -1]
+            command_checker[verb_modifier_index -1] = True
             # check for direct object adjective:
-            direct_object_adjective = command[preposition_index -2]
+            direct_object_adjective = command[verb_modifier_index -2]
             if direct_object_adjective in self._adjectives:
-                command_checker[preposition_index -2] = True
+                command_checker[verb_modifier_index -2] = True
             else:
                 direct_object_adjective = None
             # claculate index for indirect object noun:
@@ -141,7 +141,7 @@ class Parser():
                                     )
             return command_object
 
-        # the sentence is a non prepositional phrase
+        # the sentence has no verb modifiers
         # calculate the position of the direct object noun:
         if not verb_modifier == -1:
             direct_object_noun = command[-1]
@@ -156,8 +156,10 @@ class Parser():
         else:
             direct_object_adjective = None
         # Now all parts of the command should have been found.
-        # Since the command is a non prepositional phrase,
+        # Since the command has no verb modifiers,
         # it has no indirect object.
+        logger.debug(f"Command checker: {command_checker}")
+        logger.debug(f"command  source: {command}")
         for i in command_checker:
             if not i:
                 logger.warning("End of stage two, not all words could be classified")
@@ -169,6 +171,7 @@ class Parser():
         """Take the output from stage two and the
         name of the player, who issued the command.
         return the method which has to be executed."""
+        logger.debug(f"stage three begin command: {command}")
         # TODO: implement adjective functionality
         # initialize variables:
         direct_noun = command.direct_object["noun"]
