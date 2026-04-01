@@ -71,6 +71,12 @@ class Parser():
                 verb = f"{verb}_{command[-1]}"
                 command_checker[-1] = True
                 verb_modifier = -1
+
+        # the command contains only one word,
+        # therefore the word is the verb and
+        # the player itself is the direct object
+        else:
+            return Command(command[0], {"adjective": None, "noun": "player"})
         # The preposition range is the range, in
         # which there can be a preposition within the
         # command.
@@ -170,6 +176,8 @@ class Parser():
         player = self._game_state.get_player_by_name(player_name)
         room_id = player.get_position()
         room = self._game_state.get_room_by_id(room_id)
+        if direct_noun == "player":
+            return player.get_verb_by_name(command.verb)
         # create the player_inventory dict, which has
         # item names as keys and the corresponding item
         # objects as values.
