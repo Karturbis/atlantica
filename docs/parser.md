@@ -29,7 +29,7 @@ objects, that are seperated by the ANDs.
 In sentences with THENs, the sentence gets splited at the then and the two (or more) sentences are
 executed one after the other.
 
-If there is no object, the object is the player examples:
+If there is no object, the object is the player. Examples:
 
 ```bash
 $> look # the player looks

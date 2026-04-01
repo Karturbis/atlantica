@@ -121,6 +121,6 @@ class GameState():
     def save_map(self, game_slot):
         "saves the contents of the map"
         # TODO implement map saving
-    
+
 if __name__ == "__main__":
     gs = GameState("tres117p")
