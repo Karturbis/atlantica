@@ -58,6 +58,7 @@ class Parser():
         if "and" in command:
             self.handle_and(command)
         verb: str = command[0]
+        logger.debug("Verb at beginning of stage 2: %s", verb)
         command_checker[0] = True
         # verb modifier shows if and where there is a verb modifier in the command
         verb_modifier: int = 0
@@ -98,6 +99,7 @@ class Parser():
                 command_checker[preposition_index] = True
                 break
         if preposition_index:
+            logger.debug("A preposition has been found")
             # calculate index for direct object noun:
             direct_object_noun = command[preposition_index -1]
             command_checker[preposition_index -1] = True
@@ -152,7 +154,8 @@ class Parser():
         # it has no indirect object.
         for i in command_checker:
             if not i:
-                return "Error, not all words could be clasified."
+                logger.warning("End of stage two, not all words could be classified")
+                return "Warning: not all words could be clasified."
         command_object = Command(verb, {"adjective": direct_object_adjective, "noun": direct_object_noun})
         return command_object
 
@@ -188,7 +191,11 @@ class Parser():
                 room_content[item_name] = item
         if direct_noun in room_content:
             return room_content[direct_noun].get_verb_by_name(command.verb)
-        return lambda: f"There is no {direct_adjective} {direct_noun} in your vicinity."
+        if direct_adjective:
+            logger.warning("adjective noun combination '%s %s' not found", direct_adjective, direct_noun)
+            return lambda: f"There is no {direct_adjective} {direct_noun} in your vicinity"
+        logger.warning("noun '%s' not found", direct_noun)
+        return lambda: f"There is no {direct_noun} in your vicinity"
 
 @dataclasses.dataclass
 class Command():
