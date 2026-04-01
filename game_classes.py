@@ -214,19 +214,19 @@ class Player(VerbHolder):
             room = game_state.get_room_by_id(self._position)
         to_see: list[str] = room.get_content()
         message: str = "You see:\n"
-        for item in to_see:
-            # TODO implement pretty printing of the items (with articles)
-            message = f"{message}{item} "
+        for item_id in to_see:
+            message = f"{message}{game_state.get_item_by_id(item_id).get_name()} "
         return message
 
-    def v_inventory(self, **_) -> str:
+    def v_inventory(self, **kwargs) -> str:
         """Returns the contents of the
         players inventory"""
+        game_state = kwargs["game_state"]
         message: str = "Your inventory contains:\n"
         with self._inventory_lock:
             if self._inventory:
-                for item in self._inventory:
-                    message = f"{message}{item} "
+                for item_id in self._inventory:
+                    message = f"{message}{game_state.get_item_by_id(item_id).get_name()} "
             else:
                 message = "Your inventory is empty"
         return message
