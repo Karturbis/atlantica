@@ -100,6 +100,8 @@ class GameState():
         position: str = players_raw[player_name]["position"]
         with self._players_lock:
             player = self._players[player_name]
+        room = self.get_room_by_id(position)
+        room.add_item(f"p_{player.get_name()}")
         player.set_position(position)
 
     # saving:
@@ -130,7 +132,7 @@ class GameState():
                                      "room_east_id": room.get_east_id(),
                                      "room_south_id": room.get_south_id(),
                                      "room_west_id": room.get_west_id(),
-                                     "content": room.get_content()
+                                     "content": [item for item in room.get_content() if not item.startswith("p_")]
                                      }
         with open(f"saves/gameslot_{game_slot}_map.json", "w", encoding="utf-8") as writer:
             writer.write(json.dumps(map_data, indent=4))

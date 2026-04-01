@@ -223,8 +223,12 @@ class Player(VerbHolder):
         if to_see:
             message: str = "You see:\n"
             for item_id in to_see:
-                message = f"{message}{game_state.get_item_by_id(item_id).get_name()} "
-            return message
+                item = game_state.get_item_by_id(item_id)
+                if item:
+                    message = f"{message}{item.get_name()}\n"
+                else: # could not fetch item object, name belongs to a player
+                    message = f"{message}{item_id[2:]}\n"  # strip the p_ from the start of the player name
+            return message[:-1] # remove last \n
         return "There is nothing to see"
 
     def v_inventory(self, **kwargs) -> str:
