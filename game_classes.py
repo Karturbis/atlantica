@@ -75,8 +75,7 @@ class Thing(VerbHolder):
         player = game_state.get_player_by_name(player_name)
         position = game_state.get_room_by_id(player.get_position())
         player.remove_from_inventory(self._id)
-        with position.lock:
-            position.add_item(self._id)
+        position.add_item(self._id)
         return f"You dropped {self._article} {self._name}."
 
     def v_pick_up(self, **kwargs) -> str:
@@ -88,11 +87,7 @@ class Thing(VerbHolder):
         player_name = kwargs["player_name"]
         player = game_state.get_player_by_name(player_name)
         position = game_state.get_room_by_id(player.get_position())
-        success = False
-        with position.lock:
-            if position.item_exists(self._id):
-                position.remove_item(self._id)
-                success = True
+        success: bool = position.remove_item(self._id)
         if success:
             player.add_to_inventory(self._id)
             return f"You picked up {self._article} {self._name}."
@@ -279,10 +274,12 @@ class Room():
 
     # setter:
 
-    def remove_item(self, item_id) -> None:
+    def remove_item(self, item_id) -> bool:
         with self._content_lock:
             if item_id in self._content:
                 self._content.remove(item_id)
+                return True
+            return False
 
     def add_item(self, item_id) -> None:
         with self._content_lock:
