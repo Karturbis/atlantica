@@ -61,6 +61,7 @@ class Server():
         # quitting the server if exit event is omitted
         self._exit_event.wait()
         self.broadcast_print("The server is shutting down")
+        self.broadcast_print(self.save_game())
         exit(0)
 
     def _main(self):
@@ -156,22 +157,22 @@ class Server():
 # Client executable methods #
 #############################
 
-    def help(self, *args) -> str:
+    def help(self, *_) -> str:
         return "Server side help is not implemented jetsecond line test"
 
-    def ping(self, *args) -> str:
+    def ping(self, *_) -> str:
         return "pong"
 
 ############################
 # Admin executable methods #
 ############################
 
-    def quit_game(self, *args) -> None:
+    def quit_game(self, *_) -> None:
         """Disconnect from all clients and terminate the
         server program"""
         self._exit_event.set()
 
-    def save_game(self, *args) -> str:
+    def save_game(self, *_) -> str:
         self._game_state.save_game(self._game_slot)
         return "the game was saved"
 
