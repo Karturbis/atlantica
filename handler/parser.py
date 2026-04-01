@@ -181,6 +181,9 @@ class Parser():
         room = self._game_state.get_room_by_id(room_id)
         if direct_noun == "player":
             return player.get_verb_by_name(command.verb)
+        # check if the object is a direction:
+        if direct_noun in room.get_directions():
+            return room.get_directions()[direct_noun].get_verb_by_name(command.verb)
         # create the player_inventory dict, which has
         # item names as keys and the corresponding item
         # objects as values.

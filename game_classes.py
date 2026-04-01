@@ -150,6 +150,61 @@ class Bow(RangeWeapon):
     pass
 
 
+class Direction(VerbHolder):
+
+    def __init__(self, room_to_id: str, room_id: str):
+        super().__init__(room_id)
+        self._room_to_id: str = room_to_id
+        self._direction = ""
+
+    # getter:
+
+    def get_room_to_id(self) -> str:
+        return self._room_to_id
+
+    # verbs
+
+    def v_move(self, **kwargs) -> str:
+        """Moves the player on the map."""
+        game_state = kwargs["game_state"]
+        player_name = kwargs["player_name"]
+        player = game_state.get_player_by_name(player_name)
+        old_room = game_state.get_room_by_id(self._name)
+        if self._room_to_id:
+            if old_room.remove_item(f"p_{player_name}"):
+                game_state.get_room_by_id(self._room_to_id).add_item(f"p_{player_name}")
+                player.set_position(self._room_to_id)
+                return f"You moved {self._direction}"
+            return f"You could not move {self._direction}"
+        return f"You can not move {self._direction}wards, the way is blocked"
+
+
+class North(Direction):
+
+    def __init__(self, room_to_id: str, room_id: str):
+        super().__init__(room_to_id, room_id)
+        self._direction = "north"
+
+
+class East(Direction):
+
+    def __init__(self, room_to_id: str, room_id: str):
+        super().__init__(room_to_id, room_id)
+        self._direction = "east"
+
+
+class South(Direction):
+    def __init__(self, room_to_id: str, room_id: str):
+        super().__init__(room_to_id, room_id)
+        self._direction = "south"
+
+
+class West(Direction):
+    def __init__(self, room_to_id: str, room_id: str):
+        super().__init__(room_to_id, room_id)
+        self._direction = "west"
+
+
 class Player(VerbHolder):
 
     def __init__(self, name: str, position: str, inventory: list[str] = None):
@@ -235,17 +290,13 @@ class Player(VerbHolder):
     def v_ping(self, **_) -> str:
         return "pong"
 
+
 class Room():
 
     def __init__(
-        self, room_id: str, room_north_id: str, room_east_id: str,
-        room_south_id: str, room_west_id: str
-        ):
+        self, room_id: str, directions: dict):
         self._id: str = room_id
-        self._north_id: str = room_north_id
-        self._east_id: str = room_east_id
-        self._west_id: str = room_west_id
-        self._south_id: str = room_south_id
+        self._directions: dict = directions
         self._content: list[str] = []
         self._content_lock = threading.Lock()
 
@@ -254,17 +305,8 @@ class Room():
     def get_id(self):
         return self._id
 
-    def get_north_id(self):
-        return self._north_id
-
-    def get_east_id(self):
-        return self._east_id
-
-    def get_south_id(self):
-        return self._south_id
-
-    def get_west_id(self):
-        return self._west_id
+    def get_directions(self):
+        return self._directions
 
     def get_content(self):
         with self._content_lock:
@@ -301,7 +343,6 @@ def make_thing(thing_id: str, name:str, article:str, *args, **kwargs):
     # strip number of thing id, to get type:
     thing_type = thing_id.strip("0123456789_").lower()
     return things[thing_type](thing_id, name, article, *args, **kwargs)
-
 
 if __name__ == "__main__":
     apple = Apple("apple_000", "Apple", "The")

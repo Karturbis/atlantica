@@ -27,10 +27,13 @@ class GameState():
         # create room objects
         for room_id in data:
             room_data = data[room_id]
-            game_map[room_id] = gc.Room(
-                room_id, room_data["room_north_id"], room_data["room_east_id"],
-                room_data["room_south_id"], room_data["room_west_id"]
-                )
+            directions = {
+                "north": gc.North(data[room_id]["directions"]["north"], room_id),
+                "east": gc.North(data[room_id]["directions"]["east"], room_id),
+                "south": gc.North(data[room_id]["directions"]["south"], room_id),
+                "west": gc.North(data[room_id]["directions"]["west"], room_id),
+            }
+            game_map[room_id] = gc.Room(room_id, directions)
             # add items to room objects
             for item in room_data["content"]:
                 game_map[room_id].add_item(item)
@@ -128,11 +131,9 @@ class GameState():
         map_data: dict = {}
         with self._map_lock:
             for room_id, room in self._map.items():
-                map_data[room_id] = {"room_north_id": room.get_north_id(),
-                                     "room_east_id": room.get_east_id(),
-                                     "room_south_id": room.get_south_id(),
-                                     "room_west_id": room.get_west_id(),
-                                     "content": [item for item in room.get_content() if not item.startswith("p_")]
+                map_data[room_id] = {
+                                     "content": [item for item in room.get_content() if not item.startswith("p_")],
+                                     "directions": {key: value.get_room_to_id() for key, value in room.get_directions().items()}
                                      }
         with open(f"saves/gameslot_{game_slot}_map.json", "w", encoding="utf-8") as writer:
             writer.write(json.dumps(map_data, indent=4))

@@ -3,3 +3,7 @@ eat
 pick_up
 inventory
 look
+inspect
+backflip
+move
+ping
