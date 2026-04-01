@@ -1,11 +1,19 @@
 {
+    "start":
+    {
+        "room_north_id": "",
+        "room_east_id": "",
+        "room_south_id": "",
+        "room_west_id": "",
+        "content": ["0001_apple"]
+    },
     "0001":
     {
         "room_north_id": "",
         "room_east_id": "0002",
         "room_south_id": "0004",
         "room_west_id": "",
-        "content": ["0001_apple"]
+        "content": []
     },
     "0002":
     {
