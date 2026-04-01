@@ -12,7 +12,7 @@ class Parser():
 
     def __init__(self, game_state, language: str="en"):
         self._game_state = game_state
-        """The language as a two letter language code."""
+        # The language as a two letter language code:
         self._language: str = language.lower()
         self._articles: list = self.load_words(f"parser/articles_{self._language}")
         self._verbs: list = self.load_words(f"parser/verbs_{self._language}")
@@ -91,7 +91,7 @@ class Parser():
             preposition_range[1] = -3
         # because there is only one preposition, the search
         # for prepostitions ends after the preposition is found.
-        preposition_index = None
+        preposition_index: int = None
         for prep in self._prepositions:
             if prep in command[preposition_range[0]:preposition_range[1]]:
                 preposition_index = command.index(prep)
