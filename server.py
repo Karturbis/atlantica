@@ -11,7 +11,7 @@ from game_classes import Player
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
 logging.basicConfig(level=logging.DEBUG, filename="logs/server.log", filemode="w",
-                    format="%(asctime)s - %(levelname)s: %(message)s")
+                    format="%(asctime)s [%(filename)s:%(levelname)s] > %(message)s")
 
 class Server():
 
