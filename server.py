@@ -176,5 +176,5 @@ class Server():
         return "the game was saved"
 
 if __name__ == "__main__":
-    srv = Server("testiongh")
+    srv = Server("test")
     srv.main()
