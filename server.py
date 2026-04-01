@@ -91,7 +91,6 @@ class Server():
         incoming: str = connection.recv(2048)
         if not incoming:  # the client has disconnected
             return None
-        # no else required
         return json.loads(incoming)
 
     def send_data(self, connection, data:list) -> None:
