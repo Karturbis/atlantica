@@ -48,14 +48,16 @@ class VerbHolder():
             return getattr(self, func_name)
         return lambda **_: f"You can not {verb_name} {self._name}"
 
+
 class Thing(VerbHolder):
 
     # initialisation:
 
-    def __init__(self, thing_id: str, name: str, article: str):
+    def __init__(self, thing_id: str, name: str, article: str, description: str = "a thing"):
         super().__init__(name)
         self._id: str = thing_id
         self._article: str = article
+        self._description = description
         self.lock = threading.Lock()
 
     # getter and setter:
@@ -92,6 +94,11 @@ class Thing(VerbHolder):
             player.add_to_inventory(self._id)
             return f"You picked up {self._article} {self._name}."
         return f"There is no {self._name} to pick up."
+
+    def v_inspect(self, **_) -> str:
+        """Gives specific information about the
+        inspected thing"""
+        return self._description
 
 
 class Food(Thing):
@@ -287,15 +294,18 @@ class Room():
         with self._content_lock:
             self._content.append(item_id)
 
+things: dict = {
+    "apple": Apple,
+    "potato": Potato,
+    "sword": Sword,
+    "axe": Axe,
+    "bow": Bow
+}
 
 def make_thing(thing_id: str, name:str, article:str, *args, **kwargs):
     # strip number of thing id, to get type:
     thing_type = thing_id.strip("0123456789_").lower()
-    # big switch case for all types:
-    if thing_type == "apple":
-        return Apple(thing_id, name, article, *args, **kwargs)
-    if thing_type == "potato":
-        return Potato(thing_id, name, article, *args, **kwargs)
+    return things[thing_type](thing_id, name, article, *args, **kwargs)
 
 
 if __name__ == "__main__":

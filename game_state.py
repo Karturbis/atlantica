@@ -46,7 +46,7 @@ class GameState():
             data = json.loads(reader.read())
         for item_id in data:
             item_data = data[item_id]
-            items[item_id] = gc.make_thing(item_id, item_data["name"], item_data["article"])
+            items[item_id] = gc.make_thing(item_id, item_data["name"], item_data["article"], description = item_data["description"])
         return items
 
     def _load_players(self, game_slot) -> dict:
