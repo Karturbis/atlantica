@@ -24,7 +24,6 @@ class Server():
         self._client_executable: dict = {
                                         # user executable:
                                         "help": self.help,
-                                        "ping": self.ping,
                                         # admin only:
                                         "/quit_game": self.quit_game,
                                         "/save_game": self.save_game,
@@ -159,9 +158,6 @@ class Server():
 
     def help(self, *_) -> str:
         return "Server side help is not implemented jetsecond line test"
-
-    def ping(self, *_) -> str:
-        return "pong"
 
 ############################
 # Admin executable methods #

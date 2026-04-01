@@ -229,6 +229,12 @@ class Player(VerbHolder):
                 message = "Your inventory is empty"
         return message
 
+    def v_backflip(self, **_) -> str:
+        return "you did a backflip"
+
+    def v_ping(self, **_) -> str:
+        return "pong"
+
 class Room():
 
     def __init__(
