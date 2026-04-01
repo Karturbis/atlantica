@@ -103,9 +103,6 @@ class Thing(VerbHolder):
 
 class Food(Thing):
 
-    def __init__(self, thing_id: str, name: str, article: str):
-        super().__init__(thing_id, name, article)
-
     # verbs:
 
     def v_eat(self, **kwargs):
@@ -118,51 +115,39 @@ class Food(Thing):
         return f"You have to pickup {self._article} {self._name} first."
 
 class Apple(Food):
-
-    def __init__(self, thing_id: str, name: str, article: str):
-        super().__init__(thing_id, name, article)
+    pass
 
 
 class Potato(Food):
+    pass
 
-    def __init__(self, thing_id: str, name: str, article: str):
-        super().__init__(thing_id, name, article)
+
+class Bread(Food):
+    pass
 
 
 class Weapon(Thing):
-
-    def __init__(self):
-        pass
+    pass
 
 
 class MeeleWeapon(Weapon):
-
-    def __init__(self):
-        pass
+    pass
 
 
 class Sword(MeeleWeapon):
-
-    def __init__(self):
-        pass
+    pass
 
 
 class Axe(MeeleWeapon):
-
-    def __init__(self):
-        pass
+    pass
 
 
 class RangeWeapon(Weapon):
-
-    def __init__(self):
-        pass
+    pass
 
 
 class Bow(RangeWeapon):
-
-    def __init__(self):
-        pass
+    pass
 
 
 class Player(VerbHolder):
