@@ -194,10 +194,13 @@ class Player(VerbHolder):
     def v_inventory(self) -> str:
         """Returns the contents of the
         players inventory"""
-        message: str = "Your Inventory contains:\n"
+        message: str = "Your inventory contains:\n"
         with self._inventory_lock:
-            for item in self._inventory:
-                message = f"{message}{item} "
+            if self._inventory:
+                for item in self._inventory:
+                    message = f"{message}{item} "
+            else:
+                message = "Your inventory is empty"
         return message
 
 class Room():
