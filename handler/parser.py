@@ -173,8 +173,9 @@ class Parser():
         player_inventory: dict = {}
         for i in player.get_inventory():
             item = self._game_state.get_item_by_id(i)
-            item_name = item.get_name()
-            player_inventory[item_name] = item
+            if item:
+                item_name = item.get_name()
+                player_inventory[item_name] = item
         # check if the item wich is used by the
         # command is contained in the player inventory.
         if direct_noun in player_inventory:
@@ -182,8 +183,9 @@ class Parser():
         room_content: dict = {}
         for i in room.get_content():
             item = self._game_state.get_item_by_id(i)
-            item_name = item.get_name()
-            room_content[item_name] = item
+            if item:
+                item_name = item.get_name()
+                room_content[item_name] = item
         if direct_noun in room_content:
             return room_content[direct_noun].get_verb_by_name(command.verb)
         return self.error_message(f"There is no {direct_adjective} {direct_noun} in your vicinity.")
