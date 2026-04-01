@@ -84,7 +84,8 @@ class Server():
         # get the method that has to be executed:
         command_obj_final = self._parser.stage_three(command_obj_stage_two, player_name)
         # execute the verb and return the result, which is a string.
-        return command_obj_final()
+        result = command_obj_final(game_state = self._game_state, player_name = player_name)
+        return result
 
     def receive_message(self, connection) -> list:
         """Return the incoming message as a list"""

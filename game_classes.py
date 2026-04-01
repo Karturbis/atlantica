@@ -4,6 +4,7 @@ items and players."""
 import threading
 
 class VerbHolder():
+    """Parent class for all classes that can hold verbs."""
     # initialisation:
 
     def __init__(self, name: str):
@@ -42,7 +43,10 @@ class VerbHolder():
         """returns the verb, which corresponds to
         the given name. the name must not include
         the prefix 'v_'."""
-        return getattr(self, f"v_{verb_name}")
+        func_name = f"v_{verb_name}"
+        if hasattr(self, func_name):
+            return getattr(self, func_name)
+        return lambda **_: f"You can not {verb_name} {self._name}"
 
 class Thing(VerbHolder):
 
@@ -61,13 +65,29 @@ class Thing(VerbHolder):
 
     # verbs:
 
-    def v_drop(self, player, position) -> str:
+    def v_drop(self, **kwargs) -> str:
+        """Drops the item from the players inventory
+        @param player: game_classes.Player,
+        @param position: game_classes.Room
+        """
+        game_state = kwargs["game_state"]
+        player_name = kwargs["player_name"]
+        player = game_state.get_player_by_name(player_name)
+        position = game_state.get_room_by_id(player.get_position())
         player.remove_from_inventory(self._id)
         with position.lock:
             position.add_item(self._id)
         return f"You dropped {self._article} {self._name}."
 
-    def v_pick_up(self, player, position) -> str:
+    def v_pick_up(self, **kwargs) -> str:
+        """Adds an item from somewhere to the players inventory
+        @param player: game_classes.Player,
+        @param position: game_classes.Room
+        """
+        game_state = kwargs["game_state"]
+        player_name = kwargs["player_name"]
+        player = game_state.get_player_by_name(player_name)
+        position = game_state.get_room_by_id(player.get_position())
         success = False
         with position.lock:
             if position.item_exists(self._id):
@@ -86,9 +106,14 @@ class Food(Thing):
 
     # verbs:
 
-    def v_eat(self, player):
-        player.remove_from_inventory(self._id)
-        return f"You have eaten {self._article} {self._name}"
+    def v_eat(self, **kwargs):
+        game_state = kwargs["game_state"]
+        player_name = kwargs["player_name"]
+        player = game_state.get_player_by_name(player_name)
+        if player.item_exists(self._id):
+            player.remove_from_inventory(self._id)
+            return f"You have eaten {self._article} {self._name}"
+        return f"You have to pickup {self._article} {self._name} first."
 
 class Apple(Food):
 
@@ -171,6 +196,13 @@ class Player(VerbHolder):
         with self._inventory_lock:
             return self._inventory
 
+    def item_exists(self, item_id):
+        with self._inventory_lock:
+            if item_id in self._inventory:
+                return True
+            return False
+
+
     # setter:
 
     def set_position(self, position: str):
@@ -179,9 +211,10 @@ class Player(VerbHolder):
 
     # verbs:
 
-    def v_look(self, game_state) -> str:
+    def v_look(self, **kwargs) -> str:
         """Returns, what the player sees in the
         curren room."""
+        game_state = kwargs["game_state"]
         with self._position_lock:
             room = game_state.get_room_by_id(self._position)
         to_see: list[str] = room.get_content()
@@ -191,7 +224,7 @@ class Player(VerbHolder):
             message = f"{message}{item} "
         return message
 
-    def v_inventory(self) -> str:
+    def v_inventory(self, **_) -> str:
         """Returns the contents of the
         players inventory"""
         message: str = "Your inventory contains:\n"
@@ -242,7 +275,6 @@ class Room():
         with self._content_lock:
             if item_id in self._content:
                 return True
-            # no else needed
             return False
 
     # setter:

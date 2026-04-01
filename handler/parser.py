@@ -201,9 +201,9 @@ class Parser():
             return room_content[direct_noun].get_verb_by_name(command.verb)
         if direct_adjective:
             logger.warning("adjective noun combination '%s %s' not found", direct_adjective, direct_noun)
-            return lambda: f"There is no {direct_adjective} {direct_noun} in your vicinity"
+            return lambda **_: f"There is no {direct_adjective} {direct_noun} in your vicinity"
         logger.warning("noun '%s' not found", direct_noun)
-        return lambda: f"There is no {direct_noun} in your vicinity"
+        return lambda **_: f"There is no {direct_noun} in your vicinity"
 
 @dataclasses.dataclass
 class Command():
