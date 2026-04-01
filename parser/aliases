@@ -26,3 +26,6 @@
 # user defined aliases: #
 #########################
 cls:clear
+pickup:pick_up
+pu:pick_up
+inv:inventory
