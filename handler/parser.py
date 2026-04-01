@@ -3,6 +3,10 @@ input into a command, that can be used by the
 game."""
 
 import dataclasses
+import logging
+
+# configure logging:
+logger = logging.getLogger(__name__)
 
 class Parser():
 
