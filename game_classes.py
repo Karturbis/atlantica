@@ -3,16 +3,12 @@ items and players."""
 
 import threading
 
-class Thing():
-
+class VerbHolder():
     # initialisation:
 
-    def __init__(self, thing_id: str, name: str, article: str):
+    def __init__(self, name: str):
         self.export_verbs()
-        self._id: str = thing_id
         self._name: str = name
-        self._article: str = article
-        self.lock = threading.Lock()
 
     def export_verbs(self) -> None:
         """create a list of verbs in the current class
@@ -29,26 +25,39 @@ class Thing():
 
     # getter and setter:
 
-    def get_id(self):
-        return self._id
-
     def get_name(self):
         return self._name
 
     def get_verb_names(self) -> list:
-        """Returns all verbnames of the current item.
-        A verb is a method, which is user executable.
-        Verb methods always start with 'v_'. This method
+        """returns all verbnames of the current item.
+        a verb is a method, which is user executable.
+        verb methods always start with 'v_'. this method
         strips the 'v_' from the verb name."""
         return [method[2:] for method in dir(self) if
                 callable(getattr(self, method))
                 and method.startswith("v_")
                 ]
+
     def get_verb_by_name(self, verb_name: str):
         """returns the verb, which corresponds to
-        the given name. The name must not include
+        the given name. the name must not include
         the prefix 'v_'."""
         return getattr(self, f"v_{verb_name}")
+
+class Thing(VerbHolder):
+
+    # initialisation:
+
+    def __init__(self, thing_id: str, name: str, article: str):
+        super().__init__(name)
+        self._id: str = thing_id
+        self._article: str = article
+        self.lock = threading.Lock()
+
+    # getter and setter:
+
+    def get_id(self):
+        return self._id
 
     # verbs:
 
@@ -129,16 +138,16 @@ class Bow(RangeWeapon):
         pass
 
 
-class Player():
+class Player(VerbHolder):
 
     def __init__(self, name: str, position: str, inventory: list[str] = None):
-        self._name: str = name
+        super().__init__(name)
         if inventory:
             self._inventory: list[str] = inventory
         else:
             self._inventory: list[str] = []
         self._inventory_lock = threading.Lock()
-        self._position: int = position
+        self._position: str = position
         self._position_lock = threading.Lock()
 
     def remove_from_inventory(self, item_id: str):
@@ -168,6 +177,28 @@ class Player():
         with self._position_lock:
             self._position = position
 
+    # verbs:
+
+    def v_look(self, game_state) -> str:
+        """Returns, what the player sees in the
+        curren room."""
+        with self._position_lock:
+            room = game_state.get_room_by_id(self._position)
+        to_see: list[str] = room.get_content()
+        message: str = "You see:\n"
+        for item in to_see:
+            # TODO implement pretty printing of the items (with articles)
+            message = f"{message}{item} "
+        return message
+
+    def v_inventory(self) -> str:
+        """Returns the contents of the
+        players inventory"""
+        message: str = "Your Inventory contains:\n"
+        with self._inventory_lock:
+            for item in self._inventory:
+                message = f"{message}{item} "
+        return message
 
 class Room():
 
