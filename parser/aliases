@@ -27,5 +27,4 @@
 #########################
 cls:clear
 pickup:pick_up
-pu:pick_up
-inv:inventory
+take:pick_up
