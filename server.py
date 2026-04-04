@@ -109,7 +109,7 @@ class Server():
         """Send the given message to the client."""
         self.send_data(connection, ["s_print", message])
 
-    def broadcast_print(self, message: str):
+    def broadcast_print(self, message: str) -> None:
         """Sends the given message to all connected clients."""
         logger.info("Sending broadcast message: %s", message)
         with self._clients_lock:
