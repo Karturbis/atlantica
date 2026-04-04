@@ -83,7 +83,10 @@ class Thing(VerbHolder):
         position = game_state.get_room_by_id(player.get_position())
         player.remove_from_inventory(self._id)
         position.add_item(self._id)
-        return {"client_print" : f"You dropped {self._article} {self._name}."}
+        return {
+            "client_print" : f"You dropped {self._article} {self._name}.",
+            "room_print": f"dropped {self._article} {self._name}"
+            }
 
     def v_pick_up(self, **kwargs) -> dict:
         """Adds an item from somewhere to the players inventory
@@ -97,7 +100,10 @@ class Thing(VerbHolder):
         success: bool = position.remove_item(self._id)
         if success:
             player.add_to_inventory(self._id)
-            return {"client_print": f"You picked up {self._article} {self._name}."}
+            return {
+                "client_print": f"You picked up {self._article} {self._name}.",
+                "room_print": f"took {self._article} {self._name}"
+                }
         return {"client_print" : f"There is no {self._name} to pick up."}
 
     def v_inspect(self, **_) -> dict:
@@ -268,7 +274,7 @@ class Player(VerbHolder):
         return {"client_print" : message}
 
     def v_backflip(self, **_) -> dict:
-        return {"client_print" : "you did a backflip"}
+        return {"client_print" : "you did a backflip", "room_print": "did a backflip"}
 
     def v_ping(self, **_) -> dict:
         return {"client_print" : "pong"}
