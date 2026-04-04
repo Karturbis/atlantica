@@ -95,7 +95,7 @@ class GameState():
     def load_player(self, player_name:str, game_slot):
         """Loads the player. Because the player is already in
         the players dict, the only action necessary is to set the
-        players position from 'offline' to the previously saced position"""
+        players position from 'offline' to the previously saved position"""
         with open(f"saves/gameslot_{game_slot}_players.json", "r", encoding="utf-8") as reader:
             players_raw = json.loads(reader.read())
         position: str = players_raw[player_name]["position"]
