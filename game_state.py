@@ -28,10 +28,10 @@ class GameState():
         for room_id in data:
             room_data = data[room_id]
             directions = {
-                "north": gc.North(data[room_id]["directions"]["north"], room_id),
-                "east": gc.North(data[room_id]["directions"]["east"], room_id),
-                "south": gc.North(data[room_id]["directions"]["south"], room_id),
-                "west": gc.North(data[room_id]["directions"]["west"], room_id),
+                "north": gc.Direction(data[room_id]["directions"]["north"], room_id, "north"),
+                "east": gc.Direction(data[room_id]["directions"]["east"], room_id, "east"),
+                "south": gc.Direction(data[room_id]["directions"]["south"], room_id, "south"),
+                "west": gc.Direction(data[room_id]["directions"]["west"], room_id, "west"),
             }
             game_map[room_id] = gc.Room(room_id, directions)
             # add items to room objects

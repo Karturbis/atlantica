@@ -157,10 +157,10 @@ class Bow(RangeWeapon):
 
 class Direction(VerbHolder):
 
-    def __init__(self, room_to_id: str, room_id: str):
+    def __init__(self, room_to_id: str, room_id: str, direction: str):
         super().__init__(room_id)
         self._room_to_id: str = room_to_id
-        self._direction = ""
+        self._direction = direction
 
     # getter:
 
@@ -183,32 +183,6 @@ class Direction(VerbHolder):
                 return f"You moved {self._direction}"
             return f"You could not move {self._direction}"
         return f"You can not move {self._direction}wards, the way is blocked"
-
-
-class North(Direction):
-
-    def __init__(self, room_to_id: str, room_id: str):
-        super().__init__(room_to_id, room_id)
-        self._direction = "north"
-
-
-class East(Direction):
-
-    def __init__(self, room_to_id: str, room_id: str):
-        super().__init__(room_to_id, room_id)
-        self._direction = "east"
-
-
-class South(Direction):
-    def __init__(self, room_to_id: str, room_id: str):
-        super().__init__(room_to_id, room_id)
-        self._direction = "south"
-
-
-class West(Direction):
-    def __init__(self, room_to_id: str, room_id: str):
-        super().__init__(room_to_id, room_id)
-        self._direction = "west"
 
 
 class Player(VerbHolder):
