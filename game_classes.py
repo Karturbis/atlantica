@@ -180,8 +180,8 @@ class Direction(VerbHolder):
                 game_state.get_room_by_id(
                     self._room_to_id).add_item(f"p_{player_name}")
                 player.set_position(self._room_to_id)
-                return f"You moved {self._direction}"
-            return f"You could not move {self._direction}"
+                return f"You moved {self._direction}wards"
+            return f"You could not move {self._direction}wards"
         return f"You can not move {self._direction}wards, the way is blocked"
 
 
@@ -270,6 +270,8 @@ class Player(VerbHolder):
     def v_ping(self, **_) -> str:
         return "pong"
 
+    def v_position(self, **_) -> str:
+        return f"You are at {self._position}"
 
 class Room():
 
