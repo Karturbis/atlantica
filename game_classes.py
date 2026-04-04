@@ -19,7 +19,9 @@ class VerbHolder():
         with open("parser/verbs_en", "r", encoding="utf-8") as reader:
             file_verbs: list = reader.readlines()
         # add only verbs to file, wich it does not contain yet
-        verbs_to_add: list = [verb for verb in self_verbs if not verb in file_verbs]
+        verbs_to_add: list = [
+            verb for verb in self_verbs if not verb in file_verbs
+            ]
         if verbs_to_add:
             with open("parser/verbs_en", "a", encoding="utf-8") as writer:
                 writer.writelines(verbs_to_add)
@@ -53,7 +55,10 @@ class Thing(VerbHolder):
 
     # initialisation:
 
-    def __init__(self, thing_id: str, name: str, article: str, description: str = "a thing"):
+    def __init__(
+            self, thing_id: str, name: str,
+            article: str, description: str = "a thing"
+            ):
         super().__init__(name)
         self._id: str = thing_id
         self._article: str = article
@@ -172,7 +177,8 @@ class Direction(VerbHolder):
         old_room = game_state.get_room_by_id(self._name)
         if self._room_to_id:
             if old_room.remove_item(f"p_{player_name}"):
-                game_state.get_room_by_id(self._room_to_id).add_item(f"p_{player_name}")
+                game_state.get_room_by_id(
+                    self._room_to_id).add_item(f"p_{player_name}")
                 player.set_position(self._room_to_id)
                 return f"You moved {self._direction}"
             return f"You could not move {self._direction}"

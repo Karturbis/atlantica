@@ -14,10 +14,16 @@ class Parser():
         self._game_state = game_state
         # The language as a two letter language code:
         self._language: str = language.lower()
-        self._articles: list = self.load_words(f"parser/articles_{self._language}")
+        self._articles: list = self.load_words(
+            f"parser/articles_{self._language}"
+            )
         self._verbs: list = self.load_words(f"parser/verbs_{self._language}")
-        self._verb_modifiers: list = self.load_words(f"parser/verbmodifiers_{self._language}")
-        self._adjectives: list = self.load_words(f"parser/adjectives_{self._language}")
+        self._verb_modifiers: list = self.load_words(
+            f"parser/verbmodifiers_{self._language}"
+            )
+        self._adjectives: list = self.load_words(
+            f"parser/adjectives_{self._language}"
+            )
 
     def load_words(self, file_path: str):
         words: list[str] = []
@@ -136,9 +142,13 @@ class Parser():
             for i in command_checker:
                 if not i:
                     return "Error, not all words could be clasified."
-            command_object = Command(verb, {"adjective": direct_object_adjective, "noun": direct_object_noun},
-                                    {"adjective": indirect_object_adjective, "noun": indirect_object_noun}
-                                    )
+            command_object = Command(
+                    verb,
+                    {"adjective": direct_object_adjective,
+                    "noun": direct_object_noun},
+                    {"adjective": indirect_object_adjective,
+                    "noun": indirect_object_noun}
+                    )
             return command_object
 
         # the sentence has no verb modifiers
@@ -162,9 +172,15 @@ class Parser():
         logger.debug(f"command  source: {command}")
         for i in command_checker:
             if not i:
-                logger.warning("End of stage two, not all words could be classified")
+                logger.warning(
+                    "End of stage two, not all words could be classified"
+                    )
                 return "Warning: not all words could be clasified."
-        command_object = Command(verb, {"adjective": direct_object_adjective, "noun": direct_object_noun})
+        command_object = Command(
+                    verb,
+                    {"adjective": direct_object_adjective,
+                     "noun": direct_object_noun}
+                    )
         return command_object
 
     def stage_three(self, command, player_name):
@@ -183,7 +199,9 @@ class Parser():
             return player.get_verb_by_name(command.verb)
         # check if the object is a direction:
         if direct_noun in room.get_directions():
-            return room.get_directions()[direct_noun].get_verb_by_name(command.verb)
+            return room.get_directions()[direct_noun].get_verb_by_name(
+                command.verb
+                )
         # create the player_inventory dict, which has
         # item names as keys and the corresponding item
         # objects as values.
@@ -206,7 +224,10 @@ class Parser():
         if direct_noun in room_content:
             return room_content[direct_noun].get_verb_by_name(command.verb)
         if direct_adjective:
-            logger.warning("adjective noun combination '%s %s' not found", direct_adjective, direct_noun)
+            logger.warning(
+                "adjective noun combination '%s %s' not found",
+                direct_adjective, direct_noun
+                )
             return lambda **_: f"There is no {direct_adjective} {direct_noun} in your vicinity"
         logger.warning("noun '%s' not found", direct_noun)
         return lambda **_: f"There is no {direct_noun} in your vicinity"

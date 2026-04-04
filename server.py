@@ -10,8 +10,9 @@ from game_classes import Player
 # configure logging:
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
-logging.basicConfig(level=logging.DEBUG, filename="logs/server.log", filemode="w",
-                    format="%(asctime)s [%(filename)s:%(levelname)s] > %(message)s")
+logging.basicConfig(
+    level=logging.DEBUG, filename="logs/server.log", filemode="w",
+    format="%(asctime)s [%(filename)s:%(levelname)s] > %(message)s")
 
 class Server():
 
@@ -71,7 +72,9 @@ class Server():
                 connection, address = self._active_socket.accept()
                 logger.info("Connecting to client with address %s", address)
                 # start a new thread for the connected client:
-                t = threading.Thread(target=self.threaded_client, args=[connection])
+                t = threading.Thread(
+                    target=self.threaded_client, args=[connection]
+                    )
                 t.daemon = True  # daemonize thread so it ends, when main thread ends
                 t.start()
             except KeyboardInterrupt:
@@ -82,9 +85,13 @@ class Server():
         # get the command object, so parser stage three can be called.
         command_obj_stage_two = self._parser.stage_two(command)
         # get the method that has to be executed:
-        command_obj_final = self._parser.stage_three(command_obj_stage_two, player_name)
+        command_obj_final = self._parser.stage_three(
+            command_obj_stage_two, player_name
+            )
         # execute the verb and return the result, which is a string.
-        result = command_obj_final(game_state = self._game_state, player_name = player_name)
+        result = command_obj_final(
+            game_state = self._game_state, player_name = player_name
+            )
         return result
 
     def receive_message(self, connection) -> list:
@@ -118,7 +125,9 @@ class Server():
         # prevent racing conditions when writing to a class variable:
         with self._clients_lock:
             if client_name in self._clients:
-                self.client_print(connection, f"The user {client_name} is already connected.")
+                self.client_print(
+                    connection, f"The user {client_name} is already connected."
+                )
                 logger.warning("Client %s is already connected.", client_name)
                 # quitting the thread:
                 connection.close()
@@ -144,7 +153,9 @@ class Server():
             # execute the command and send the output to the client:
             if command[0] in self._client_executable:
                 # the user command is not ingame, execute the command
-                result = self._client_executable[command[0]](client_name, *command[1:])
+                result = self._client_executable[command[0]](
+                    client_name, *command[1:]
+                    )
             else:  # execute the verb the user wants to execute
                 result = self.execute_command(command, client_name)
             self.client_print(connection, result)

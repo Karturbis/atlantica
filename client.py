@@ -48,7 +48,9 @@ class Client():
                     self.help(command_stage_one[0])
                 else:
                     # call the method in element 0 of the list with other list elements as args:
-                    self._user_side_methods[command_stage_one[0]](*command_stage_one[1:])
+                    self._user_side_methods[command_stage_one[0]](
+                        *command_stage_one[1:]
+                        )
             else:
                 self._user_side_methods[command_stage_one[0]]()
         else:
@@ -63,7 +65,9 @@ class Client():
             if not self._is_connected_to_server:
                 command_stage_one: list = self.get_user_input()
                 if command_stage_one[0].startswith("s_"):
-                    self._print(f"There is no user executable command {command_stage_one[0]}")
+                    self._print(
+                    f"There is no user executable command {command_stage_one[0]}"
+                    )
                 else:
                     self.execute_client_side_command(command_stage_one)
         self._terminal_handler.quit_terminal_handler()
@@ -173,7 +177,9 @@ class Client():
             try:
                 port = int(port)
             except ValueError:
-                self._print("Could not connect to server, the Port has to be an Integer.")
+                self._print(
+                    "Could not connect to server, the Port has to be an Integer."
+                    )
         try:
             # connect to the server:
             self._active_socket.connect((ip, port))
@@ -202,7 +208,10 @@ class Client():
     def help(self, func_name:str = None):
         if not func_name:
             # add all local user executable methods, because they are always available:
-            available_methods_help: dict = {key:value for key, value in self._user_side_methods.items() if not key.startswith("s_") }
+            available_methods_help: dict = {
+                key:value for key, value in self._user_side_methods.items()
+                if not key.startswith("s_")
+                }
             # add help strings to the dict
             for key in available_methods_help:
                 available_methods_help[key] = self._help_dict["short"][key]
