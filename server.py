@@ -133,7 +133,6 @@ class Server():
                 connection.close()
                 return None
             self._clients[client_name] = connection
-        self.client_print(connection, "Successfully connected to the server")
         if not self._game_state.get_player_by_name(client_name):
             # creating the player object for the new player:
             player = Player(client_name, "start")
@@ -144,6 +143,7 @@ class Server():
             logger.info("Loaded existing Player object %s", client_name)
         logger.info("Client %s connected successfully", client_name)
         while True:
+        self.broadcast_print(f"{client_name} joined the game")
             command: list = self.receive_message(connection)
             if not command:  # client disconnected
                 with self._clients_lock:
