@@ -61,17 +61,23 @@ class Client():
         """Main method, if not connected to a
         server. Take user input, parse it and
         execute commands."""
-        while self._running:
-            if not self._is_connected_to_server:
-                command_stage_one: list = self.get_user_input()
-                if command_stage_one[0].startswith("s_"):
-                    self._print(
-                    f"There is no user executable command {command_stage_one[0]}"
-                    )
-                else:
-                    self.execute_client_side_command(command_stage_one)
-        self._terminal_handler.quit_terminal_handler()
-        exit(0) # the game ends
+        return_str = "Client terminated gracefully"
+        try:
+            while self._running:
+                if not self._is_connected_to_server:
+                    command_stage_one: list = self.get_user_input()
+                    if command_stage_one[0].startswith("s_"):
+                        self._print(
+                        f"There is no user executable command {command_stage_one[0]}"
+                        )
+                    else:
+                        self.execute_client_side_command(command_stage_one)
+        except Exception as e:
+            return_str = f"Client terminated with exception {e}"
+        finally:
+            self._terminal_handler.quit_terminal_handler()
+            print(return_str)
+            exit(0) # the game ends
 
     def main_online(self):
         st = threading.Thread(target=self.send_thread)
@@ -233,3 +239,4 @@ class Client():
 if __name__ == "__main__":
     client = Client()
     client.main_offline()
+
