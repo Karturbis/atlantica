@@ -29,6 +29,10 @@ class Server():
                                         "/quit_game": self.quit_game,
                                         "/save_game": self.save_game,
                                         }
+        self._verb_executable: dict = {
+                                    "client_print": self.client_print,
+                                    "room_print": self.room_print,
+                                    "broadcast_print": self.broadcast_print,      }
         self._exit_event = threading.Event()
         # initialize parser:
         self._parser = Parser(self._game_state)
@@ -105,30 +109,37 @@ class Server():
         """Send the given data to the client."""
         connection.sendall(json.dumps(data).encode("utf-8"))
 
-    def client_print(self, connection, message: str) -> None:
+    def client_print(self, message:str, **kwargs) -> None:
         """Send the given message to the client."""
+        connection = kwargs["connection"]
         self.send_data(connection, ["s_print", message])
 
-    def broadcast_print(self, message: str) -> None:
+    def broadcast_print(self, message:str, **kwargs) -> None:
         """Sends the given message to all connected clients."""
+        client_connection = kwargs["connection"]
         logger.info("Sending broadcast message: %s", message)
         with self._clients_lock:
             for connection in self._clients.values():
-                self.client_print(connection, message)
+                if not connection == client_connection:
+                    self.client_print(message, connection = connection)
 
-    def room_print(self, message: str, room_id: str) -> None:
+    def room_print(self, message:str, **kwargs) -> None:
         """Sends the given message to all clients, that
         are in the room"""
-        logger.info("Sending room broadcast %s in room %s", message, room_id)
-        player_names: list[str] = self._game_state.get_room_by_id(room_id)
+        client_connection = kwargs["connection"]
+        room_id = kwargs["room_id"]
+        sender_name = kwargs["sender_name"]
+        logger.info("Sending room broadcast: %s in room %s from %s", message, room_id, sender_name)
+        player_names: list[str] = self._game_state.get_room_by_id(room_id).get_players()
         with self._clients_lock:
             for player_name, connection in self._clients.items():
                 if player_name in player_names:
-                    self.client_print(connection, message)
+                    if not connection == client_connection:
+                        self.client_print(f"{sender_name} {message}", connection = connection)
 
     def threaded_client(self, connection) -> None:
         """Game loop for each client"""
-        self.client_print(connection, "Connecting to server ...")
+        self.client_print("Connecting to server ...", connection = connection)
         # receive a message, which is a list containing only the client name.
         client_name: str = self.receive_message(connection)[0]
         logger.info("Client %s is connecting", client_name)
@@ -136,7 +147,8 @@ class Server():
         with self._clients_lock:
             if client_name in self._clients:
                 self.client_print(
-                    connection, f"The user {client_name} is already connected."
+                    f"The user {client_name} is already connected.",
+                    connection = connection
                 )
                 logger.warning("Client %s is already connected.", client_name)
                 # quitting the thread:
@@ -152,7 +164,13 @@ class Server():
             self._game_state.load_player(client_name, self._game_slot)
             logger.info("Loaded existing Player object %s", client_name)
         logger.info("Client %s connected successfully", client_name)
-        self.broadcast_print(f"{client_name} joined the game")
+        self.broadcast_print(f"{client_name} joined the game", connection = connection)
+        self.client_print("Successfully connected to server", connection = connection)
+        self.room_print(
+                "spawned in the room", connection = connection,
+                room_id = self._game_state.get_player_by_name(client_name).get_position(),
+                sender_name = client_name
+                )
         while True:
             command: list = self.receive_message(connection)
             if not command:  # client disconnected
@@ -163,12 +181,17 @@ class Server():
             # execute the command and send the output to the client:
             if command[0] in self._client_executable:
                 # the user command is not ingame, execute the command
-                result = self._client_executable[command[0]](
+                result: dict = self._client_executable[command[0]](
                     client_name, *command[1:]
                     )
             else:  # execute the verb the user wants to execute
-                result = self.execute_command(command, client_name)
-            self.client_print(connection, result)
+                result: dict = self.execute_command(command, client_name)
+                for method, message in result.items():
+                    self._verb_executable[method](
+                        message, connection=connection,
+                        room_id = self._game_state.get_player_by_name(client_name).get_position(),
+                        sender_name = client_name
+                        )
         connection.close()
         return None
         # thread dies

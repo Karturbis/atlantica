@@ -228,9 +228,9 @@ class Parser():
                 "adjective noun combination '%s %s' not found",
                 direct_adjective, direct_noun
                 )
-            return lambda **_: f"There is no {direct_adjective} {direct_noun} in your vicinity"
+            return lambda **_: {"client_print": f"There is no {direct_adjective} {direct_noun} in your vicinity"}
         logger.warning("noun '%s' not found", direct_noun)
-        return lambda **_: f"There is no {direct_noun} in your vicinity"
+        return lambda **_: {"client_print": f"There is no {direct_noun} in your vicinity"}
 
 @dataclasses.dataclass
 class Command():

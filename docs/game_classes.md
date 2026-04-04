@@ -8,4 +8,9 @@ methods, wich start with a v_ and are meant to be executed by the player. All ve
 must take all keyword arguments they are given without errors. If a verb needs any
 arguments, it should catch the keyword arrguments with **kwargs and cherrypick the
 values it needs. If a verb does not need any argument, the keyword arguments should
-be omitted by using **_ as an argument to the method.
+be omitted by using **_ as an argument to the method. Verbs return a dict, which contains
+the method to be executed by the server as their key and the messages as values.
+For example:
+```python
+{"client_print": "you move northwards", "room_print": "entered the room"}
+```

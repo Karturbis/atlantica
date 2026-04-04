@@ -72,7 +72,7 @@ class Thing(VerbHolder):
 
     # verbs:
 
-    def v_drop(self, **kwargs) -> str:
+    def v_drop(self, **kwargs) -> dict:
         """Drops the item from the players inventory
         @param player: game_classes.Player,
         @param position: game_classes.Room
@@ -83,9 +83,9 @@ class Thing(VerbHolder):
         position = game_state.get_room_by_id(player.get_position())
         player.remove_from_inventory(self._id)
         position.add_item(self._id)
-        return f"You dropped {self._article} {self._name}."
+        return {"client_print" : f"You dropped {self._article} {self._name}."}
 
-    def v_pick_up(self, **kwargs) -> str:
+    def v_pick_up(self, **kwargs) -> dict:
         """Adds an item from somewhere to the players inventory
         @param player: game_classes.Player,
         @param position: game_classes.Room
@@ -97,27 +97,27 @@ class Thing(VerbHolder):
         success: bool = position.remove_item(self._id)
         if success:
             player.add_to_inventory(self._id)
-            return f"You picked up {self._article} {self._name}."
-        return f"There is no {self._name} to pick up."
+            return {"client_print": f"You picked up {self._article} {self._name}."}
+        return {"client_print" : f"There is no {self._name} to pick up."}
 
-    def v_inspect(self, **_) -> str:
+    def v_inspect(self, **_) -> dict:
         """Gives specific information about the
         inspected thing"""
-        return self._description
+        return {"client_print" : self._description}
 
 
 class Food(Thing):
 
     # verbs:
 
-    def v_eat(self, **kwargs):
+    def v_eat(self, **kwargs) -> dict:
         game_state = kwargs["game_state"]
         player_name = kwargs["player_name"]
         player = game_state.get_player_by_name(player_name)
         if player.item_exists(self._id):
             player.remove_from_inventory(self._id)
-            return f"You have eaten {self._article} {self._name}"
-        return f"You have to pickup {self._article} {self._name} first."
+            return {"client_print" : f"You have eaten {self._article} {self._name}"}
+        return {"client_print" : f"You have to pickup {self._article} {self._name} first."}
 
 class Apple(Food):
     pass
@@ -169,7 +169,7 @@ class Direction(VerbHolder):
 
     # verbs
 
-    def v_move(self, **kwargs) -> str:
+    def v_move(self, **kwargs) -> dict:
         """Moves the player on the map."""
         game_state = kwargs["game_state"]
         player_name = kwargs["player_name"]
@@ -180,9 +180,9 @@ class Direction(VerbHolder):
                 game_state.get_room_by_id(
                     self._room_to_id).add_player(player_name)
                 player.set_position(self._room_to_id)
-                return f"You moved {self._direction}wards"
-            return f"You could not move {self._direction}wards"
-        return f"You can not move {self._direction}wards, the way is blocked"
+                return  {"client_print" : f"You moved {self._direction}wards", "room_print": "entered the room"}
+            return {"client_print" : f"You could not move {self._direction}wards"}
+        return {"client_print" : f"You can not move {self._direction}wards, the way is blocked"}
 
 
 class Player(VerbHolder):
@@ -233,7 +233,7 @@ class Player(VerbHolder):
 
     # verbs:
 
-    def v_look(self, **kwargs) -> str:
+    def v_look(self, **kwargs) -> dict:
         """Returns, what the player sees in the
         curren room."""
         game_state = kwargs["game_state"]
@@ -251,10 +251,10 @@ class Player(VerbHolder):
             for player_name in players_to_see:
                 message = f"{message}{player_name}\n"
         if message == "You see:\n":
-            return "There is nothing to see"
-        return message[:-1]  # remove last \n
+            return {"client_print" : "There is nothing to see"}
+        return {"client_print" : message[:-1]}  # remove last \n
 
-    def v_inventory(self, **kwargs) -> str:
+    def v_inventory(self, **kwargs) -> dict:
         """Returns the contents of the
         players inventory"""
         game_state = kwargs["game_state"]
@@ -265,16 +265,16 @@ class Player(VerbHolder):
                     message = f"{message}{game_state.get_item_by_id(item_id).get_name()} "
             else:
                 message = "Your inventory is empty"
-        return message
+        return {"client_print" : message}
 
-    def v_backflip(self, **_) -> str:
-        return "you did a backflip"
+    def v_backflip(self, **_) -> dict:
+        return {"client_print" : "you did a backflip"}
 
-    def v_ping(self, **_) -> str:
-        return "pong"
+    def v_ping(self, **_) -> dict:
+        return {"client_print" : "pong"}
 
-    def v_position(self, **_) -> str:
-        return f"You are at {self._position}"
+    def v_position(self, **_) -> dict:
+        return {"client_print" : f"You are at {self._position}"}
 
 class Room():
 
