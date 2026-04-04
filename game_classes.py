@@ -176,9 +176,9 @@ class Direction(VerbHolder):
         player = game_state.get_player_by_name(player_name)
         old_room = game_state.get_room_by_id(self._name)
         if self._room_to_id:
-            if old_room.remove_item(f"p_{player_name}"):
+            if old_room.remove_player(player_name):
                 game_state.get_room_by_id(
-                    self._room_to_id).add_item(f"p_{player_name}")
+                    self._room_to_id).add_player(player_name)
                 player.set_position(self._room_to_id)
                 return f"You moved {self._direction}wards"
             return f"You could not move {self._direction}wards"
@@ -239,17 +239,20 @@ class Player(VerbHolder):
         game_state = kwargs["game_state"]
         with self._position_lock:
             room = game_state.get_room_by_id(self._position)
-        to_see: list[str] = room.get_content()
-        if to_see:
-            message: str = "You see:\n"
-            for item_id in to_see:
+        items_to_see: list[str] = room.get_content()
+        players_to_see: list[str] = list(room.get_players())
+        players_to_see.remove(self._name)
+        message: str = "You see:\n"
+        if items_to_see:
+            for item_id in items_to_see:
                 item = game_state.get_item_by_id(item_id)
-                if item:
-                    message = f"{message}{item.get_name()}\n"
-                else: # could not fetch item object, name belongs to a player
-                    message = f"{message}{item_id[2:]}\n"  # strip the p_ from the start of the player name
-            return message[:-1] # remove last \n
-        return "There is nothing to see"
+                message = f"{message}{item.get_name()}\n"
+        if players_to_see:
+            for player_name in players_to_see:
+                message = f"{message}{player_name}\n"
+        if message == "You see:\n":
+            return "There is nothing to see"
+        return message[:-1]  # remove last \n
 
     def v_inventory(self, **kwargs) -> str:
         """Returns the contents of the
@@ -279,20 +282,26 @@ class Room():
         self, room_id: str, directions: dict):
         self._id: str = room_id
         self._directions: dict = directions
+        self._players: list[str] = []
+        self._players_lock = threading.Lock()
         self._content: list[str] = []
         self._content_lock = threading.Lock()
 
     # getter:
 
-    def get_id(self):
+    def get_id(self) -> str:
         return self._id
 
-    def get_directions(self):
+    def get_directions(self) -> dict:
         return self._directions
 
-    def get_content(self):
+    def get_content(self) -> list[str]:
         with self._content_lock:
             return self._content
+
+    def get_players(self) -> list[str]:
+        with self._players_lock:
+            return self._players
 
     def item_exists(self, item_id) -> bool:
         with self._content_lock:
@@ -312,6 +321,17 @@ class Room():
     def add_item(self, item_id) -> None:
         with self._content_lock:
             self._content.append(item_id)
+
+    def remove_player(self, player_name: str) -> bool:
+        with self._players_lock:
+            if player_name in self._players:
+                self._players.remove(player_name)
+                return True
+            return False
+
+    def add_player(self, player_name: str) -> None:
+        with self._players_lock:
+            self._players.append(player_name)
 
 things: dict = {
     "apple": Apple,

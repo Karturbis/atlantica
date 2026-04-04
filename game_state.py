@@ -102,7 +102,7 @@ class GameState():
         with self._players_lock:
             player = self._players[player_name]
         room = self.get_room_by_id(position)
-        room.add_item(f"p_{player.get_name()}")
+        room.add_player(player.get_name())
         player.set_position(position)
 
     # saving:
@@ -117,9 +117,10 @@ class GameState():
                             }
         with self._players_lock:
             for name, player in self._players.items():
-                player_data[name] = {"position": player.get_position(),
-                                    "inventory": player.get_inventory()
-                                    }
+                if not player.get_position() == "offline":
+                    player_data[name] = {"position": player.get_position(),
+                                        "inventory": player.get_inventory()
+                                        }
         # write the saved data to the save file
         with open(f"saves/gameslot_{game_slot}_players.json", "w", encoding="utf-8") as writer:
             writer.write(json.dumps(player_data, indent=4))
@@ -130,7 +131,7 @@ class GameState():
         with self._map_lock:
             for room_id, room in self._map.items():
                 map_data[room_id] = {
-                                     "content": [item for item in room.get_content() if not item.startswith("p_")],
+                                     "content": room.get_content(),
                                      "directions": {key: value.get_room_to_id() for key, value in room.get_directions().items()}
                                      }
         with open(f"saves/gameslot_{game_slot}_map.json", "w", encoding="utf-8") as writer:
