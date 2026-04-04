@@ -152,7 +152,6 @@ class Server():
             self._game_state.load_player(client_name, self._game_slot)
             logger.info("Loaded existing Player object %s", client_name)
         logger.info("Client %s connected successfully", client_name)
-        while True:
         self.broadcast_print(f"{client_name} joined the game")
         while True:
             command: list = self.receive_message(connection)
