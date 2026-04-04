@@ -116,6 +116,16 @@ class Server():
             for connection in self._clients.values():
                 self.client_print(connection, message)
 
+    def room_print(self, message: str, room_id: str) -> None:
+        """Sends the given message to all clients, that
+        are in the room"""
+        logger.info("Sending room broadcast %s in room %s", message, room_id)
+        player_names: list[str] = self._game_state.get_room_by_id(room_id)
+        with self._clients_lock:
+            for player_name, connection in self._clients.items():
+                if player_name in player_names:
+                    self.client_print(connection, message)
+
     def threaded_client(self, connection) -> None:
         """Game loop for each client"""
         self.client_print(connection, "Connecting to server ...")
