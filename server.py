@@ -144,6 +144,7 @@ class Server():
         logger.info("Client %s connected successfully", client_name)
         while True:
         self.broadcast_print(f"{client_name} joined the game")
+        while True:
             command: list = self.receive_message(connection)
             if not command:  # client disconnected
                 with self._clients_lock:
