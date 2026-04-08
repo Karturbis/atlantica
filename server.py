@@ -112,7 +112,7 @@ class Server():
 
     def broadcast_print(self, message:str, **kwargs) -> None:
         """Sends the given message to all connected clients."""
-        client_connection = kwargs["connection"]
+        client_connection = kwargs.get("connection")
         logger.info("Sending broadcast message: %s", message)
         with self._clients_lock:
             for connection in self._clients.values():
