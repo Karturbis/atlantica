@@ -77,6 +77,12 @@ class Parser():
                 verb = f"{verb}_{command[-1]}"
                 command_checker[-1] = True
                 verb_modifier = -1
+        else:
+            return Command(
+                    verb,
+                    {"adjective": "",
+                     "noun": ""}
+                    )
         # The verb_modifier range is the range, in
         # which there can be a verb_modifier within the
         # command.
