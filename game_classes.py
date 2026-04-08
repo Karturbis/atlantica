@@ -190,7 +190,7 @@ class Player(VerbHolder):
 
     def get_inventory(self):
         with self._inventory_lock:
-            return self._inventory
+            return list(self._inventory)
 
     def item_exists(self, item_id):
         with self._inventory_lock:
