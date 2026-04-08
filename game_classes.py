@@ -185,10 +185,7 @@ class Player(VerbHolder):
         with self._position_lock:
             return self._position
 
-    def get_name(self):
-        return self._name
-
-    def get_inventory(self):
+    def get_inventory(self) -> list:
         with self._inventory_lock:
             return list(self._inventory)
 
