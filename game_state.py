@@ -133,7 +133,7 @@ class GameState():
             for room_id, room in self._map.items():
                 map_data[room_id] = {
                                      "content": room.get_content(),
-                                     "directions": {key: value.get_room_to_id() for key, value in room.get_directions().items()}
+                                     "directions": room.get_directions()
                                      }
         with open(f"saves/gameslot_{game_slot}_map.json", "w", encoding="utf-8") as writer:
             writer.write(json.dumps(map_data, indent=4))
