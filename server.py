@@ -86,16 +86,12 @@ class Server():
 
     def execute_command(self, command: list, player_name: str) -> str:
         """Executes the given command and returns the result."""
+        player = self._game_state.get_player_by_name(player_name)
         # get the command object, so parser stage three can be called.
         command_obj_stage_two = self._parser.stage_two(command)
-        # get the method that has to be executed:
-        command_obj_final = self._parser.stage_three(
-            command_obj_stage_two, player_name
-            )
-        # execute the verb and return the result, which is a string.
-        result = command_obj_final(
-            game_state = self._game_state, player_name = player_name
-            )
+        # execute the command in the player class.
+        result = player.execute_command(command_obj_stage_two, self._game_state)
+        logger.debug(f"result from verb execution: {result}")
         return result
 
     def receive_message(self, connection) -> list:

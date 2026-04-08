@@ -77,12 +77,6 @@ class Parser():
                 verb = f"{verb}_{command[-1]}"
                 command_checker[-1] = True
                 verb_modifier = -1
-
-        # the command contains only one word,
-        # therefore the word is the verb and
-        # the player itself is the direct object
-        else:
-            return Command(command[0], {"adjective": None, "noun": "player"})
         # The verb_modifier range is the range, in
         # which there can be a verb_modifier within the
         # command.
@@ -182,55 +176,6 @@ class Parser():
                      "noun": direct_object_noun}
                     )
         return command_object
-
-    def stage_three(self, command, player_name):
-        """Take the output from stage two and the
-        name of the player, who issued the command.
-        return the method which has to be executed."""
-        logger.debug(f"stage three begin command: {command}")
-        # TODO: implement adjective functionality
-        # initialize variables:
-        direct_noun = command.direct_object["noun"]
-        direct_adjective = command.direct_object["adjective"]
-        player = self._game_state.get_player_by_name(player_name)
-        room_id = player.get_position()
-        room = self._game_state.get_room_by_id(room_id)
-        if direct_noun == "player":
-            return player.get_verb_by_name(command.verb)
-        # check if the object is a direction:
-        if direct_noun in room.get_directions():
-            return room.get_directions()[direct_noun].get_verb_by_name(
-                command.verb
-                )
-        # create the player_inventory dict, which has
-        # item names as keys and the corresponding item
-        # objects as values.
-        player_inventory: dict = {}
-        for i in player.get_inventory():
-            item = self._game_state.get_item_by_id(i)
-            if item:
-                item_name = item.get_name()
-                player_inventory[item_name] = item
-        # check if the item wich is used by the
-        # command is contained in the player inventory.
-        if direct_noun in player_inventory:
-            return player_inventory[direct_noun].get_verb_by_name(command.verb)
-        room_content: dict = {}
-        for i in room.get_content():
-            item = self._game_state.get_item_by_id(i)
-            if item:
-                item_name = item.get_name()
-                room_content[item_name] = item
-        if direct_noun in room_content:
-            return room_content[direct_noun].get_verb_by_name(command.verb)
-        if direct_adjective:
-            logger.warning(
-                "adjective noun combination '%s %s' not found",
-                direct_adjective, direct_noun
-                )
-            return lambda **_: {"client_print": f"There is no {direct_adjective} {direct_noun} in your vicinity"}
-        logger.warning("noun '%s' not found", direct_noun)
-        return lambda **_: {"client_print": f"There is no {direct_noun} in your vicinity"}
 
 @dataclasses.dataclass
 class Command():

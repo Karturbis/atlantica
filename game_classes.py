@@ -75,60 +75,11 @@ class Thing(VerbHolder):
     def get_id(self):
         return self._id
 
-    # verbs:
-
-    def v_drop(self, **kwargs) -> dict:
-        """Drops the item from the players inventory
-        @param player: game_classes.Player,
-        @param position: game_classes.Room
-        """
-        game_state = kwargs["game_state"]
-        player_name = kwargs["player_name"]
-        player = game_state.get_player_by_name(player_name)
-        position = game_state.get_room_by_id(player.get_position())
-        player.remove_from_inventory(self._id)
-        position.add_item(self._id)
-        return {
-            "client_print" : f"You dropped {self._article} {self._name}.",
-            "room_print": f"dropped {self._article} {self._name}"
-            }
-
-    def v_pick_up(self, **kwargs) -> dict:
-        """Adds an item from somewhere to the players inventory
-        @param player: game_classes.Player,
-        @param position: game_classes.Room
-        """
-        game_state = kwargs["game_state"]
-        player_name = kwargs["player_name"]
-        player = game_state.get_player_by_name(player_name)
-        position = game_state.get_room_by_id(player.get_position())
-        success: bool = position.remove_item(self._id)
-        if success:
-            player.add_to_inventory(self._id)
-            return {
-                "client_print": f"You picked up {self._article} {self._name}.",
-                "room_print": f"took {self._article} {self._name}"
-                }
-        return {"client_print" : f"There is no {self._name} to pick up."}
-
-    def v_inspect(self, **_) -> dict:
-        """Gives specific information about the
-        inspected thing"""
-        return {"client_print" : self._description}
-
+    def get_adjectives(self) -> list:
+        return self._adjectives
 
 class Food(Thing):
-
-    # verbs:
-
-    def v_eat(self, **kwargs) -> dict:
-        game_state = kwargs["game_state"]
-        player_name = kwargs["player_name"]
-        player = game_state.get_player_by_name(player_name)
-        if player.item_exists(self._id):
-            player.remove_from_inventory(self._id)
-            return {"client_print" : f"You have eaten {self._article} {self._name}"}
-        return {"client_print" : f"You have to pickup {self._article} {self._name} first."}
+    pass
 
 class Apple(Food):
     pass
@@ -166,36 +117,6 @@ class Bow(RangeWeapon):
     pass
 
 
-class Direction(VerbHolder):
-
-    def __init__(self, room_to_id: str, room_id: str, direction: str):
-        super().__init__(room_id)
-        self._room_to_id: str = room_to_id
-        self._direction = direction
-
-    # getter:
-
-    def get_room_to_id(self) -> str:
-        return self._room_to_id
-
-    # verbs
-
-    def v_move(self, **kwargs) -> dict:
-        """Moves the player on the map."""
-        game_state = kwargs["game_state"]
-        player_name = kwargs["player_name"]
-        player = game_state.get_player_by_name(player_name)
-        old_room = game_state.get_room_by_id(self._name)
-        if self._room_to_id:
-            if old_room.remove_player(player_name):
-                game_state.get_room_by_id(
-                    self._room_to_id).add_player(player_name)
-                player.set_position(self._room_to_id)
-                return  {"client_print" : f"You moved {self._direction}wards", "room_print": "entered the room"}
-            return {"client_print" : f"You could not move {self._direction}wards"}
-        return {"client_print" : f"You can not move {self._direction}wards, the way is blocked"}
-
-
 class Player(VerbHolder):
 
     def __init__(self, name: str, position: str, inventory: list[str] = None):
@@ -215,6 +136,48 @@ class Player(VerbHolder):
     def add_to_inventory(self, item_id: str):
         with self._inventory_lock:
             self._inventory.append(item_id)
+
+    def _get_direct_object_id(self, items_list: list, direct_noun: str, direct_adjective: str) -> str:
+        for item in items_list:
+            if item.get_name() == direct_noun:
+                if direct_adjective in item.get_adjectives():
+                    return item.get_id()
+        return None
+
+    def execute_command(self, command, game_state) -> dict:
+        """Take the output from stage two and the
+        game state. Get the method that has to be executet
+        and executes that method. Returns the result as a
+        dict, this is the message the user will see"""
+        # initialize variables:
+        # TODO: find better way and place for defining directions
+        directions: list = ["north", "east", "west", "south"]
+        direct_noun = command.direct_object["noun"]
+        direct_adjective = command.direct_object["adjective"]
+        func = self.get_verb_by_name(command.verb)
+        room = game_state.get_room_by_id(self._position)
+        # get the game object corresponding to the
+        # direct_object from the command
+        if not direct_noun:
+            return func(game_state)
+        inventory_item_ids = self.get_inventory()
+        room_item_ids = room.get_content()
+        room_player_names = room.get_players()
+        inventory_items= [game_state.get_item_by_id(id) for id in inventory_item_ids]
+        direct_object_id = self._get_direct_object_id(inventory_items, direct_noun, direct_adjective)
+        if direct_object_id:
+            return func(game_state, direct_object_id)
+        room_items = [game_state.get_item_by_id(id) for id in inventory_item_ids]
+        direct_object_id = self._get_direct_object_id(inventory_items, direct_noun, direct_adjective)
+        if direct_object_id:
+            return func(game_state, direct_object_id)
+        for player_name in room_player_names:
+            if player_name == direct_noun:
+                return func(game_state, player_name)
+        if direct_noun in directions:
+            return func(game_state, direct_noun)
+        return {"client_print": f"there is no {direct_noun} in your vicinity"}
+
 
     # getter:
 
@@ -244,10 +207,9 @@ class Player(VerbHolder):
 
     # verbs:
 
-    def v_look(self, **kwargs) -> dict:
+    def v_look(self, game_state, *_, **__) -> dict:
         """Returns, what the player sees in the
         curren room."""
-        game_state = kwargs["game_state"]
         with self._position_lock:
             room = game_state.get_room_by_id(self._position)
         items_to_see: list[str] = room.get_content()
@@ -265,10 +227,9 @@ class Player(VerbHolder):
             return {"client_print" : "There is nothing to see"}
         return {"client_print" : message[:-1]}  # remove last \n
 
-    def v_inventory(self, **kwargs) -> dict:
+    def v_inventory(self, game_state, *_, **__) -> dict:
         """Returns the contents of the
         players inventory"""
-        game_state = kwargs["game_state"]
         message: str = "Your inventory contains:\n"
         with self._inventory_lock:
             if self._inventory:
@@ -278,17 +239,75 @@ class Player(VerbHolder):
                 message = "Your inventory is empty"
         return {"client_print" : message}
 
-    def v_backflip(self, **_) -> dict:
+    def v_backflip(self, *_, **__) -> dict:
         return {"client_print" : "you did a backflip", "room_print": "did a backflip"}
 
-    def v_ping(self, **_) -> dict:
+    def v_ping(self, *_, **__) -> dict:
         return {"client_print" : "pong"}
 
-    def v_shout(self, **_) -> dict:
+    def v_shout(self, *_, **__) -> dict:
         return {"client_print": "you shouted", "room_print": "shouted loud"}
 
-    def v_position(self, **_) -> dict:
+    def v_position(self, *_, **__) -> dict:
         return {"client_print" : f"You are at {self._position}"}
+
+    # verbs with objects as arguments:
+
+    def v_inspect(self, game_state, item_id, **__) -> dict:
+        """Gives specific information about the
+        inspected thing"""
+        item = game_state.get_item_by_id(item_id)
+        return {"client_print" : item._description}
+
+    def v_eat(self, game_state, item_id, **__) -> dict:
+        item = game_state.get_item_by_id(item_id)
+        if self.item_exists(item_id):
+            self.remove_from_inventory(item_id)
+            return {"client_print" : f"You have eaten {item._article} {item._name}"}
+        return {"client_print" : f"You have to pickup {item._article} {item._name} first."}
+
+    def v_move(self, game_state, direction, **__) -> dict:
+        """Moves the player on the map."""
+        old_room = game_state.get_room_by_id(self.get_position())
+        directions = old_room.get_directions()
+        if direction in directions:  # check if the direction exists
+            if directions[direction]:  # check if the direction is walkable
+                room_to_id = directions[direction]
+                print(f"DEBUG: room to id: {room_to_id}")
+                if old_room.remove_player(self._name):
+                    game_state.get_room_by_id(room_to_id).add_player(self._name)
+                    self.set_position(room_to_id)
+                    return  {"client_print" : f"You moved {direction}wards", "room_print": "entered the room"}
+                return {"client_print" : f"You could not leave your current position ({self.get_position()})"}
+            return {"client_print" : f"You can not move {direction}wards, the way is blocked"}
+        return {"client_print": f"There is no direction '{direction}'"}
+
+    def v_drop(self, game_state, item_id, **_) -> dict:
+        """Drops the item from the players inventory"""
+        position = game_state.get_room_by_id(self.get_position())
+        self.remove_from_inventory(item_id)
+        position.add_item(item_id)
+        item = game_state.get_item_by_id(item_id)
+        return {
+            "client_print" : f"You dropped {item._article} {item._name}.",
+            "room_print": f"dropped {item._article} {item._name}"
+            }
+
+    def v_pick_up(self, game_state, item_id, **_) -> dict:
+        """Adds an item from somewhere to the players inventory
+        @param player: game_classes.Player,
+        @param position: game_classes.Room
+        """
+        position = game_state.get_room_by_id(self.get_position())
+        success: bool = position.remove_item(item_id)
+        item = game_state.get_item_by_id(item_id)
+        if success:
+            self.add_to_inventory(item_id)
+            return {
+                "client_print": f"You picked up {item._article} {item._name}.",
+                "room_print": f"took {item._article} {item._name}"
+                }
+        return {"client_print" : f"There is no {item._name} to pick up."}
 
 class Room():
 

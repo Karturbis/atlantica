@@ -29,10 +29,14 @@ objects, that are seperated by the ANDs.
 In sentences with THENs, the sentence gets splited at the then and the two (or more) sentences are
 executed one after the other.
 
-If there is no object, the object is the player. Examples:
-
+The subject is always the player.
 ```bash
 $> look # the player looks
+```
+
+Objects are arguments to the verb.
+```bash
+$> inspect apple # the player looks at the apple
 ```
 ## Third stage:
 Match the objects in the sentence with game objects

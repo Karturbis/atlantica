@@ -27,10 +27,7 @@ class GameState():
         # create room objects
         for room_id in data:
             room_data = data[room_id]
-            directions: dict = {}
-            direction_names: list[str] = ["north", "east", "south", "west"]
-            for direction_name in direction_names:
-                directions[direction_name] = gc.Direction(data[room_id]["directions"][direction_name], room_id, direction_name)
+            directions: dict = room_data["directions"]
             game_map[room_id] = gc.Room(room_id, directions)
             # add items to room objects
             for item in room_data["content"]:
