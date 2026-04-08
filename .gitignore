@@ -10,6 +10,3 @@ logs/*
 
 # not pushing game state saves:
 saves/*
-
-# vscode configuration:
-.vscode/
