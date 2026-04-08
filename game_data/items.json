@@ -3,12 +3,14 @@
     {
         "name": "apple",
         "article": "an",
+        "adjectives": ["red", "small"],
         "description": "A small red apple, which looks like it tastes sweet."
     },
     "0002_apple":
     {
         "name": "apple",
         "article": "an",
+        "adjectives": ["green"],
         "description": "A medium sized green apple, it looks very sour. But maybe it is usefull as part of a potion."
     }
 }

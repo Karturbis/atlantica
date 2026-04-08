@@ -57,7 +57,8 @@ class Thing(VerbHolder):
 
     def __init__(
             self, thing_id: str, name: str,
-            article: str, description: str = "a thing"
+            article: str, adjectives: list = None,
+            description: str = "a thing"
             ):
         super().__init__(name)
         self._id: str = thing_id
