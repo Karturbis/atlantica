@@ -63,6 +63,10 @@ class Thing(VerbHolder):
         super().__init__(name)
         self._id: str = thing_id
         self._article: str = article
+        if adjectives:
+            self._adjectives = adjectives
+        else:
+            self._adjectives = [""]
         self._description = description
         self.lock = threading.Lock()
 
