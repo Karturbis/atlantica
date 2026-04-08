@@ -48,7 +48,7 @@ class VerbHolder():
         func_name = f"v_{verb_name}"
         if hasattr(self, func_name):
             return getattr(self, func_name)
-        return lambda **_: f"You can not {verb_name} {self._name}"
+        return lambda *_, **__: f"You can not {verb_name} {self._name}"
 
 
 class Thing(VerbHolder):
