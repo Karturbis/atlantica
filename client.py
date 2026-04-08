@@ -56,7 +56,6 @@ class Client():
         else:
             self._print(f"There is no command {command_stage_one[0]}")
 
-
     def main_offline(self):
         """Main method, if not connected to a
         server. Take user input, parse it and

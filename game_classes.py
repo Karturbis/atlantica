@@ -72,7 +72,7 @@ class Thing(VerbHolder):
 
     # getter and setter:
 
-    def get_id(self):
+    def get_id(self) -> str:
         return self._id
 
     def get_adjectives(self) -> list:
@@ -181,7 +181,7 @@ class Player(VerbHolder):
 
     # getter:
 
-    def get_position(self):
+    def get_position(self) -> str:
         with self._position_lock:
             return self._position
 

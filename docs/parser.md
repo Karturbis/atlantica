@@ -12,7 +12,7 @@ Put Words into a list. (by splitting at spaces), convert all to lower case
 Discard Articles
 
 ## Second stage:
-If an "it" is found, it is replaced with the direct object from the sentence before   
+If an "it" is found, it is replaced with the direct object from the sentence before.
 remove classified words from list,
 check for ANDs and THENs (they have special functions)
 Classify the words:
@@ -25,7 +25,7 @@ Before every object, there is one adjective allowed.
 Check if there are non classified words. If there are, the input could not be interpreted
 
 In sentences with ANDs, the sentence is copied, the verb stays and every new instance gets one of the
-objects, that are seperated by the ANDs.  
+objects, that are seperated by the ANDs.
 In sentences with THENs, the sentence gets splited at the then and the two (or more) sentences are
 executed one after the other.
 
