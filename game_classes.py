@@ -171,8 +171,9 @@ class Player(VerbHolder):
         direct_object_id = self._get_direct_object_id(inventory_items, direct_noun, direct_adjective)
         if direct_object_id:
             return func(game_state, direct_object_id)
-        room_items = [game_state.get_item_by_id(id) for id in inventory_item_ids]
-        direct_object_id = self._get_direct_object_id(inventory_items, direct_noun, direct_adjective)
+        room_items = [game_state.get_item_by_id(id) for id in room_item_ids]
+        logger.debug(f"room items: {room_items}")
+        direct_object_id = self._get_direct_object_id(room_items, direct_noun, direct_adjective)
         if direct_object_id:
             return func(game_state, direct_object_id)
         for player_name in room_player_names:
