@@ -4,6 +4,10 @@ items and players."""
 import threading
 import logging
 
+
+# local imports:
+from game_classes_decorators import *
+
 # configure logging:
 logger = logging.getLogger(__name__)
 
@@ -163,7 +167,6 @@ class Player(VerbHolder):
         result = self._get_direct_object_id(items_list, direct_noun, direct_adjective)
         return result
 
-
     def execute_command(self, command, game_state) -> dict:
         """Take the output from stage two and the
         game state. Get the method that has to be executet
@@ -180,23 +183,7 @@ class Player(VerbHolder):
         # direct_object from the command
         if not direct_noun:
             return func(game_state)
-        # check if object is in inventory:
-        matching_objects = self._get_item_id_from_inventory(game_state, direct_noun, direct_adjective)
-        matching_objects += self._get_item_id_from_room(game_state, direct_noun, direct_adjective)
-        len_matching_objects = len(matching_objects)
-        if len_matching_objects == 1:
-            return func(game_state, matching_objects[0])
-        if len_matching_objects > 1:
-            return {"client_print": f"There are multiple items called {direct_noun}, please use an adjective."}
-        # check if the object is a player in the room:
-        for player_name in room.get_players():
-            if player_name == direct_noun:
-                return func(game_state, player_name)
-        if command.verb in takes_abstract_noun:
-            return func(game_state, direct_noun)
-        # return an error since the command has an object, that could not be found:
-        return {"client_print": f"there is no {direct_noun} in your vicinity"}
-
+        return func(game_state, direct_noun, direct_adjective)
 
     # getter:
 
@@ -269,12 +256,14 @@ class Player(VerbHolder):
 
     # verbs with objects as arguments:
 
+    @gets_items_from_all
     def v_inspect(self, game_state, item_id, **__) -> dict:
         """Gives specific information about the
         inspected thing"""
         item = game_state.get_item_by_id(item_id)
         return {"client_print" : item._description}
 
+    @gets_items_from_inventory
     def v_eat(self, game_state, item_id, **__) -> dict:
         item = game_state.get_item_by_id(item_id)
         if self.item_exists(item_id):
@@ -298,6 +287,7 @@ class Player(VerbHolder):
             return {"client_print" : f"You can not move {direction}wards, the way is blocked"}
         return {"client_print": f"There is no direction '{direction}'"}
 
+    @gets_items_from_inventory
     def v_drop(self, game_state, item_id, **_) -> dict:
         """Drops the item from the players inventory"""
         position = game_state.get_room_by_id(self.get_position())
@@ -309,6 +299,7 @@ class Player(VerbHolder):
             "room_print": f"dropped {item._article} {item._name}"
             }
 
+    @gets_items_from_room
     def v_pick_up(self, game_state, item_id, **_) -> dict:
         """Adds an item from somewhere to the players inventory
         @param player: game_classes.Player,
