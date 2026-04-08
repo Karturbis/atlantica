@@ -30,7 +30,7 @@ class Parser():
         with open(file_path, "r", encoding="utf-8") as reader:
             line = reader.readline()
             while line:
-                words.append(line)
+                words.append(line.strip("\n\r"))
                 line = reader.readline()
         return words
 
