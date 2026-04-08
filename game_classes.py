@@ -261,8 +261,8 @@ class Player(VerbHolder):
     def v_ping(self, *_, **__) -> dict:
         return {"client_print" : "pong"}
 
-    def v_shout(self, *_, **__) -> dict:
-        return {"client_print": "you shouted", "room_print": "shouted loud"}
+    def v_shout(self, game_state, phrase, *_, **__) -> dict:
+        return {"client_print": f"you shouted {phrase}", "room_print": f"shouted {phrase}"}
 
     def v_position(self, *_, **__) -> dict:
         return {"client_print" : f"You are at {self._position}"}
