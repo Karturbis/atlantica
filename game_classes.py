@@ -141,12 +141,28 @@ class Player(VerbHolder):
         with self._inventory_lock:
             self._inventory.append(item_id)
 
-    def _get_direct_object_id(self, items_list: list, direct_noun: str, direct_adjective: str) -> str:
+    def _get_direct_object_id(self, items_list: list, direct_noun: str, direct_adjective: str = None) -> list:
+        matching_objects: list[str] = []
         for item in items_list:
             if item.get_name() == direct_noun:
-                if direct_adjective in item.get_adjectives():
-                    return item.get_id()
-        return None
+                if direct_adjective:
+                    if direct_adjective in item.get_adjectives():
+                        matching_objects.append(item.get_id())
+                else:
+                    matching_objects.append(item.get_id())
+        return matching_objects
+
+    def _get_item_id_from_room(self, game_state, direct_noun: str, direct_adjective: str) -> list:
+        room = game_state.get_room_by_id(self.get_position())
+        items_list = [game_state.get_item_by_id(id) for id in room.get_content()]
+        result = self._get_direct_object_id(items_list, direct_noun, direct_adjective)
+        return result
+
+    def _get_item_id_from_inventory(self, game_state, direct_noun: str, direct_adjective: str) -> list:
+        items_list = [game_state.get_item_by_id(id) for id in self.get_inventory()]
+        result = self._get_direct_object_id(items_list, direct_noun, direct_adjective)
+        return result
+
 
     def execute_command(self, command, game_state) -> dict:
         """Take the output from stage two and the
@@ -155,7 +171,7 @@ class Player(VerbHolder):
         dict, this is the message the user will see"""
         # initialize variables:
         # TODO: find better way and place for defining directions
-        directions: list = ["north", "east", "west", "south"]
+        takes_abstract_noun: list = ["move", "shout"]
         direct_noun = command.direct_object["noun"]
         direct_adjective = command.direct_object["adjective"]
         func = self.get_verb_by_name(command.verb)
@@ -164,23 +180,21 @@ class Player(VerbHolder):
         # direct_object from the command
         if not direct_noun:
             return func(game_state)
-        inventory_item_ids = self.get_inventory()
-        room_item_ids = room.get_content()
-        room_player_names = room.get_players()
-        inventory_items= [game_state.get_item_by_id(id) for id in inventory_item_ids]
-        direct_object_id = self._get_direct_object_id(inventory_items, direct_noun, direct_adjective)
-        if direct_object_id:
-            return func(game_state, direct_object_id)
-        room_items = [game_state.get_item_by_id(id) for id in room_item_ids]
-        logger.debug(f"room items: {room_items}")
-        direct_object_id = self._get_direct_object_id(room_items, direct_noun, direct_adjective)
-        if direct_object_id:
-            return func(game_state, direct_object_id)
-        for player_name in room_player_names:
+        # check if object is in inventory:
+        matching_objects = self._get_item_id_from_inventory(game_state, direct_noun, direct_adjective)
+        matching_objects += self._get_item_id_from_room(game_state, direct_noun, direct_adjective)
+        len_matching_objects = len(matching_objects)
+        if len_matching_objects == 1:
+            return func(game_state, matching_objects[0])
+        if len_matching_objects > 1:
+            return {"client_print": f"There are multiple items called {direct_noun}, please use an adjective."}
+        # check if the object is a player in the room:
+        for player_name in room.get_players():
             if player_name == direct_noun:
                 return func(game_state, player_name)
-        if direct_noun in directions:
+        if command.verb in takes_abstract_noun:
             return func(game_state, direct_noun)
+        # return an error since the command has an object, that could not be found:
         return {"client_print": f"there is no {direct_noun} in your vicinity"}
 
 
