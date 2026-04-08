@@ -2,6 +2,10 @@
 items and players."""
 
 import threading
+import logging
+
+# configure logging:
+logger = logging.getLogger(__name__)
 
 class VerbHolder():
     """Parent class for all classes that can hold verbs."""
@@ -270,7 +274,7 @@ class Player(VerbHolder):
         if direction in directions:  # check if the direction exists
             if directions[direction]:  # check if the direction is walkable
                 room_to_id = directions[direction]
-                print(f"DEBUG: room to id: {room_to_id}")
+                logger.debug(f"room to id: {room_to_id}")
                 if old_room.remove_player(self._name):
                     game_state.get_room_by_id(room_to_id).add_player(self._name)
                     self.set_position(room_to_id)
