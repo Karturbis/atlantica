@@ -86,6 +86,11 @@ class GameState():
 
     # getter:
 
+    def get_game_slots(self) -> list[str]:
+        slot_path = Path("saves/")
+        game_slots = slot_path.iterdir()
+        return [str(slot) for slot in game_slots]
+
     def get_room_by_id(self, room_id: str):
         with self._map_lock:
             try:

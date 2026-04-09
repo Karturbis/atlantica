@@ -28,6 +28,7 @@ class Server():
                                         # admin only:
                                         "/quit_game": self.quit_game,
                                         "/save_game": self.save_game,
+                                        "/list_saves": self.list_saves,
                                         }
         self._verb_executable: dict = {
                                     "client_print": self.client_print,
@@ -211,6 +212,13 @@ class Server():
     def save_game(self, *_) -> str:
         self._game_state.save_game(self._game_slot)
         return {"client_print": "the game was saved"}
+
+    def list_saves(self, *_) -> dict:
+        slots: list[str] = self._game_state.get_game_slots()
+        result: str = "Game slots:"
+        for slot in slots:
+            result = f"{result}\n{slot}"
+        return {"client_print": result}
 
 if __name__ == "__main__":
     srv = Server("test")
