@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from shutil import copyfile
 
+# local imports:
 import game_classes as gc
 
 # configure logging:
@@ -14,6 +15,7 @@ class GameState():
     # initialisation:
 
     def __init__(self, game_slot: str):
+        self._init_game_slot(game_slot)
         self._map: dict = self._load_map(game_slot)
         self._map_lock = threading.Lock()
         self._things: dict = self._load_things()
@@ -21,13 +23,26 @@ class GameState():
         self._players: dict = self._load_players(game_slot)
         self._players_lock = threading.Lock()
 
+    def _init_game_slot(self, game_slot) -> None:
+        slot_path = Path(f"saves/{game_slot}")
+        if slot_path.exists():
+            return
+        logger.info("Creating new gameslot %s", game_slot)
+        # create new game_slot:
+        slot_path.mkdir()
+        # copy map to the new game_slot
+        copyfile(f"game_data/map.json", slot_path/"map.json")
+        # create empty players file:
+        with open(slot_path/"players.json", "w", encoding="utf-8") as writer:
+            writer.write("{}")
+
     def _load_map(self, game_slot) -> dict:
         """Return a dict, where the keys
         are the room IDs of all rooms
         and the values are the room objects."""
         game_map: dict = {}
         # load the map file:
-        with open(f"saves/gameslot_{game_slot}_map.json", "r", encoding="utf-8") as reader:
+        with open(f"saves/{game_slot}/map.json", "r", encoding="utf-8") as reader:
             data = json.loads(reader.read())
         # create room objects
         for room_id in data:
@@ -62,7 +77,7 @@ class GameState():
         are the player objects. All player positions
         are 'offline' until the corresponding clients
         connect to the server."""
-        with open(f"saves/gameslot_{game_slot}_players.json", "r", encoding="utf-8") as reader:
+        with open(f"saves/{game_slot}/players.json", "r", encoding="utf-8") as reader:
             players_raw = json.loads(reader.read())
         players: dict = {}
         for name, player_data in players_raw.items():
@@ -102,7 +117,7 @@ class GameState():
         """Loads the player. Because the player is already in
         the players dict, the only action necessary is to set the
         players position from 'offline' to the previously saved position"""
-        with open(f"saves/gameslot_{game_slot}_players.json", "r", encoding="utf-8") as reader:
+        with open(f"saves/{game_slot}/players.json", "r", encoding="utf-8") as reader:
             players_raw = json.loads(reader.read())
         position: str = players_raw[player_name]["position"]
         with self._players_lock:
@@ -128,7 +143,7 @@ class GameState():
                                         "inventory": player.get_inventory()
                                         }
         # write the saved data to the save file
-        with open(f"saves/gameslot_{game_slot}_players.json", "w", encoding="utf-8") as writer:
+        with open(f"saves/{game_slot}/players.json", "w", encoding="utf-8") as writer:
             writer.write(json.dumps(player_data, indent=4))
 
     def save_map(self, game_slot):
@@ -140,7 +155,7 @@ class GameState():
                                      "content": room.get_content(),
                                      "directions": room.get_directions()
                                      }
-        with open(f"saves/gameslot_{game_slot}_map.json", "w", encoding="utf-8") as writer:
+        with open(f"saves/{game_slot}/map.json", "w", encoding="utf-8") as writer:
             writer.write(json.dumps(map_data, indent=4))
 
 if __name__ == "__main__":
