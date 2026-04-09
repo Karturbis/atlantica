@@ -182,12 +182,12 @@ class Server():
                     )
             else:  # execute the verb the user wants to execute
                 result: dict = self.execute_command(command, client_name)
-                for method, message in result.items():
-                    self._verb_executable[method](
-                        message, connection=connection,
-                        room_id = self._game_state.get_player_by_name(client_name).get_position(),
-                        sender_name = client_name
-                        )
+            for method, message in result.items():
+                self._verb_executable[method](
+                    message, connection=connection,
+                    room_id = self._game_state.get_player_by_name(client_name).get_position(),
+                    sender_name = client_name
+                    )
         connection.close()
         return None
         # thread dies
@@ -197,7 +197,7 @@ class Server():
 #############################
 
     def help(self, *_) -> str:
-        return "Server side help is not implemented jetsecond line test"
+        return  {"client_print": "Server side help is not implemented jetsecond line test"}
 
 ############################
 # Admin executable methods #
@@ -210,7 +210,7 @@ class Server():
 
     def save_game(self, *_) -> str:
         self._game_state.save_game(self._game_slot)
-        return "the game was saved"
+        return {"client_print": "the game was saved"}
 
 if __name__ == "__main__":
     srv = Server("test")
