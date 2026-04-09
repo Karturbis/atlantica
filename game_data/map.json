@@ -1,42 +1,85 @@
 {
-    "start":
-    {
-        "room_north_id": "",
-        "room_east_id": "",
-        "room_south_id": "",
-        "room_west_id": "",
-        "content": ["0001_apple"]
+    "start": {
+        "content": [
+            "0001_apple"
+        ],
+        "directions": {
+            "north": "0002",
+            "east": "0006",
+            "south": "0005",
+            "west": "0004"
+        }
     },
-    "0001":
-    {
-        "room_north_id": "",
-        "room_east_id": "0002",
-        "room_south_id": "0004",
-        "room_west_id": "",
-        "content": []
+    "0001": {
+        "content": [],
+        "directions": {
+            "north": "",
+            "east": "0002",
+            "south": "0004",
+            "west": ""
+        }
     },
-    "0002":
-    {
-        "room_north_id": "",
-        "room_east_id": "0003",
-        "room_south_id": "0005",
-        "room_west_id": "0001",
-        "content": []
+    "0002": {
+        "content": [],
+        "directions": {
+            "north": "",
+            "east": "0003",
+            "south": "start",
+            "west": "0001"
+        }
     },
-    "0003":
-    {
-        "room_north_id": "",
-        "room_east_id": "",
-        "room_south_id": "0006",
-        "room_west_id": "0002",
-        "content": []
+    "0003": {
+        "content": [],
+        "directions": {
+            "north": "",
+            "east": "",
+            "south": "0006",
+            "west": "0002"
+        }
     },
-    "0004":
-    {
-        "room_north_id": "0001",
-        "room_east_id": "0005",
-        "room_south_id": "0007",
-        "room_west_id": "",
-        "content": ""
+    "0004": {
+        "content": [],
+        "directions": {
+            "north": "0001",
+            "east": "start",
+            "south": "0007",
+            "west": ""
+        }
+    },
+    "0005": {
+        "content": [],
+        "directions": {
+            "north": "start",
+            "east": "0008",
+            "south": "",
+            "west": "0007"
+        }
+    },
+    "0006": {
+        "content": [],
+        "directions": {
+            "north": "0003",
+            "east": "",
+            "south": "0008",
+            "west": "start"
+        }
+    },
+    "0007": {
+        "content": [],
+        "directions": {
+            "north": "0004",
+            "east": "0005",
+            "south": "",
+            "west": ""
+        }
+    },
+    "0008": {
+        "content": [],
+        "directions": {
+            "north": "0006",
+            "east": "",
+            "south": "",
+            "west": "0005"
+        }
     }
 }
