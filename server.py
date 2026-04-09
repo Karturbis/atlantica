@@ -197,8 +197,8 @@ class Server():
 # Client executable methods #
 #############################
 
-    def help(self, *_) -> str:
-        return  {"client_print": "Server side help is not implemented jetsecond line test"}
+    def help(self, *_) -> dict:
+        return {"client_print": "Server side help is not implemented jetsecond line test"}
 
 ############################
 # Admin executable methods #
@@ -209,7 +209,7 @@ class Server():
         server program"""
         self._exit_event.set()
 
-    def save_game(self, *_) -> str:
+    def save_game(self, *_) -> dict:
         self._game_state.save_game(self._game_slot)
         return {"client_print": "the game was saved"}
 
