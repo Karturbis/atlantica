@@ -129,7 +129,9 @@ class GameState():
     # saving:
 
     def save_game(self, game_slot):
+        logger.info("Saving the game in slot: %s", game_slot)
         self.save_players(game_slot)
+        logger.info("Saved the game to slot %s", game_slot)
         self.save_map(game_slot)
 
     def save_players(self, game_slot):
