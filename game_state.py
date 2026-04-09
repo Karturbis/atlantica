@@ -1,6 +1,7 @@
 import threading
 import json
 import logging
+from time import strftime, localtime
 from pathlib import Path
 from shutil import copyfile
 
@@ -84,12 +85,41 @@ class GameState():
             players[name] = gc.Player(name, "offline", player_data["inventory"])
         return players
 
+    def is_game_slot_usable(self, game_slot) -> bool:
+        """Returns a bool, describing the usability state
+        of the given game slot."""
+        # TODO: check if data in save files is valid
+        slot_path = Path(f"saves/{game_slot}")
+        if not slot_path.exists():
+            return False
+        if not (slot_path/"map.json").exists():
+            return False
+        if not (slot_path/"players.json").exists():
+            return False
+        return True
+
     # getter:
 
-    def get_game_slots(self) -> list[str]:
-        slot_path = Path("saves/")
-        game_slots = slot_path.iterdir()
-        return [str(slot) for slot in game_slots]
+    def _get_slot_last_modified(self, game_slot) -> int:
+        slot_path = Path(f"saves/{game_slot}")
+        time_map = (slot_path/"map.json").stat().st_mtime
+        time_players = (slot_path/"players.json").stat().st_mtime
+        if time_map > time_players:
+            return int(time_map)
+        return int(time_players)
+
+    def get_game_slots_with_time(self) -> dict:
+        """Returns a dict, where the keys are all
+        available game slots and the values are the
+        last modified times."""
+        slot_path: Path = Path(f"saves/")
+        slots: list[str] = [str(slot).split("/")[-1] for slot in slot_path.iterdir()]
+        slot_times: dict = {slot: self._get_slot_last_modified(slot) for slot in slots}
+        # sort dict before changing time to human readable:
+        result = dict(sorted(slot_times.items(), key=lambda item: item[1], reverse=True))
+        for key, time in result.items():
+            result[key] = strftime("%H:%M", localtime(time))
+        return result
 
     def get_room_by_id(self, room_id: str):
         with self._map_lock:

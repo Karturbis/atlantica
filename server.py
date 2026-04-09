@@ -214,10 +214,13 @@ class Server():
         return {"client_print": "the game was saved"}
 
     def list_saves(self, *_) -> dict:
-        slots: list[str] = self._game_state.get_game_slots()
+        slots: dict = self._game_state.get_game_slots_with_time()
         result: str = "Game slots:"
-        for slot in slots:
-            result = f"{result}\n{slot}"
+        for slot, time in slots.items():
+            if self._game_state.is_game_slot_usable(slot):
+                result = f"{result}\n{slot} - {time}"
+            else:
+                result = f"{result}\n{slot} - {time} - INVALID"
         return {"client_print": result}
 
 if __name__ == "__main__":
