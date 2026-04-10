@@ -29,6 +29,7 @@ class Server():
                                         "/quit_game": self.quit_game,
                                         "/save_game": self.save_game,
                                         "/list_saves": self.list_saves,
+                                        "/save_to_new_slot": self.save_to_new_slot,
                                         }
         self._verb_executable: dict = {
                                     "client_print": self.client_print,
@@ -211,18 +212,36 @@ class Server():
 
     def save_game(self, *_) -> dict:
         self._game_state.save_game(self._game_slot)
+        with open("saves/current", "w", encoding="utf-8") as writer:
+            writer.write(self._game_slot)
         return {"client_print": "the game was saved"}
+
+    def save_to_new_slot(self, player_name, slot_name:str = "", *_) -> dict:
+        if not slot_name:
+            return {"client_print": "you have to specify a slot name"}
+        self._game_slot = slot_name
+        self.save_game()
+        return {"client_print": f"the game was saved to slot {slot_name}"}
 
     def list_saves(self, *_) -> dict:
         slots: dict = self._game_state.get_game_slots_with_time()
         result: str = "Game slots:"
         for slot, time in slots.items():
             if self._game_state.is_game_slot_usable(slot):
-                result = f"{result}\n{slot} - {time}"
+                if slot == self._game_slot:
+                    result = f"{result}\n{slot} - {time} <-"
+                else:
+                    result = f"{result}\n{slot} - {time}"
             else:
                 result = f"{result}\n{slot} - {time} - INVALID"
         return {"client_print": result}
 
 if __name__ == "__main__":
-    srv = Server("test")
+    game_slot:str = ""
+    with open("saves/current", "r", encoding="utf-8") as reader:
+        game_slot = reader.read().strip("\n\r")
+    if not game_slot:
+        game_slot = "test"
+    logger.info("Starting server with slot %s", game_slot)
+    srv = Server(game_slot)
     srv.main()
