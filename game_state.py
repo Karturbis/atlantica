@@ -113,7 +113,7 @@ class GameState():
         available game slots and the values are the
         last modified times."""
         slot_path: Path = Path(f"saves/")
-        slots: list[str] = [str(slot).split("/")[-1] for slot in slot_path.iterdir()]
+        slots: list[str] = [str(slot).split("/")[-1] for slot in slot_path.iterdir() if slot.is_dir()]
         slot_times: dict = {slot: self._get_slot_last_modified(slot) for slot in slots}
         # sort dict before changing time to human readable:
         result = dict(sorted(slot_times.items(), key=lambda item: item[1], reverse=True))
@@ -165,6 +165,7 @@ class GameState():
 
     def save_game(self, game_slot):
         logger.info("Saving the game in slot: %s", game_slot)
+        self._init_game_slot(game_slot)
         self.save_players(game_slot)
         self.save_map(game_slot)
         logger.info("Saved the game to slot %s", game_slot)
