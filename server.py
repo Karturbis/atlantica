@@ -21,7 +21,7 @@ class Server():
         # initialize variables:
         self._clients: dict = {}
         self._clients_lock = threading.Lock()
-        self._game_slot = game_slot
+        self._game_slot: str = game_slot
         self._game_state = GameState(self._game_slot)
         self._client_executable: dict = {
                                         # user executable:
