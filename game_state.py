@@ -147,6 +147,8 @@ class GameState():
     def add_player(self, player):
         with self._players_lock:
             self._players[player.get_name()] = player
+        room = self.get_room_by_id(player.get_position())
+        room.add_player(player.get_name())
 
     def load_player(self, player_name:str, game_slot):
         """Loads the player. Because the player is already in
