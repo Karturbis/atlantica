@@ -67,7 +67,7 @@ class Server():
         # quitting the server if exit event is omitted
         self._exit_event.wait()
         self.broadcast_print("The server is shutting down")
-        self.broadcast_print(self.save_game())
+        self.broadcast_print(self.save_game()["client_print"])
         exit(0)
 
     def _main(self):
