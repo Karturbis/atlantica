@@ -271,7 +271,7 @@ class Player(VerbHolder):
             return {"client_print" : f"You have eaten {item._article} {item._name}"}
         return {"client_print" : f"You have to pickup {item._article} {item._name} first."}
 
-    def v_move(self, game_state, direction, **__) -> dict:
+    def v_move(self, game_state, direction, *_, **__) -> dict:
         """Moves the player on the map."""
         old_room = game_state.get_room_by_id(self.get_position())
         directions = old_room.get_directions()
