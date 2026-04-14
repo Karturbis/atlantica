@@ -37,7 +37,8 @@ class Server():
         self._verb_executable: dict = {
                                     "client_print": self.client_print,
                                     "room_print": self.room_print,
-                                    "broadcast_print": self.broadcast_print,      }
+                                    "broadcast_print": self.broadcast_print,
+                                    }
         self._exit_event = threading.Event()
         # initialize parser:
         self._parser = Parser(self._game_state)
