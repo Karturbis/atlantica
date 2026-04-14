@@ -142,6 +142,10 @@ class GameState():
             except KeyError:
                 return False
 
+    def get_players(self) -> dict:
+        with self._players_lock:
+            return dict(self._players)
+
     # adder:
 
     def add_player(self, player):
