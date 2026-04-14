@@ -2,6 +2,7 @@ import socket
 import logging
 import json
 import threading
+from pathlib import Path
 
 from handler import Parser
 from game_state import GameState
@@ -31,6 +32,7 @@ class Server():
                                         "/list_saves": self.list_saves,
                                         "/save_to_new_slot": self.save_to_new_slot,
                                         "/new_slot": self.new_slot,
+                                        "/remove_slot": self.remove_slot,
                                         }
         self._verb_executable: dict = {
                                     "client_print": self.client_print,
@@ -234,6 +236,23 @@ class Server():
             self._game_state.add_player(Player(player_name, "start"))
         self.save_game()
         return {"client_print": f"the game slot {slot_name} has been created"}
+
+    def remove_slot(self, player_name, slot_name:str = "", *_) -> dict:
+        if not slot_name:
+            return {"client_print": "you have to specify a slot name"}
+        if slot_name == self._game_slot:
+            return {
+                "client_print":
+                f"the game slot {slot_name} has not been removed, because it is currently in use"
+            }
+        path = Path(f"saves/{slot_name}")
+        if not path.is_dir():
+            return {"client_print": f"there is no game slot {slot_name}"}
+        for file in path.iterdir():
+            file.unlink()
+        path.rmdir()
+        logger.info("deleted game slot %s", slot_name)
+        return {"client_print": f"deleted the game slot {slot_name}"}
 
     def list_saves(self, *_) -> dict:
         slots: dict = self._game_state.get_game_slots_with_time()
