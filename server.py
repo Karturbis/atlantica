@@ -30,6 +30,7 @@ class Server():
                                         "/save_game": self.save_game,
                                         "/list_saves": self.list_saves,
                                         "/save_to_new_slot": self.save_to_new_slot,
+                                        "/new_slot": self.new_slot,
                                         }
         self._verb_executable: dict = {
                                     "client_print": self.client_print,
@@ -222,6 +223,17 @@ class Server():
         self._game_slot = slot_name
         self.save_game()
         return {"client_print": f"the game was saved to slot {slot_name}"}
+
+    def new_slot(self, player_name, slot_name:str = "", *_) -> dict:
+        if not slot_name:
+            return {"client_print": "you have to specify a slot name"}
+        self._game_slot = slot_name
+        players: dict = self._game_state.get_players()
+        self._game_state = GameState(self._game_slot)
+        for player_name in players:
+            self._game_state.add_player(Player(player_name, "start"))
+        self.save_game()
+        return {"client_print": f"the game slot {slot_name} has been created"}
 
     def list_saves(self, *_) -> dict:
         slots: dict = self._game_state.get_game_slots_with_time()
