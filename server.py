@@ -212,10 +212,11 @@ class Server():
 # Admin executable methods #
 ############################
 
-    def quit_game(self, *_) -> None:
+    def quit_game(self, *_) -> dict:
         """Disconnect from all clients and terminate the
         server program"""
         self._exit_event.set()
+        return {"client_print": "the server will shut down now"}
 
     def save_game(self, *_) -> dict:
         self._game_state.save_game(self._game_slot)
