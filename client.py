@@ -6,6 +6,7 @@ the relevant parts of the Game happen."""
 import socket
 import threading
 import json
+import Cryptodome
 
 # local imports:
 from handler import TerminalHandler

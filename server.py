@@ -3,6 +3,7 @@ import logging
 import json
 import threading
 from pathlib import Path
+import Cryptodome
 
 from handler import Parser
 from game_state import GameState
