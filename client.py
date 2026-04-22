@@ -230,6 +230,10 @@ class Client():
             self._print(f"Failed to connect to the server: {e}")
 
     def set_name(self, new_name:str=None):
+        # TODO: implement new name system with
+        # two files per name, containing the rsa keys
+        # {name}.key for the private key and
+        # {name}.pub for the public key.
         if not new_name:
             self.help("set_name")
             return
