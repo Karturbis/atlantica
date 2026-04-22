@@ -52,3 +52,6 @@ The server handles the clients, as well as the game state. The server uses multi
     - handle [second](#second-stage) and [third stage](#third-stage) of the [parser](#the-parser)
     - execute the commands and send replies to the user
 
+## Connection Diagram
+This is a sequence diagram of the connection between the client and the server:
+![atlantica sequence diagram](./sequencediagram.svg)

@@ -1,0 +1,28 @@
+# the atlantica server-client connection
+# sequence diagram source code
+# render using https://sequencediagram.org/
+
+title Atlantica
+
+participant Client
+participant Server
+
+
+
+Client->>Server:Connection request
+Client<<--Server:Connection accept
+Client<<-Server: encryption request
+Client-->>Server:name, pub_key(rsa)
+
+box left of Server:Check if name is\nalready connected
+
+alt name is already connected
+Client<<-Server:fail: this client already connected
+box over Client,Server:Exit
+end
+
+box left of Server:Generate random\nsession key
+Client<<-Server:encrypted session key
+
+==end handshake==
+abox over Client,Server:ChaCha20-Poly1305\nencrypted communication
