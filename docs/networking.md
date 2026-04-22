@@ -6,6 +6,22 @@ localhost.
 - Data is send over the network using utf-8 encode json strings. These strings encode lists.
 - List element 0 is a command, the other elements are arguments.
 
+## Encrytion
+The traffic is encrypted with ChaCha20-Poly1305 symmetric enryption.
+The shared secret is created by the server and send to the
+client, encrypted with the clients public key.
+
+## Authentification
+When connecting to the server the user sends its name and public key. The first
+time the user connects the public key is saved on the server side. When the client
+connects the next time the server checks if the public key matches with the saved
+public key. Because the AES secret is send to the client encrypted with the public
+key, it is not possible to steal the client name.
+
+This way it is possible to choose any username, which is not already taken
+and users can reconnect with their name, while no one else is abled to steel
+a users name. Additionaly users do not have to use passwords.
+
 ## The client
 The client handles the first stage of [The Parser](#the-parser).
 Then the client replaces all known aliases, with their values.
