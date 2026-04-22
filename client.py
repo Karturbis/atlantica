@@ -39,8 +39,30 @@ class Client():
         # set localhost as standard server:
         self._server_ip: str = "127.0.0.1"
         self._server_port: int = 27300
+        # encryption variables:
+        self._session_key: str = None
+        self._private_key: str = self._load_private_key()
+        self._public_key: str = self._load_public_key()
         self._is_connected_to_server: bool = False
         self._running: bool = True
+
+    # private methods:
+    def _load_private_key(self) -> str:
+        raise NotImplementedError
+
+    def _load_public_key(self) -> str:
+        raise NotImplementedError
+
+    def _rsa_decrypt(self, cipher) -> str:
+        raise NotImplementedError
+
+    def _chacha20_encrypt(self, message) -> str:
+        raise NotImplementedError
+
+    def _chacha20_decrypt(self, cipher) -> str:
+        raise NotImplementedError
+
+    # public methods:
 
     def execute_client_side_command(self, command_stage_one:list):
         if command_stage_one[0] in self._user_side_methods:
@@ -159,24 +181,26 @@ class Client():
 
     def send(self, data: list) -> None:
         """Sending data to the server"""
-        self._active_socket.sendall(json.dumps(data).encode("utf-8"))
+        data_enc = self._chacha20_encrypt(json.dumps(data))
+        self._active_socket.sendall(data_enc.encode("utf-8"))
 
     def receive(self) -> list:
         "receives data from the server"
         incoming: str = self._active_socket.recv(2048)
         if not incoming:  # the server has disconnected
             return None
-        return json.loads(incoming)
+        data = self._chacha20_decrypt(incoming)
+        return json.loads(data)
 
 ############################
 # user executable methods: #
 ############################
 
-    def connect_to_server(self, ip: str = None, port: str = None):
-        if not ip:
-            ip = self._server_ip
+    def connect_to_server(self, server: str = None, port: str = None):
+        if not server:
+            server = self._server_ip
         else:
-            self._server_ip = ip
+            self._server_ip = server
         if not port:
             port = self._server_port
         else:
@@ -188,10 +212,20 @@ class Client():
                     )
         try:
             # connect to the server:
-            self._active_socket.connect((ip, port))
-            self._is_connected_to_server = True
-            self.send([self._name])
-            self.main_online()
+            self._active_socket.connect((server, port))
+            self._active_socket.sendall(json.dumps([self._name, self._public_key]).encode("utf-8"))
+            answer = self._active_socket.recv(2048)
+            if not answer:
+                self._print(f"Failed to connect to server: connection dropped")
+                return
+            if answer[0] == "s_print":
+                self._print("Failed to connect to server:")
+                self._print(answer[1])
+                return
+            if answer[0] == "session_key":
+                self._session_key = self._rsa_decrypt(answer[1])
+                self._is_connected_to_server = True
+                self.main_online()
         except socket.error as e:
             self._print(f"Failed to connect to the server: {e}")
 
