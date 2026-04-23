@@ -266,14 +266,9 @@ class Client():
             if not answer:
                 self._print(f"Failed to connect to server: connection dropped")
                 return
-            if answer[0] == "s_print":
-                self._print("Failed to connect to server:")
-                self._print(answer[1])
-                return
-            if answer[0] == "session_key":
-                self._session_key = self._rsa_decrypt(answer[1])
-                self._is_connected_to_server = True
-                self.main_online()
+            self._session_key = self._rsa_decrypt(answer)
+            self._is_connected_to_server = True
+            self.main_online()
         except socket.error as e:
             self._print(f"Failed to connect to the server: {e}")
 
