@@ -228,30 +228,9 @@ class Server():
 
     def threaded_client(self, connection) -> None:
         """Game loop for each client"""
-        self.client_print("Connecting to server ...", connection = connection)
-        # receive a message, which is a list containing only the client name.
-        client_name: str = self.receive_message(connection)[0]
-        logger.info("Client %s is connecting", client_name)
-        # prevent racing conditions when writing to a class variable:
-        with self._clients_lock:
-            if client_name in self._clients:
-                self.client_print(
-                    f"The user {client_name} is already connected.",
-                    connection = connection
-                )
-                logger.warning("Client %s is already connected.", client_name)
-                # quitting the thread:
-                connection.close()
-                return None
-            self._clients[client_name] = connection
-        if not self._game_state.get_player_by_name(client_name):
-            # creating the player object for the new player:
-            player = Player(client_name, "start")
-            self._game_state.add_player(player)
-            logger.info("Created new Player for %s", client_name)
-        else:
-            self._game_state.load_player(client_name, self._game_slot)
-            logger.info("Loaded existing Player object %s", client_name)
+        client_name = self.client_handshake(connection)
+        if client_name == "":
+            return None  # handshake failed, thread dies
         logger.info("Client %s connected successfully", client_name)
         self.broadcast_print(f"{client_name} joined the game", client_name)
         self.client_print("Successfully connected to server", client_name)
