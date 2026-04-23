@@ -10,3 +10,6 @@ logs/*
 
 # not pushing game state saves:
 saves/*
+
+# not pushing the users identities:
+user_data/identities/*
