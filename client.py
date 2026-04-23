@@ -261,7 +261,7 @@ class Client():
         try:
             # connect to the server:
             self._active_socket.connect((server, port))
-            self._active_socket.sendall(json.dumps([self._name, self._public_key]).encode("utf-8"))
+            self._active_socket.sendall(self._public_key)
             answer = self._active_socket.recv(2048)
             if not answer:
                 self._print(f"Failed to connect to server: connection dropped")
