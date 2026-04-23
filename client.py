@@ -35,7 +35,8 @@ class Client():
                                         "help": self.help,
                                         # executable by the server:
                                         # all server executable methods start with s_
-                                        "s_print": self._print
+                                        "s_print": self._print,
+                                        "s_auth": self.s_auth
                                         }
         with open("game_data/help.json", "r", encoding="utf-8") as reader:
             self._help_dict: dict = json.loads(reader.read())
@@ -320,6 +321,12 @@ class Client():
             except KeyError:
                 self._print(f"There is no help entry for {func_name}")
 
+###############################
+# server executeable methods: #
+###############################
+
+    def s_auth(self):
+        self.send(["auth_response", self._name])
 
 if __name__ == "__main__":
     client = Client()
