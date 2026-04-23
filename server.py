@@ -197,35 +197,33 @@ class Server():
         to_send = self.encrypt_chacha20(json.dumps(data), session_key)
         connection.sendall(to_send)
 
-    def client_print(self, message:str, **kwargs) -> None:
+    def client_print(self, message:str, client_name:str) -> None:
         """Send the given message to the client."""
-        connection = kwargs["connection"]
-        self.send_data(connection, ["s_print", message])
+        self.send_data(client_name, ["s_print", message])
 
-    def broadcast_print(self, message:str, **kwargs) -> None:
+    def broadcast_print(self, message:str, client_name:str=None) -> None:
         """Sends the given message to all connected clients."""
-        client_connection = kwargs.get("connection")
+        client_connection = self._clients[client_name]["connection"]
         logger.info("Sending broadcast message: %s", message)
         with self._clients_lock:
-            for connection in self._clients.values():
-                if not connection == client_connection:
-                    self.client_print(message, connection = connection)
+            for player_name in self._clients:
+                if not player_name == client_name:
+                    self.client_print(message, player_name)
 
-    def room_print(self, message:str, **kwargs) -> None:
+    def room_print(self, message:str, client_name:str) -> None:
         """Sends the given message to all clients, that
         are in the room"""
-        client_connection = kwargs["connection"]
-        room_id = kwargs["room_id"]
-        sender_name = kwargs["sender_name"]
+        client_connection = self._clients[client_name]["connection"]
+        room_id: str = self._game_state.get_player_by_name(client_name).get_position()
         logger.info(
                     "Sending room broadcast: %s%s in room %s",
                     message, sender_name, room_id
                     )
         player_names: list[str] = self._game_state.get_room_by_id(room_id).get_players()
         with self._clients_lock:
-            for player_name, connection in self._clients.items():
+            for player_name in self._clients:
                 if player_name in player_names:
-                    if not connection == client_connection:
+                    if not player_name == client_name:
                         self.client_print(f"{sender_name} {message}", connection = connection)
 
     def threaded_client(self, connection) -> None:
@@ -255,15 +253,11 @@ class Server():
             self._game_state.load_player(client_name, self._game_slot)
             logger.info("Loaded existing Player object %s", client_name)
         logger.info("Client %s connected successfully", client_name)
-        self.broadcast_print(f"{client_name} joined the game", connection = connection)
-        self.client_print("Successfully connected to server", connection = connection)
-        self.room_print(
-                "spawned in the room", connection = connection,
-                room_id = self._game_state.get_player_by_name(client_name).get_position(),
-                sender_name = client_name
-                )
+        self.broadcast_print(f"{client_name} joined the game", client_name)
+        self.client_print("Successfully connected to server", client_name)
+        self.room_print("spawned in the room", client_name)
         while True:
-            command: list = self.receive_message(connection)
+            command: list = self.receive_message(client_name)
             if not command:  # client disconnected
                 with self._clients_lock:
                     self._clients.pop(client_name)
@@ -279,9 +273,8 @@ class Server():
                 result: dict = self.execute_command(command, client_name)
             for method, message in result.items():
                 self._verb_executable[method](
-                    message, connection=connection,
-                    room_id = self._game_state.get_player_by_name(client_name).get_position(),
-                    sender_name = client_name
+                    message,
+                    client_name
                     )
         connection.close()
         return None
