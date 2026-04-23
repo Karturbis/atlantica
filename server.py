@@ -182,10 +182,13 @@ class Server():
 
     def receive_message(self, client_name:str) -> list:
         """Return the incoming message as a list"""
+        session_key = self._clients[client_name]["session_key"]
+        connection = self._clients[client_name]["connection"]
         incoming: str = connection.recv(2048)
         if not incoming:  # the client has disconnected
             return None
-        return json.loads(incoming)
+        decrypted = self.decrypt_chacha20(incoming, session_key)
+        return json.loads(decrypted)
 
     def send_data(self, connection, data:list) -> None:
         """Send the given data to the client."""
