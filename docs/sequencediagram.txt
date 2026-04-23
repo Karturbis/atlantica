@@ -9,20 +9,27 @@ participant Server
 
 
 
-Client->>Server:Connection request
-Client<<--Server:Connection accept
-Client<<-Server: encryption request
-Client-->>Server:name, pub_key(rsa)
+Client->>Server:TCP Connection request
+Client<<--Server:TCP Connection accept
+Client->>Server:encryption request [pub_key]
+box left of Server:Generate random\nsession key
+Client<<--Server:encrypted session key
+
+==end encryption handshake==
+abox over Client,Server:ChaCha20-Poly1305\nencrypted from here on
+
+Client<<-Server:Authentification request
+Client-->>Server:client name
 
 box left of Server:Check if name is\nalready connected
-
 alt name is already connected
 Client<<-Server:fail: this client already connected
 box over Client,Server:Exit
+else name is not signed with right public key
+Client<<-Server:fail: authentification failed
 end
 
-box left of Server:Generate random\nsession key
-Client<<-Server:encrypted session key
+==End authentifiction==
 
-==end handshake==
-abox over Client,Server:ChaCha20-Poly1305\nencrypted communication
+
+abox over Client,Server:Game communictation
