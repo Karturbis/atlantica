@@ -224,7 +224,7 @@ class Server():
             for player_name in self._clients:
                 if player_name in player_names:
                     if not player_name == client_name:
-                        self.client_print(f"{sender_name} {message}", connection = connection)
+                        self.client_print(f"{client_name} {message}", player_name)
 
     def threaded_client(self, connection) -> None:
         """Game loop for each client"""
