@@ -6,7 +6,12 @@ the relevant parts of the Game happen."""
 import socket
 import threading
 import json
-import Cryptodome
+from pathlib import Path
+from base64 import b64encode
+from base64 import b64decode
+from Cryptodome.PublicKey import RSA
+from Cryptodome.Cipher import PKCS1_OAEP
+from Cryptodome.Cipher import ChaCha20_Poly1305
 
 # local imports:
 from handler import TerminalHandler
@@ -41,26 +46,68 @@ class Client():
         self._server_port: int = 27300
         # encryption variables:
         self._session_key: str = None
-        self._private_key: str = self._load_private_key()
+        self._private_key: RSA.RsaKey = self._load_private_key()
         self._public_key: str = self._load_public_key()
         self._is_connected_to_server: bool = False
         self._running: bool = True
 
     # private methods:
-    def _load_private_key(self) -> str:
-        raise NotImplementedError
+
+    def _create_rsa_identity(self) -> RSA.RsaKey:
+        return RSA.generate(2048)
+
+    def _create_identity(self) -> None:
+        identity_path = Path(f"user_data/identities/{self._name}.pub")
+        public_key_path = Path(f"user_data/identities/{self._name}.pub")
+        private_key_path = Path(f"user_data/identities/{self._name}.key")
+        key_pair = self._create_rsa_identity()
+        with open(identity_path, "wb") as pub_writer:
+            pub_writer.write(key_pair.public_key().export_key())
+        with open(private_key_path, "wb") as priv_writer:
+            priv_writer.write(key_pair.export_key())
+
+    def _load_private_key(self) -> RSA.RsaKey:
+        priv_key_path = Path(f"user_data/identities/{self._name}.key")
+        if priv_key_path.exists():
+            with open(priv_key_path, "rb") as reader:
+                return RSA.import_key(reader.read())
+        self._create_identity()
+        return self._load_private_key()
 
     def _load_public_key(self) -> str:
-        raise NotImplementedError
+        pub_key_path = Path(f"user_data/identities/{self._name}.pub")
+        if pub_key_path.exists():
+            with open(pub_key_path, "rb") as reader:
+                return reader.read()
+        self._create_identity()
+        return self._load_public_key()
 
-    def _rsa_decrypt(self, cipher) -> str:
-        raise NotImplementedError
+    def _rsa_decrypt(self, cipher_text:str) -> str:
+        cipher = PKCS1_OAEP.new(self._private_key)
+        return cipher.decrypt(cipher_text)
 
-    def _chacha20_encrypt(self, message) -> str:
-        raise NotImplementedError
+    def _chacha20_encrypt(self, message:str) -> str:
+        data = message.encode("utf-8")
+        key = self._session_key
+        cipher = ChaCha20_Poly1305.new(key=key)
+        cipher_text = b64encode(cipher.encrypt(data)).decode("utf-8")
+        tag = b64encode(cipher.digest()).decode("utf-8")
+        nonce = b64encode(cipher.nonce).decode("utf-8")
+        encrypted_str = json.dumps([nonce, cipher_text, tag])
+        return encrypted_str
 
-    def _chacha20_decrypt(self, cipher) -> str:
-        raise NotImplementedError
+    def _chacha20_decrypt(self, cipher_text:str) -> str:
+        key = self._session_key
+        encrypted: list = json.loads(cipher_text)
+        nonce: str = b64decode(encrypted[0].encode("utf-8"))
+        cipher_text: str = b64decode(encrypted[1].encode("utf-8"))
+        tag: str = b64decode(encrypted[2].encode("utf-8"))
+        cipher = ChaCha20_Poly1305.new(key=key, nonce=nonce)
+        try:
+            return cipher.decrypt_and_verify(cipher_text, tag)
+        except ValueError:
+            self._print("Warning: Failed to decrypt message from server")
+            return
 
     # public methods:
 

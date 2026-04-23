@@ -3,7 +3,12 @@ import logging
 import json
 import threading
 from pathlib import Path
-import Cryptodome
+from Cryptodome.Random import get_random_bytes
+from Cryptodome.Cipher import PKCS1_OAEP
+from Cryptodome.Cipher import ChaCha20_Poly1305
+from Cryptodome.PublicKey import RSA
+from base64 import b64encode
+from base64 import b64decode
 
 # local imports:
 from handler import Parser
@@ -102,7 +107,80 @@ class Server():
         logger.debug(f"result from verb execution: {result}")
         return result
 
-    def receive_message(self, connection) -> list:
+    # encryption:
+
+    def encrypt_rsa(self, data, key_str) -> bytes:
+        key = RSA.importKey(key_str)
+        cipher = PKCS1_OAEP.new(key)
+        return cipher.encrypt(data)
+
+    def encrypt_chacha20(self, data:str, key) -> bytes:
+        data = data.encode("utf-8")
+        cipher = ChaCha20_Poly1305.new(key=key)
+        cipher_text = b64encode(cipher.encrypt(data)).decode("utf-8")
+        tag = b64encode(cipher.digest()).decode("utf-8")
+        nonce = b64encode(cipher.nonce).decode("utf-8")
+        encrypted_str = json.dumps([nonce, cipher_text, tag])
+        encrypted_bytes = encrypted_str.encode("utf-8")
+        return encrypted_bytes
+
+    def decrypt_chacha20(self, data:str, key) -> str:
+        encrypted: list = json.loads(data)
+        nonce: str = b64decode(encrypted[0].encode("utf-8"))
+        cipher_text: str = b64decode(encrypted[1].encode("utf-8"))
+        tag: str = b64decode(encrypted[2].encode("utf-8"))
+        cipher = ChaCha20_Poly1305.new(key=key, nonce=nonce)
+        try:
+            return cipher.decrypt_and_verify(cipher_text, tag)
+        except ValueError:
+            logger.warning("Failed to decrypt message")
+            return
+
+    def client_handshake(self, connection) -> str:
+        # encryption handshake:
+        client_pub_key = connection.recv(2048)
+        session_key = get_random_bytes(32)  # ChaCha20 key has to be 32 bytes long
+        encrypted_session_key = self.encrypt_rsa(session_key, client_pub_key)
+        connection.sendall(encrypted_session_key)
+        # authentification:
+        auth_request = self.encrypt_chacha20(json.dumps(["s_auth"]), session_key)
+        connection.sendall(auth_request)
+        response = self.decrypt_chacha20(connection.recv(2048), session_key)
+        if not response:
+            logger.warning("The client did not respond to the authentification request")
+            return ""
+        response = json.loads(response)
+        if not response[0] == "auth_response":
+            logger.warning("The client did no respond as aspected to the authentification request")
+            logger.info("The clients response was: %s", reponse)
+            return ""
+        client_name = response[1]
+        if not self._game_state.get_player_by_name(client_name):
+            # creating the player object for the new player:
+            player = Player(client_name, client_pub_key, "start")
+            self._game_state.add_player(player)
+            logger.info("Created new Player for %s", client_name)
+        else:
+            if not client_pub_key == self._game_state.get_player_by_name(client_name).get_public_key():
+                logger.warning(f"Client {client_name} could not be authenticated.")
+                return ""
+            self._game_state.load_player(client_name, self._game_slot)
+            logger.info("Loaded existing Player object %s", client_name)
+        with self._clients_lock:
+            if not client_name in self._clients:
+                self._clients[client_name] = {"connection": connection, "session_key": session_key}
+                return client_name
+            logger.warning("Client %s is already connected.", client_name)
+            connection.sendall(
+                self.encrypt_chacha20(
+                    json.dumps(
+                        ["s_print", f"Client {client_name} is already connected"]
+                    ), session_key
+                ).encode("utf-8"))
+            connection.close()
+            return ""
+
+    def receive_message(self, client_name:str) -> list:
         """Return the incoming message as a list"""
         incoming: str = connection.recv(2048)
         if not incoming:  # the client has disconnected
