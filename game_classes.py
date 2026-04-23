@@ -127,8 +127,9 @@ class Bow(RangeWeapon):
 
 class Player(VerbHolder):
 
-    def __init__(self, name: str, position: str, inventory: list[str] = None):
+    def __init__(self, name: str, public_key: str, position: str, inventory: list[str] = None):
         super().__init__(name)
+        self._public_key: str = public_key
         if inventory:
             self._inventory: list[str] = inventory
         else:
@@ -186,6 +187,9 @@ class Player(VerbHolder):
         return func(game_state, direct_noun, direct_adjective)
 
     # getter:
+
+    def get_public_key(self) -> str:
+        return self._public_key
 
     def get_position(self) -> str:
         with self._position_lock:
