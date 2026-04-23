@@ -273,15 +273,14 @@ class Client():
             self._print(f"Failed to connect to the server: {e}")
 
     def set_name(self, new_name:str=None):
-        # TODO: implement new name system with
-        # two files per name, containing the rsa keys
-        # {name}.key for the private key and
-        # {name}.pub for the public key.
         if not new_name:
             self.help("set_name")
             return
         self._name = new_name
-        self.dump_string("user_data/name", new_name)
+        identity_path = Path(f"user_data/identities/{self._name}.pub")
+        if not identity_path.exists():
+            self._create_identity()
+        self.dump_string("user_data/name", self._name)
         self._print(f"Changed name to {self._name}")
 
     def clear(self):
