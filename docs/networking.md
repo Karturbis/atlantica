@@ -3,8 +3,10 @@ Atlantica uses a client server model independent of the mode, for single player 
 server does not have to open any ports on a network, it can just open the ports to the
 localhost.
 
-- Data is send over the network using utf-8 encode json strings. These strings encode lists.
-- List element 0 is a command, the other elements are arguments.
+- data after the handshake is send over the network using utf-8 encode json strings. These strings encode lists.
+- List element 0 is the nonce, element 1 is the cipher text and element 2 is the tag to verify integrety
+- the cyphertext is a ChaCha20-Poly1305 encrypted json string containing a list
+- the encrypted list has a command as element 0. The other elements are arguments for the command
 
 ## Encrytion
 The traffic is encrypted with ChaCha20-Poly1305 symmetric enryption.
