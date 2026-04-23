@@ -216,8 +216,8 @@ class Server():
         client_connection = self._clients[client_name]["connection"]
         room_id: str = self._game_state.get_player_by_name(client_name).get_position()
         logger.info(
-                    "Sending room broadcast: %s%s in room %s",
-                    message, sender_name, room_id
+                    "Sending broadcast to room %s: %s %s",
+                    room_id, client_name, message
                     )
         player_names: list[str] = self._game_state.get_room_by_id(room_id).get_players()
         with self._clients_lock:
