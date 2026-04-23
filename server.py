@@ -190,9 +190,12 @@ class Server():
         decrypted = self.decrypt_chacha20(incoming, session_key)
         return json.loads(decrypted)
 
-    def send_data(self, connection, data:list) -> None:
+    def send_data(self, client_name, data:list) -> None:
         """Send the given data to the client."""
-        connection.sendall(json.dumps(data).encode("utf-8"))
+        session_key = self._clients[client_name]["session_key"]
+        connection = self._clients[client_name]["connection"]
+        to_send = self.encrypt_chacha20(json.dumps(data), session_key)
+        connection.sendall(to_send)
 
     def client_print(self, message:str, **kwargs) -> None:
         """Send the given message to the client."""
