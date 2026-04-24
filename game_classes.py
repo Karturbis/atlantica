@@ -188,7 +188,7 @@ class Player(VerbHolder):
 
     # getter:
 
-    def get_public_key(self) -> str:
+    def get_public_key(self) -> bytes:
         return self._public_key
 
     def get_position(self) -> str:

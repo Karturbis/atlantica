@@ -4,6 +4,9 @@ import logging
 from time import strftime, localtime
 from pathlib import Path
 from shutil import copyfile
+from base64 import b64encode
+from base64 import b64decode
+
 
 # local imports:
 import game_classes as gc
@@ -81,8 +84,11 @@ class GameState():
         with open(f"saves/{game_slot}/players.json", "r", encoding="utf-8") as reader:
             players_raw = json.loads(reader.read())
         players: dict = {}
+        position = "offline"
         for name, player_data in players_raw.items():
-            players[name] = gc.Player(name, "offline", player_data["inventory"])
+            public_key = b64decode(player_data["public_key"].encode("utf-8"))
+            inventory = player_data["inventory"]
+            players[name] = gc.Player(name, public_key, position, inventory)
         return players
 
     def is_game_slot_usable(self, game_slot) -> bool:
@@ -178,13 +184,14 @@ class GameState():
 
     def save_players(self, game_slot):
         player_data: dict = {  # structure:
-                            # player_name: {"position": position, "inventory:" inventory}
+                             # player_name: {"position": position, "inventory": inventory, "public_key": public_key}
                             }
         with self._players_lock:
             for name, player in self._players.items():
                 if not player.get_position() == "offline":
                     player_data[name] = {"position": player.get_position(),
-                                        "inventory": player.get_inventory()
+                                         "inventory": player.get_inventory(),
+                                         "public_key": b64encode(player.get_public_key()).decode("utf-8"),
                                         }
         # write the saved data to the save file
         with open(f"saves/{game_slot}/players.json", "w", encoding="utf-8") as writer:
